@@ -34,6 +34,7 @@ AuthError
 RateLimitError
 TimeoutError
 check_response
+rate_limit_message
 ENTSOE.parse_retry_after
 ```
 
@@ -75,6 +76,7 @@ Base.show(::IO, ::MIME"text/plain", ::T) where T <: OpenAPI.APIModel
 ENTSOEClient
 entsoe_apis
 entsoe_period
+is_uuid_token
 ENTSOE_BASE_URL
 ```
 
@@ -114,6 +116,8 @@ ENTSOE.code_for
 parse_timeseries
 parse_timeseries_per_psr
 parse_installed_capacity
+parse_unavailability
+parse_master_data
 parse_acknowledgement
 check_acknowledgement
 ENTSOEAcknowledgement
@@ -169,21 +173,77 @@ Parsed
 Raw
 ```
 
-### Wrappers
+### Wrappers — Market
 
 ```@docs
 day_ahead_prices
+```
+
+### Wrappers — Load (Load 6.1.A–E)
+
+```@docs
 actual_total_load
 day_ahead_load_forecast
 week_ahead_load_forecast
 month_ahead_load_forecast
 year_ahead_load_forecast
+```
+
+### Wrappers — Generation (14.1.x, 16.1.x)
+
+```@docs
 installed_capacity_per_production_type
 generation_forecast_day_ahead
 wind_solar_forecast
 actual_generation_per_production_type
-cross_border_physical_flows
+water_reservoirs_and_hydro_storage_plants
 ```
+
+### Wrappers — Transmission (11.1.A, 12.1.F/G, 13.1.A–C)
+
+```@docs
+cross_border_physical_flows
+commercial_schedules
+commercial_schedules_net_positions
+forecasted_transfer_capacities
+redispatching_internal
+redispatching_cross_border
+countertrading
+costs_of_congestion_management
+```
+
+### Wrappers — Balancing (1.2.3.A/E, 17.1.B/C/F/G/H)
+
+Most balancing endpoints return `application/zip`; the wrappers unzip
+transparently and route each member through `parse_timeseries`.
+
+```@docs
+current_balancing_state
+aggregated_balancing_energy_bids
+imbalance_prices
+total_imbalance_volumes
+procured_balancing_capacity
+```
+
+### Wrappers — Outages (7.1.A/B, 10.1.A/B, 15.1.A–D)
+
+All four return [`Unavailability_MarketDocument`](@ref parse_unavailability),
+parsed into one row per outage event.
+
+```@docs
+unavailability_of_generation_units
+unavailability_of_production_units
+unavailability_of_transmission_infrastructure
+aggregated_unavailability_of_consumption_units
+```
+
+### Wrappers — Master data
+
+```@docs
+production_and_generation_units
+```
+
+### Wrappers — OMI (paginated)
 
 The OMI endpoint paginates server-side; our wrapper handles the
 offset loop:

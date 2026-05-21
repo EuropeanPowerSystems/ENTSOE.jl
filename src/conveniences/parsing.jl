@@ -13,6 +13,7 @@
 using EzXML: EzXML, parsexml, root, elements, nodename, nodecontent
 using Dates: Dates, DateTime, Minute
 using StructArrays: StructArray, StructArrays
+using ZipFile: ZipFile
 
 # ---------------------------------------------------------------------------
 # Internal helpers — DOM walking with namespace-agnostic name matching.
@@ -54,6 +55,21 @@ end
 # ENTSO-E ISO timestamps look like `2024-09-01T22:00Z`. Drop the trailing
 # `Z` (`DateTime` is naive, parsed values are always interpreted as UTC).
 _parse_entsoe_datetime(s::AbstractString) = DateTime(s[1:min(end, 16)])
+
+# A `<Point>` carries its numeric value in one of several differently-named
+# child elements: `<quantity>` (load/generation/flows/capacity/balancing
+# volumes), `<price.amount>` (Market 12.1.D), `<congestionCost_Price.amount>`
+# (Transmission 13.1.C), `<imbalancePrice_Price.amount>` (Balancing 17.1.G),
+# etc. Rather than enumerating every variant, pick the first child whose
+# name is exactly `quantity` or ends in `.amount`. Returns `nothing` if no
+# such child exists.
+function _point_value_node(pt::EzXML.Node)
+    for c in elements(pt)
+        n = nodename(c)
+        (n == "quantity" || endswith(n, ".amount")) && return c
+    end
+    return nothing
+end
 
 # ---------------------------------------------------------------------------
 # Public parsers
@@ -117,11 +133,7 @@ function parse_timeseries(xml::AbstractString)
             pos_node = _first_named(pt, "position")
             pos_node === nothing && continue
             pos = parse(Int, nodecontent(pos_node))
-            vnode = something(
-                _first_named(pt, "quantity"),
-                _first_named(pt, "price.amount"),
-                Some(nothing)
-            )
+            vnode = _point_value_node(pt)
             vnode === nothing && continue
             push!(times, start + Minute((pos - 1) * stride))
             push!(values, parse(Float64, nodecontent(vnode)))
@@ -182,11 +194,7 @@ function parse_timeseries_per_psr(xml::AbstractString)
                 pos_node = _first_named(pt, "position")
                 pos_node === nothing && continue
                 pos = parse(Int, nodecontent(pos_node))
-                vnode = something(
-                    _first_named(pt, "quantity"),
-                    _first_named(pt, "price.amount"),
-                    Some(nothing)
-                )
+                vnode = _point_value_node(pt)
                 vnode === nothing && continue
                 push!(times, start + Minute((pos - 1) * stride))
                 push!(psr_types, psr)
@@ -243,6 +251,277 @@ function parse_installed_capacity(xml::AbstractString)
         end
     end
     return StructArray((psr_type = psr_types, capacity_mw = caps))
+end
+
+# ---------------------------------------------------------------------------
+# Unavailability_MarketDocument — outage notifications.
+#
+# Used by Outages 15.1.A/B (generation units), 15.1.C/D (production units),
+# 10.1.A/B (transmission infrastructure), and 7.1.A/B (aggregated consumption
+# units). All variants share the same per-TimeSeries metadata shape; we
+# extract the one-row-per-outage summary that most users want and leave the
+# per-15-minute curtailment curve to callers who reach for `Raw()`.
+
+_first_text(el::EzXML.Node, name::AbstractString) =
+let n = _first_named(el, name)
+    n === nothing ? "" : strip(nodecontent(n))
+end
+
+# Outage time bounds can be expressed two ways: as separate
+# `start_DateAndOrTime.{date,time}` siblings on the TimeSeries, or as a
+# `timeInterval/start` nested under an `Available_Period`. Try both;
+# return `nothing` if neither yields a parseable datetime.
+function _outage_datetime(ts::EzXML.Node, which::Symbol)
+    @assert which in (:start, :stop)
+    date_field = which === :start ? "start_DateAndOrTime.date" : "end_DateAndOrTime.date"
+    time_field = which === :start ? "start_DateAndOrTime.time" : "end_DateAndOrTime.time"
+
+    date = _first_text(ts, date_field)
+    if !isempty(date)
+        time = _first_text(ts, time_field)
+        # Time often ends `Z`; `_parse_entsoe_datetime` already strips it.
+        return _parse_entsoe_datetime(
+            isempty(time) ?
+                date * "T00:00:00" : "$(date)T$(time)"
+        )
+    end
+
+    # Fall back to the Available_Period timeInterval.
+    ap = _first_named(ts, "Available_Period")
+    ap === nothing && return nothing
+    ti = _first_named(ap, "timeInterval")
+    ti === nothing && return nothing
+    boundary_field = which === :start ? "start" : "end"
+    boundary = _first_text(ti, boundary_field)
+    return isempty(boundary) ? nothing : _parse_entsoe_datetime(boundary)
+end
+
+# ENTSO-E's Unavailability documents express the production-unit metadata
+# in TWO different forms across endpoints:
+#   1. Flat dot-notation siblings on TimeSeries — what real outages
+#      data returns (e.g. `<production_RegisteredResource.name>X</...>`).
+#   2. Nested `<production_RegisteredResource><name>X</name>...</>` —
+#      what some test fixtures use.
+# Try the nested form first (cheaper), fall back to the flat form.
+function _resource_field(ts::EzXML.Node, tail::AbstractString, nested_path::Vector{String})
+    # Nested form: walk the path.
+    nested = ts
+    for hop in nested_path
+        nested = _first_named(nested, hop)
+        nested === nothing && break
+    end
+    nested === nothing || return strip(nodecontent(nested))
+    # Flat form: `production_RegisteredResource.<tail>` on the TimeSeries.
+    return _first_text(ts, "production_RegisteredResource." * tail)
+end
+
+"""
+    parse_unavailability(xml) -> StructVector{@NamedTuple{
+        start::DateTime, stop::DateTime,
+        business_type::String, resource_name::String,
+        resource_mrid::String, psr_type::String,
+        nominal_mw::Float64}}
+
+Parse an `<Unavailability_MarketDocument>` — the response shape used by
+every Outages endpoint (generation, production, transmission, consumption).
+One row per `<TimeSeries>`; fields:
+
+  - `start` / `stop`    — DateTime UTC bounds of the outage window
+  - `business_type`     — `A53` (planned) or `A54` (unplanned); see
+                          [`BUSINESS_TYPE`](@ref)
+  - `resource_name`     — `"production_RegisteredResource/name"`, or empty
+                          when the document is an aggregated notice
+  - `resource_mrid`     — mRID of the affected resource (or empty)
+  - `psr_type`          — `production_RegisteredResource/pSRType/psrType`
+                          (e.g. `"B16"` Solar, `"B19"` Wind Onshore)
+  - `nominal_mw`        — rated capacity of the unit; `NaN` when absent
+
+The per-15-minute Available_Period curve (i.e. the curtailed-to-MW
+trajectory during the outage) is intentionally not unpacked here — use
+`Raw()` if you need it. For most analyst use cases the one-row summary
+is what you want; Tables.jl row/column access works as usual.
+"""
+function parse_unavailability(xml::AbstractString)
+    starts = DateTime[]
+    stops = DateTime[]
+    business_types = String[]
+    resource_names = String[]
+    resource_mrids = String[]
+    psr_types = String[]
+    nominal_mws = Float64[]
+
+    doc = parsexml(xml)
+    for ts in _named(root(doc), "TimeSeries")
+        s = _outage_datetime(ts, :start)
+        e = _outage_datetime(ts, :stop)
+        (s === nothing || e === nothing) && continue
+
+        bt = _first_text(ts, "businessType")
+
+        # Production-unit metadata — both nested and flat forms.
+        name = _resource_field(ts, "name", ["production_RegisteredResource", "name"])
+        mrid = _resource_field(ts, "mRID", ["production_RegisteredResource", "mRID"])
+        psr = _resource_field(
+            ts, "pSRType.psrType",
+            ["production_RegisteredResource", "pSRType", "psrType"],
+        )
+
+        # Nominal rated capacity. Real outages XML uses a much longer
+        # path:  `production_RegisteredResource.pSRType.powerSystemResources.nominalP`.
+        # Test fixtures may use the legacy `nominal_P` sibling.
+        nominal_text = _resource_field(
+            ts, "pSRType.powerSystemResources.nominalP",
+            [
+                "production_RegisteredResource", "pSRType",
+                "powerSystemResources", "nominalP",
+            ],
+        )
+        if isempty(nominal_text)
+            nominal_text = _first_text(ts, "nominal_P")
+        end
+        nominal_mw = isempty(nominal_text) ? NaN : parse(Float64, nominal_text)
+
+        push!(starts, s)
+        push!(stops, e)
+        push!(business_types, bt)
+        push!(resource_names, name)
+        push!(resource_mrids, mrid)
+        push!(psr_types, psr)
+        push!(nominal_mws, nominal_mw)
+    end
+    return StructArray(
+        (
+            start = starts,
+            stop = stops,
+            business_type = business_types,
+            resource_name = resource_names,
+            resource_mrid = resource_mrids,
+            psr_type = psr_types,
+            nominal_mw = nominal_mws,
+        )
+    )
+end
+
+# ---------------------------------------------------------------------------
+# Configuration_MarketDocument — master-data registry for production +
+# generation units. One `<TimeSeries>` per production unit, each with
+# nested `<GeneratingUnit_PowerSystemResources>` children. We flatten to
+# one row per generating unit, carrying the production-unit context as
+# parent fields. Production units with no nested generating units emit a
+# single row with the generating-unit fields blank.
+
+"""
+    parse_master_data(xml) -> StructVector{@NamedTuple{
+        production_unit_mrid::String, production_unit_name::String,
+        generating_unit_mrid::String, generating_unit_name::String,
+        psr_type::String, nominal_mw::Float64,
+        location::String, bidding_zone::String,
+        implementation_date::String}}
+
+Parse a `<Configuration_MarketDocument>` from the master-data endpoint
+(`master_data_production_and_generation_units`). Returns one row per
+*generating* unit, flattened from the per-production-unit grouping in
+the document — fields:
+
+  - `production_unit_mrid` / `production_unit_name` — the parent
+    production unit (TimeSeries-level metadata).
+  - `generating_unit_mrid` / `generating_unit_name` — the leaf
+    generating unit (`<GeneratingUnit_PowerSystemResources>` child).
+    Empty when the production unit has no nested generating units.
+  - `psr_type`               — the generating unit's PSR type (B04
+    Fossil Gas, B14 Nuclear, …); falls back to the production unit's
+    `<MktPSRType/psrType>` when the generating-unit-level field is
+    absent.
+  - `nominal_mw`             — generating-unit rated MW
+    (`<nominalP>`), or the production-unit nominal when missing.
+  - `location`               — `registeredResource.location.name`.
+  - `bidding_zone`           — EIC of the parent bidding zone.
+  - `implementation_date`    — ISO date the resource entered the
+    registry (string, not parsed — many entries use just a year).
+
+Group-by-production-unit aggregations are one `groupby(rows, :production_unit_mrid)`
+away with DataFrames.
+"""
+function parse_master_data(xml::AbstractString)
+    p_unit_mrids = String[]
+    p_unit_names = String[]
+    g_unit_mrids = String[]
+    g_unit_names = String[]
+    psr_types = String[]
+    nominal_mws = Float64[]
+    locations = String[]
+    bidding_zones = String[]
+    impl_dates = String[]
+
+    doc = parsexml(xml)
+    for ts in _named(root(doc), "TimeSeries")
+        p_mrid = _first_text(ts, "registeredResource.mRID")
+        p_name = _first_text(ts, "registeredResource.name")
+        location = _first_text(ts, "registeredResource.location.name")
+        bz = _first_text(ts, "biddingZone_Domain.mRID")
+        impl = _first_text(ts, "implementation_DateAndOrTime.date")
+
+        # Production-unit-level PSR + nominal serve as fallbacks for
+        # generating-unit rows that don't carry their own values.
+        psrwrap = _first_named(ts, "MktPSRType")
+        parent_psr = psrwrap === nothing ? "" :
+            _first_text(psrwrap, "psrType")
+        parent_nominal_text = psrwrap === nothing ? "" :
+            _first_text(psrwrap, "nominalIP_PowerSystemResources.nominalP")
+        parent_nominal = isempty(parent_nominal_text) ? NaN :
+            parse(Float64, parent_nominal_text)
+
+        gu_nodes = psrwrap === nothing ?
+            EzXML.Node[] :
+            _named(psrwrap, "GeneratingUnit_PowerSystemResources")
+
+        if isempty(gu_nodes)
+            # Emit one row with blank generating-unit fields — preserves
+            # the production-unit in the output even if it has no
+            # decomposition.
+            push!(p_unit_mrids, p_mrid)
+            push!(p_unit_names, p_name)
+            push!(g_unit_mrids, "")
+            push!(g_unit_names, "")
+            push!(psr_types, parent_psr)
+            push!(nominal_mws, parent_nominal)
+            push!(locations, location)
+            push!(bidding_zones, bz)
+            push!(impl_dates, impl)
+        else
+            for gu in gu_nodes
+                gu_mrid = _first_text(gu, "mRID")
+                gu_name = _first_text(gu, "name")
+                gu_psr = _first_text(gu, "generatingUnit_PSRType.psrType")
+                gu_nominal_text = _first_text(gu, "nominalP")
+                gu_nominal = isempty(gu_nominal_text) ? parent_nominal :
+                    parse(Float64, gu_nominal_text)
+                gu_location = _first_text(gu, "generatingUnit_Location.name")
+                push!(p_unit_mrids, p_mrid)
+                push!(p_unit_names, p_name)
+                push!(g_unit_mrids, gu_mrid)
+                push!(g_unit_names, gu_name)
+                push!(psr_types, isempty(gu_psr) ? parent_psr : gu_psr)
+                push!(nominal_mws, gu_nominal)
+                push!(locations, isempty(gu_location) ? location : gu_location)
+                push!(bidding_zones, bz)
+                push!(impl_dates, impl)
+            end
+        end
+    end
+    return StructArray(
+        (
+            production_unit_mrid = p_unit_mrids,
+            production_unit_name = p_unit_names,
+            generating_unit_mrid = g_unit_mrids,
+            generating_unit_name = g_unit_names,
+            psr_type = psr_types,
+            nominal_mw = nominal_mws,
+            location = locations,
+            bidding_zone = bidding_zones,
+            implementation_date = impl_dates,
+        )
+    )
 end
 
 # ---------------------------------------------------------------------------
@@ -359,21 +638,6 @@ Uses the stdlib `ZipFile` (via `Pkg`) — no extra deps. If the bytes
 aren't a valid ZIP, errors propagate from `ZipFile`.
 """
 function unzip_response(zip_bytes::Vector{UInt8})
-    # Lazy-import: `ZipFile.jl` isn't a hard dep of this package; we
-    # ask the user to install it on demand. This keeps `application/xml`
-    # users (the 95% case) from paying the dependency cost.
-    pkgid = Base.identify_package("ZipFile")
-    pkgid === nothing && throw(
-        ArgumentError(
-            "unzip_response needs ZipFile.jl. " *
-                "Run `pkg> add ZipFile` to install."
-        )
-    )
-    ZipFile = Base.require(pkgid)
-    return Base.invokelatest(_unzip_response_impl, ZipFile, zip_bytes)
-end
-
-function _unzip_response_impl(ZipFile, zip_bytes)
     out = Pair{String, Vector{UInt8}}[]
     reader = ZipFile.Reader(IOBuffer(zip_bytes))
     try

@@ -1,5 +1,13 @@
 using OpenAPI: OpenAPI
 
+"""
+    ENTSOE_BASE_URL
+
+The public Transparency Platform API base URL —
+`"https://web-api.tp.entsoe.eu/api"`. Default value for
+[`ENTSOEClient`](@ref)'s `base_url` keyword; override only when
+testing against the IOP environment or a recorded mock server.
+"""
 const ENTSOE_BASE_URL = "https://web-api.tp.entsoe.eu/api"
 
 # BrokenRecord-driven tests construct clients with this literal sentinel so

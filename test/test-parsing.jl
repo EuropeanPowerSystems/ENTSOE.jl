@@ -132,7 +132,7 @@ end
     # synthetic doc through each branch to cover the table.
     function _ts_xml(resolution)
         """
-        <?xml version="1.0"?><GL_MarketDocument xmlns="x">
+        <?xml version="1.0"?><GL_MarketDocument xmlns="urn:x">
           <TimeSeries><Period>
             <timeInterval><start>2024-01-01T00:00Z</start><end>2024-01-02T00:00Z</end></timeInterval>
             <resolution>$resolution</resolution>
@@ -154,11 +154,130 @@ end
     @test_throws ErrorException parse_timeseries(_ts_xml("PT42M"))
 end
 
+@testset "parse_unavailability — aggregated consumption-units shape" begin
+    # Modelled on the real outages71_a_b cassette: bounds split across
+    # start_DateAndOrTime.{date,time} siblings, no production_RegisteredResource,
+    # no nominal_P.
+    xml = """
+    <?xml version="1.0"?><Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <mRID>1</mRID>
+        <businessType>A53</businessType>
+        <start_DateAndOrTime.date>2023-11-30</start_DateAndOrTime.date>
+        <start_DateAndOrTime.time>11:00:00Z</start_DateAndOrTime.time>
+        <end_DateAndOrTime.date>2023-11-30</end_DateAndOrTime.date>
+        <end_DateAndOrTime.time>23:00:00Z</end_DateAndOrTime.time>
+        <Available_Period>
+          <timeInterval>
+            <start>2023-11-30T11:00Z</start><end>2023-11-30T23:00Z</end>
+          </timeInterval>
+          <resolution>PT15M</resolution>
+          <Point><position>1</position><quantity>126</quantity></Point>
+        </Available_Period>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = parse_unavailability(xml)
+    @test length(rows) == 1
+    @test rows[1].start == DateTime("2023-11-30T11:00:00")
+    @test rows[1].stop == DateTime("2023-11-30T23:00:00")
+    @test rows[1].business_type == "A53"
+    @test rows[1].resource_name == ""    # aggregated — no per-unit name
+    @test rows[1].resource_mrid == ""
+    @test rows[1].psr_type == ""
+    @test isnan(rows[1].nominal_mw)
+end
+
+@testset "parse_unavailability — generation-unit shape with resource + nominal" begin
+    # Synthetic, modelled on Outages 15.1.A/B. Production_RegisteredResource
+    # is populated with name + mRID + pSRType, and a nominal_P is given.
+    xml = """
+    <?xml version="1.0"?><Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <mRID>1</mRID>
+        <businessType>A54</businessType>
+        <start_DateAndOrTime.date>2024-01-15</start_DateAndOrTime.date>
+        <start_DateAndOrTime.time>08:00:00Z</start_DateAndOrTime.time>
+        <end_DateAndOrTime.date>2024-01-15</end_DateAndOrTime.date>
+        <end_DateAndOrTime.time>18:00:00Z</end_DateAndOrTime.time>
+        <nominal_P unit="MAW">485.0</nominal_P>
+        <production_RegisteredResource>
+          <mRID codingScheme="A01">22WCOOX6X000064W</mRID>
+          <name>Tihange-3</name>
+          <pSRType><psrType>B14</psrType></pSRType>
+        </production_RegisteredResource>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = parse_unavailability(xml)
+    @test length(rows) == 1
+    @test rows[1].start == DateTime("2024-01-15T08:00:00")
+    @test rows[1].stop == DateTime("2024-01-15T18:00:00")
+    @test rows[1].business_type == "A54"
+    @test rows[1].resource_name == "Tihange-3"
+    @test rows[1].resource_mrid == "22WCOOX6X000064W"
+    @test rows[1].psr_type == "B14"   # Nuclear
+    @test rows[1].nominal_mw == 485.0
+end
+
+@testset "parse_unavailability — empty document returns empty StructVector" begin
+    xml = """<?xml version="1.0"?><Unavailability_MarketDocument xmlns="urn:x"></Unavailability_MarketDocument>"""
+    @test length(parse_unavailability(xml)) == 0
+end
+
+@testset "parse_unavailability — flat dot-notation form (real ENTSO-E shape)" begin
+    # Real outages XML uses sibling elements with dot-flattened names
+    # under TimeSeries, NOT a nested <production_RegisteredResource>
+    # wrapper. The parser must handle this form too.
+    xml = """
+    <?xml version="1.0"?><Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <mRID>1</mRID>
+        <businessType>A53</businessType>
+        <start_DateAndOrTime.date>2023-10-11</start_DateAndOrTime.date>
+        <start_DateAndOrTime.time>15:37:00Z</start_DateAndOrTime.time>
+        <end_DateAndOrTime.date>2024-03-05</end_DateAndOrTime.date>
+        <end_DateAndOrTime.time>08:00:00Z</end_DateAndOrTime.time>
+        <production_RegisteredResource.mRID>22WRODENH000213L</production_RegisteredResource.mRID>
+        <production_RegisteredResource.name>RODENHUIZE 4</production_RegisteredResource.name>
+        <production_RegisteredResource.pSRType.psrType>B01</production_RegisteredResource.pSRType.psrType>
+        <production_RegisteredResource.pSRType.powerSystemResources.nominalP unit="MAW">268.0</production_RegisteredResource.pSRType.powerSystemResources.nominalP>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = parse_unavailability(xml)
+    @test length(rows) == 1
+    @test rows[1].resource_name == "RODENHUIZE 4"
+    @test rows[1].resource_mrid == "22WRODENH000213L"
+    @test rows[1].psr_type == "B01"
+    @test rows[1].nominal_mw == 268.0
+end
+
+@testset "parse_timeseries — picks up <*.amount> fields" begin
+    # Transmission 13.1.C uses <congestionCost_Price.amount> instead of
+    # <quantity> or <price.amount>. The generic `*.amount` matcher should
+    # find it.
+    xml = """
+    <?xml version="1.0"?><MarketDocument xmlns="urn:x">
+      <TimeSeries><Period>
+        <timeInterval><start>2024-09-01T22:00Z</start><end>2024-09-02T22:00Z</end></timeInterval>
+        <resolution>PT60M</resolution>
+        <Point><position>1</position><congestionCost_Price.amount>1074741.41</congestionCost_Price.amount></Point>
+        <Point><position>2</position><congestionCost_Price.amount>43840</congestionCost_Price.amount></Point>
+      </Period></TimeSeries>
+    </MarketDocument>
+    """
+    rows = parse_timeseries(xml)
+    @test length(rows) == 2
+    @test rows[1].value == 1074741.41
+    @test rows[2].value == 43840.0
+end
+
 @testset "parse_timeseries_per_psr — TimeSeries without MktPSRType" begin
     # Some flavours of the document omit `<MktPSRType>`; the parser then
     # tags rows with `psr_type = ""`.
     xml = """
-    <?xml version="1.0"?><GL_MarketDocument xmlns="x">
+    <?xml version="1.0"?><GL_MarketDocument xmlns="urn:x">
       <TimeSeries><Period>
         <timeInterval><start>2024-01-01T00:00Z</start><end>2024-01-01T01:00Z</end></timeInterval>
         <resolution>PT60M</resolution>

@@ -91,6 +91,7 @@ function _query_xml(
         api_call::Function;
         validate::Bool = false,
         eics = (),
+        check_ack::Bool = true,
     )::String
     if validate
         for code in eics
@@ -121,18 +122,59 @@ function _query_xml(
         # don't silently return `nothing`.
         throw(ServerError(Int(raw.status), body))
     end
-    check_acknowledgement(xml)
+    # Skip the acknowledgement check when the caller knows the body may
+    # be binary (e.g. application/zip from balancing endpoints) —
+    # `parsexml` would throw on the ZIP magic bytes. The zip-aware
+    # wrappers run the check per-member after unzipping.
+    check_ack && check_acknowledgement(xml)
     return xml
+end
+
+# Sniff the 4-byte ZIP local-file-header magic. ENTSO-E serves zip
+# bodies on the balancing 17.1.x family and (less consistently) on
+# outages and master-data when there are many notices to deliver.
+_looks_like_zip(s::AbstractString) =
+let cu = codeunits(s)
+    length(cu) >= 4 &&
+        cu[1] == 0x50 && cu[2] == 0x4B &&
+        cu[3] == 0x03 && cu[4] == 0x04
 end
 
 # Internal dispatch on `ResponseFormat`. Two methods, each with a
 # concrete return type — that's what makes the public wrappers
-# type-stable.
+# type-stable. Both transparently unzip `application/zip` bodies:
+# for `Parsed()`, every zip member is parsed individually and the
+# StructVectors `vcat`-ed; for `Raw()`, members are concatenated with a
+# `<!-- next zip member -->` sentinel.
 function _query(api_call::Function, ::Parsed, parser::F; kw...) where {F <: Function}
-    return parser(_query_xml(api_call; kw...))
+    # `check_ack = false` because binary zip bytes break the XML parser
+    # `check_acknowledgement` uses; we re-run the check per-member.
+    xml = _query_xml(api_call; check_ack = false, kw...)
+    if _looks_like_zip(xml)
+        members = unzip_response(Vector{UInt8}(codeunits(xml)))
+        isempty(members) && return parser("")
+        parts = map(members) do (_name, bytes)
+            inner = String(copy(bytes))
+            check_acknowledgement(inner)   # raises if a member is an Ack doc
+            parser(inner)
+        end
+        return reduce(vcat, parts)
+    end
+    check_acknowledgement(xml)
+    return parser(xml)
 end
+
 function _query(api_call::Function, ::Raw, ::F; kw...) where {F <: Function}
-    return _query_xml(api_call; kw...)
+    xml = _query_xml(api_call; check_ack = false, kw...)
+    if _looks_like_zip(xml)
+        members = unzip_response(Vector{UInt8}(codeunits(xml)))
+        return join(
+            (String(copy(b)) for (_n, b) in members),
+            "\n<!-- next zip member -->\n"
+        )
+    end
+    check_acknowledgement(xml)
+    return xml
 end
 
 # ---------------------------------------------------------------------------
@@ -675,6 +717,46 @@ function redispatching_cross_border(
 end
 
 """
+    costs_of_congestion_management(client, area, start, stop[, format])
+      -> StructVector | String
+
+Costs paid by the TSO for congestion-management actions (Transmission
+13.1.C, `documentType=A92`). Single-zone query — both `in_Domain` and
+`out_Domain` are set to `area`. Returns `StructVector{(time, value)}`;
+values are the cost amount per period (units depend on the TSO's
+reporting — typically EUR, sometimes the local currency).
+
+`parse_timeseries` picks the cost amount out of
+`<congestionCost_Price.amount>` automatically (any element ending in
+`.amount` is recognised).
+"""
+costs_of_congestion_management(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = costs_of_congestion_management(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function costs_of_congestion_management(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    ) do
+        transmission131_c_costs_of_congestion_management(
+            apis.transmission, "A92",
+            String(area), String(area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+"""
     countertrading(client, in_area, out_area, start, stop[, format])
       -> StructVector | String
 
@@ -712,6 +794,247 @@ end
 
 # ---------------------------------------------------------------------------
 # Generation — hydro state
+
+# ---------------------------------------------------------------------------
+# Outages — all four endpoints return Unavailability_MarketDocument and
+# share `parse_unavailability` (one row per outage; window + resource +
+# nominal MW + business_type). Each wrapper exposes the most common
+# server-side filters as kwargs; the per-15-minute curtailment curve is
+# accessible by passing `Raw()`.
+
+"""
+    unavailability_of_generation_units(client, area, start, stop[, format];
+                                       business_type=nothing,
+                                       registered_resource=nothing,
+                                       m_r_i_d=nothing, offset=nothing)
+      -> StructVector | String
+
+Outage notices for individual generation units in `area` (Outages
+15.1.A/B, `documentType=A80`). Pass `business_type="A53"` for planned
+outages only, `"A54"` for unplanned. Filter to one unit with
+`registered_resource = "22WCOOX6X000064W"`.
+
+Returns the [`parse_unavailability`](@ref) shape — one row per outage
+notice, with `resource_name`, `psr_type`, `nominal_mw`, and the time
+bounds.
+"""
+unavailability_of_generation_units(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = unavailability_of_generation_units(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function unavailability_of_generation_units(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        business_type::Union{Nothing, AbstractString} = nothing,
+        registered_resource::Union{Nothing, AbstractString} = nothing,
+        m_r_i_d::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_unavailability;
+        validate = validate, eics = (area,),
+    ) do
+        outages151_a_b_unavailability_of_generation_units(
+            apis.outages, "A80", String(area),
+            _to_period(period_start), _to_period(period_end);
+            business_type = business_type === nothing ? nothing : String(business_type),
+            registered_resource = registered_resource === nothing ?
+                nothing : String(registered_resource),
+            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            offset = offset === nothing ? nothing : Int(offset),
+        )
+    end
+end
+
+"""
+    unavailability_of_production_units(client, area, start, stop[, format];
+                                       business_type=nothing,
+                                       registered_resource=nothing,
+                                       m_r_i_d=nothing, offset=nothing)
+      -> StructVector | String
+
+Outage notices for whole production units (Outages 15.1.C/D,
+`documentType=A77`). Same shape as
+[`unavailability_of_generation_units`](@ref) — production units
+aggregate one or more generation units under a single mRID.
+"""
+unavailability_of_production_units(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = unavailability_of_production_units(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function unavailability_of_production_units(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        business_type::Union{Nothing, AbstractString} = nothing,
+        registered_resource::Union{Nothing, AbstractString} = nothing,
+        m_r_i_d::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_unavailability;
+        validate = validate, eics = (area,),
+    ) do
+        outages151_c_d_unavailability_of_production_units(
+            apis.outages, "A77", String(area),
+            _to_period(period_start), _to_period(period_end);
+            business_type = business_type === nothing ? nothing : String(business_type),
+            registered_resource = registered_resource === nothing ?
+                nothing : String(registered_resource),
+            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            offset = offset === nothing ? nothing : Int(offset),
+        )
+    end
+end
+
+"""
+    unavailability_of_transmission_infrastructure(client, in_area, out_area,
+                                                  start, stop[, format];
+                                                  business_type=nothing,
+                                                  m_r_i_d=nothing,
+                                                  offset=nothing)
+      -> StructVector | String
+
+Outage notices for cross-border transmission infrastructure (Outages
+10.1.A/B, `documentType=A78`). Pass `business_type="A53"` for planned
+outages only. Returns `parse_unavailability` rows.
+"""
+unavailability_of_transmission_infrastructure(
+    client::Client,
+    in_area::AbstractString, out_area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = unavailability_of_transmission_infrastructure(
+    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function unavailability_of_transmission_infrastructure(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        business_type::Union{Nothing, AbstractString} = nothing,
+        m_r_i_d::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_unavailability;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        outages101_a_b_unavailability_of_transmission_infrastructure(
+            apis.outages, "A78",
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            business_type = business_type === nothing ? nothing : String(business_type),
+            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            offset = offset === nothing ? nothing : Int(offset),
+        )
+    end
+end
+
+# ---------------------------------------------------------------------------
+# Master data — registry of production + generation units.
+# Different shape from every other endpoint: no period_start/period_end,
+# just a single `implementation_date` snapshot. We accept either a `Date`
+# or a `String` ("YYYY-MM-DD") for the date.
+
+"""
+    production_and_generation_units(client, area[, format];
+        implementation_date::Union{Date,AbstractString} = Date(2017, 1, 1),
+        business_type = "B11",
+        psr_type = nothing) -> StructVector | String
+
+Registry snapshot of production + generation units (Master Data
+`master_data_production_and_generation_units`, `documentType=A95`).
+Unlike every other endpoint this one takes a **single date**, not a
+period window — pass `Date(2024, 1, 1)` to get the registry as it was
+on that day.
+
+`business_type` defaults to `"B11"` (production unit); pass `"B12"` for
+generation unit. `psr_type` filters to one technology (e.g. `"B16"` for
+solar, `"B14"` for nuclear) server-side.
+
+Returns the [`parse_master_data`](@ref) shape: one row per generating
+unit with parent production-unit context, rated MW, location, etc. Pass
+[`Raw()`](@ref) to get the raw `Configuration_MarketDocument` XML.
+"""
+production_and_generation_units(
+    client::Client, area::AbstractString;
+    kwargs...,
+) = production_and_generation_units(client, area, Parsed(); kwargs...)
+
+function production_and_generation_units(
+        client::Client, area::AbstractString,
+        format::ResponseFormat;
+        validate::Bool = false,
+        implementation_date::Union{Date, AbstractString} = Date(2017, 1, 1),
+        business_type::AbstractString = "B11",
+        psr_type::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    impl = implementation_date isa Date ?
+        Dates.format(implementation_date, "yyyy-mm-dd") :
+        String(implementation_date)
+    return _query(
+        format, parse_master_data;
+        validate = validate, eics = (area,),
+    ) do
+        master_data_production_and_generation_units(
+            apis.master_data, "A95", String(business_type),
+            String(area), impl;
+            psr_type = psr_type === nothing ? nothing : String(psr_type),
+        )
+    end
+end
+
+"""
+    aggregated_unavailability_of_consumption_units(client, area, start, stop[, format];
+                                                   business_type=nothing)
+      -> StructVector | String
+
+Aggregated consumption-side unavailability (Outages 7.1.A/B,
+`documentType=A76`). Returns `parse_unavailability` rows — the
+`resource_*` fields are usually empty (the notice is aggregated for the
+bidding zone, not tied to a single facility).
+"""
+aggregated_unavailability_of_consumption_units(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = aggregated_unavailability_of_consumption_units(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function aggregated_unavailability_of_consumption_units(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        business_type::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_unavailability;
+        validate = validate, eics = (area,),
+    ) do
+        outages71_a_b_aggregated_unavailability_of_consumption_units(
+            apis.outages, "A76", String(area),
+            _to_period(period_start), _to_period(period_end);
+            business_type = business_type === nothing ? nothing : String(business_type),
+        )
+    end
+end
 
 """
     water_reservoirs_and_hydro_storage_plants(client, area, start, stop[, format])
@@ -782,6 +1105,124 @@ function current_balancing_state(
             _to_period(period_start), _to_period(period_end),
         )
     end
+end
+
+"""
+    imbalance_prices(client, area, start, stop[, format]; psr_type=nothing)
+      -> StructVector | String
+
+Imbalance prices per imbalance settlement period (Balancing 17.1.G,
+`documentType=A85`). The endpoint returns `application/zip`; the
+wrapper unzips transparently and concatenates the XML members through
+[`parse_timeseries`](@ref). Returns `StructVector{(time, value)}` in
+EUR/MWh.
+
+`psr_type` defaults to `nothing` (no filter); pass `"A04"` for
+generation only.
+"""
+imbalance_prices(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = imbalance_prices(client, area, period_start, period_end, Parsed(); kwargs...)
+
+function imbalance_prices(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        psr_type::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing171_g_imbalance_prices(
+            apis.balancing, "A85", String(area),
+            _to_period(period_start), _to_period(period_end);
+            psr_type = psr_type === nothing ? nothing : String(psr_type),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
+    total_imbalance_volumes(client, area, start, stop[, format]; business_type="A19")
+      -> StructVector | String
+
+Total imbalance volumes per settlement period (Balancing 17.1.H,
+`documentType=A86`). Like [`imbalance_prices`](@ref), the response is
+`application/zip` — unzipped and parsed transparently. Returns
+`StructVector{(time, value)}` in MW.
+
+`business_type` defaults to `"A19"` (Balance energy deviation).
+"""
+total_imbalance_volumes(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = total_imbalance_volumes(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function total_imbalance_volumes(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        business_type::AbstractString = "A19",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing171_h_total_imbalance_volumes(
+            apis.balancing, "A86", String(area),
+            _to_period(period_start), _to_period(period_end);
+            business_type = String(business_type),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
+    procured_balancing_capacity(client, area, period_start[, period_end, format];
+                                process_type="A51",
+                                type_market_agreement_type="A01",
+                                offset=nothing) -> StructVector | String
+
+Procured balancing capacity volumes (Balancing 1.2.3.F,
+`documentType=A15`). The underlying endpoint takes a *single*
+`period_start` and an optional `period_end`; both are accepted here.
+Response is `application/zip` and is unzipped transparently.
+
+`process_type` defaults to `"A51"` (aFRR); pass `"A47"` for mFRR.
+`type_market_agreement_type` defaults to `"A01"` (daily).
+"""
+procured_balancing_capacity(
+    client::Client, area::AbstractString,
+    period_start, period_end = nothing;
+    kwargs...,
+) = procured_balancing_capacity(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function procured_balancing_capacity(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        process_type::AbstractString = "A51",
+        type_market_agreement_type::AbstractString = "A01",
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing123_f_procured_balancing_capacity_gl_eb(
+            apis.balancing, "A15", String(process_type), String(area),
+            _to_period(period_start);
+            period_end = period_end === nothing ? nothing : _to_period(period_end),
+            type_market_agreement_type = String(type_market_agreement_type),
+            offset = offset === nothing ? nothing : Int(offset),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
 end
 
 """

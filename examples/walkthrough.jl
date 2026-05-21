@@ -531,6 +531,155 @@ ct === nothing || (
         note("$(length(ct)) intervals, total $(round(Int, sum(ct.value))) MWh countertraded")
 )
 
+subhead("costs_of_congestion_management — TSO redispatch + countertrade costs")
+costs = try_call("costs_of_congestion_management(BE 2022)") do
+    costs_of_congestion_management(
+        CLIENT, EIC.BE,
+        DateTime("2021-12-31T23:00"), DateTime("2022-12-31T23:00"),
+    )
+end
+if costs !== nothing && !isempty(costs.value)
+    preview(costs; label = "monthly cost samples")
+    note(
+        "$(length(costs)) intervals, total " *
+            "$(round(Int, sum(costs.value))) (currency varies by TSO)"
+    )
+end
+
+# ---------------------------------------------------------------------------
+section("15. Outages — unavailability notices across all four resource families")
+
+# All four use parse_unavailability under the hood — one row per outage
+# event with start/stop, business_type, resource_name, psr_type,
+# nominal_mw. The Postman defaults are picked precisely (specific
+# resources, narrow update windows), so most calls hit Acknowledgements
+# in the smoke cassettes; live traffic gets data far more often.
+
+subhead("unavailability_of_generation_units — per-unit notices (Outages 15.1.A/B)")
+gen_outages = try_call("unavailability_of_generation_units(BE)") do
+    unavailability_of_generation_units(
+        CLIENT, EIC.BE,
+        DateTime("2024-01-01T00:00"), DateTime("2024-02-01T00:00");
+        business_type = "A53",   # planned only
+    )
+end
+if gen_outages !== nothing && !isempty(gen_outages.resource_name)
+    preview(gen_outages; label = "outage notices", n = 2)
+    rated = filter(!isnan, gen_outages.nominal_mw)
+    note(
+        "$(length(gen_outages)) planned outages in BE during Jan 2024" *
+            (
+            isempty(rated) ? "" :
+                "; biggest unit: $(round(Int, maximum(rated))) MW rated"
+        )
+    )
+end
+
+subhead("unavailability_of_production_units — per-station outages (15.1.C/D)")
+prod_outages = try_call("unavailability_of_production_units(BE)") do
+    unavailability_of_production_units(
+        CLIENT, EIC.BE,
+        DateTime("2024-01-01T00:00"), DateTime("2024-02-01T00:00");
+        business_type = "A53",
+    )
+end
+prod_outages === nothing || note("$(length(prod_outages)) planned production-unit outages")
+
+subhead("unavailability_of_transmission_infrastructure — cross-border lines (10.1.A/B)")
+tx_outages = try_call("unavailability_of_transmission_infrastructure(FR←BE)") do
+    unavailability_of_transmission_infrastructure(
+        CLIENT, EIC.FR, EIC.BE,
+        DateTime("2023-12-01T23:00"), DateTime("2023-12-02T23:00"),
+    )
+end
+tx_outages === nothing || note("$(length(tx_outages)) transmission outages on the FR↔BE border")
+
+subhead("aggregated_unavailability_of_consumption_units (7.1.A/B)")
+cons_outages = try_call("aggregated_unavailability_of_consumption_units(DE_LU)") do
+    aggregated_unavailability_of_consumption_units(
+        CLIENT, EIC.DE_LU,
+        DateTime("2023-10-31T23:00"), DateTime("2023-11-30T23:00"),
+    )
+end
+if cons_outages !== nothing && !isempty(cons_outages.business_type)
+    note("$(length(cons_outages)) aggregated consumption-side notices for DE_LU in Nov 2023")
+end
+
+# ---------------------------------------------------------------------------
+section("16. Master data — production + generation unit registry")
+
+subhead("production_and_generation_units(BE, B11 production units)")
+units = try_call("production_and_generation_units(BE)") do
+    production_and_generation_units(
+        CLIENT, EIC.BE;
+        implementation_date = Date(2017, 1, 1),
+        business_type = "B11",
+        psr_type = "B04",  # Fossil Gas only — keeps the response small
+    )
+end
+if units !== nothing && !isempty(units.production_unit_mrid)
+    preview(units; label = "generating units", n = 3)
+    n_prod = length(unique(units.production_unit_mrid))
+    n_gen = length(units)
+    note(
+        "$n_prod production unit(s) decomposed into $n_gen generating unit(s); " *
+            "total $(round(Int, sum(units.nominal_mw))) MW rated"
+    )
+    biggest = argmax(units.nominal_mw)
+    note(
+        "largest: $(units.generating_unit_name[biggest]) — " *
+            "$(round(Int, units.nominal_mw[biggest])) MW"
+    )
+end
+
+# ---------------------------------------------------------------------------
+section("17. Zipped balancing endpoints — unzipped transparently")
+
+# These three endpoints serve `application/zip`. The wrappers detect the
+# ZIP magic bytes, extract every XML member, and route each through
+# `parse_timeseries` — concatenating the results.
+
+subhead("imbalance_prices — clearing prices per imbalance window (17.1.G)")
+imbal_p = try_call("imbalance_prices(AT, 2024-01)") do
+    imbalance_prices(
+        CLIENT, EIC.AT,
+        DateTime("2024-01-01T00:00"), DateTime("2024-01-02T00:00");
+        psr_type = "A04",
+    )
+end
+if imbal_p !== nothing && !isempty(imbal_p.value)
+    preview(imbal_p; label = "imbalance price samples")
+    note("$(length(imbal_p)) prices, mean $(round(mean(imbal_p.value); digits = 2)) EUR/MWh")
+end
+
+subhead("total_imbalance_volumes — system imbalance per window (17.1.H)")
+imbal_v = try_call("total_imbalance_volumes(AT)") do
+    total_imbalance_volumes(
+        CLIENT, EIC.AT,
+        DateTime("2023-11-03T23:00"), DateTime("2023-11-04T23:00"),
+    )
+end
+if imbal_v !== nothing && !isempty(imbal_v.value)
+    preview(imbal_v; label = "imbalance volume samples")
+    note("$(length(imbal_v)) intervals, |max| = $(round(Int, maximum(abs, imbal_v.value))) MW")
+end
+
+subhead("procured_balancing_capacity — reserve auction results (1.2.3.F)")
+proc = try_call("procured_balancing_capacity(DE)") do
+    procured_balancing_capacity(
+        CLIENT, "10YDE-VE-------2",   # 50Hertz CA — not in EIC tuple
+        DateTime("2023-06-15T00:00"), DateTime("2023-06-15T01:00");
+        process_type = "A51",
+        type_market_agreement_type = "A01",
+        offset = 0,
+    )
+end
+proc === nothing || (
+    isempty(proc.value) ?
+        note("no procured capacity in window") :
+        note("$(length(proc)) reserved bid points, mean $(round(Int, mean(proc.value))) MW")
+)
+
 # ---------------------------------------------------------------------------
 section("Done. Every public surface exercised.")
 

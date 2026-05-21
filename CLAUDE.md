@@ -13,14 +13,20 @@ The user-facing surface is the *third* layer — named, code-prefilled wrappers 
 ```text
 src/
   conveniences/   ← hand-written ENTSO-E layer (untouched by codegen)
-    queries.jl    ←   day_ahead_prices, actual_total_load, …
+    queries.jl    ←   ~27 named wrappers (day_ahead_prices, …, imbalance_prices)
                   ←   ResponseFormat dispatch (Parsed() default, Raw() escape hatch)
+                  ←   `_query` is zip-aware — every wrapper transparently unzips
+                      application/zip bodies (balancing 17.1.x, outages with many notices)
     parsing.jl    ←   XML → StructVector{NamedTuple} via EzXML
+                  ←   parse_timeseries (price/quantity/*.amount), parse_timeseries_per_psr,
+                      parse_installed_capacity, parse_unavailability (outages),
+                      parse_master_data (registry), parse_acknowledgement, unzip_response
     splitting.jl  ←   query_split: chunk multi-year requests, concatenate
     codes.jl      ←   DOCUMENT_TYPE/PROCESS_TYPE/BUSINESS_TYPE/PSR_TYPE + code_for
     eic.jl        ←   EIC named tuple + EIC_REGISTRY + validate_eic
     period.jl     ←   entsoe_period(DateTime|Date|ZonedDateTime) -> Int64
-    client.jl     ←   ENTSOEClient + entsoe_apis + the pre_request_hook
+    client.jl     ←   ENTSOEClient(token; validate_token=false) + entsoe_apis + the
+                      pre_request_hook + is_uuid_token predicate
     config.jl     ←   ENTSOEConfig (package-wide defaults)
   client/         ← hand-written template overlay (also untouched by codegen)
     Client.jl     ←   the underlying Client type
@@ -185,7 +191,8 @@ Note: the generated layer returns `(xml, response)` tuples directly. It does **n
 - **Bidding zones are EIC codes** (16-char). A curated 33-zone subset is exposed as `EIC.NL`, `EIC.DE_LU`, `EIC.NO2`, etc. The full registry is `EIC_REGISTRY` (mapping every EIC to `(name, types)` with types like `:BZN`, `:CTA`, `:MBA`). Pass `validate = true` to any wrapper to assert the zone exists and is the right type.
 - **Code-list tables.** `DOCUMENT_TYPE`, `PROCESS_TYPE`, `BUSINESS_TYPE`, `PSR_TYPE` are NamedTuples of code→description. `code_for(TABLE, "wind onshore")` does reverse lookup by substring.
 - **"No data" is HTTP 200.** ENTSO-E returns an `<Acknowledgement_MarketDocument>` body. The wrappers detect this via `check_acknowledgement` and re-raise as `ENTSOEAcknowledgement` (with `.reason_code` and `.text`). The generated layer does not; callers using it directly must run `check_acknowledgement(xml)` themselves.
-- **HTTP errors are typed.** `src/client/errors.jl#check_response` maps status codes to `AuthError` (401/403), `RateLimitError` (408/429, parses `Retry-After`), `ClientError` (other 4xx), `ServerError` (5xx). Network failures become `NetworkError`; timeouts become `TimeoutError(:connect | :read | :total)`. Don't write `try/catch err isa Exception` blocks — match on the specific subtype.
+- **`application/zip` happens.** Balancing 17.1.G/H/I, 1.2.3.F/H/I, and outages endpoints with many notices serve zipped XML. `_query` in `src/conveniences/queries.jl` sniffs the 4-byte ZIP magic, unzips with `ZipFile.jl` via `unzip_response`, runs the acknowledgement check per-member, and `vcat`-s the parsed `StructVector`s. `Raw()` returns the concatenated XML members separated by `<!-- next zip member -->` sentinels. This is fully transparent — no wrapper has to opt in.
+- **HTTP errors are typed.** `src/client/errors.jl#check_response` maps status codes to `AuthError` (401/403), `RateLimitError` (408/429, parses `Retry-After`, extracts ENTSO-E's HTML ban message via `rate_limit_message`), `ClientError` (other 4xx), `ServerError` (5xx). Network failures become `NetworkError`; timeouts become `TimeoutError(:connect | :read | :total)`. All five have `Base.showerror` overloads that truncate HTML/long bodies — a 503-during-maintenance no longer dumps 100 KB into stack traces. Don't write `try/catch err isa Exception` blocks — match on the specific subtype.
 - **Reliability middleware composes.** Use `with_defaults(...) do ... end` to wrap any call in retry → rate-limit → timeout, with logging on the outside. `RetryPolicy()` already retries on 408/429/5xx with `Retry-After` support, so for most cases you only need to add a `TokenBucket` and a `timeout`. See `src/client/middleware.jl`.
 
 ## Testing — BrokenRecord cassettes are everywhere

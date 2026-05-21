@@ -13,7 +13,8 @@ include("splitting.jl")
 
 export entsoe_period, EIC, ENTSOEClient, entsoe_apis, ENTSOE_BASE_URL, is_uuid_token
 export DOCUMENT_TYPE, PROCESS_TYPE, BUSINESS_TYPE, PSR_TYPE
-export parse_timeseries, parse_timeseries_per_psr, parse_installed_capacity
+export parse_timeseries, parse_timeseries_per_psr, parse_installed_capacity,
+    parse_unavailability, parse_master_data
 export parse_acknowledgement, check_acknowledgement, ENTSOEAcknowledgement
 export unzip_response
 export EIC_REGISTRY, lookup_eic, is_known_eic, eics_of_type, validate_eic
@@ -33,8 +34,17 @@ export day_ahead_prices,
     redispatching_internal,
     redispatching_cross_border,
     countertrading,
+    costs_of_congestion_management,
+    unavailability_of_generation_units,
+    unavailability_of_production_units,
+    unavailability_of_transmission_infrastructure,
+    aggregated_unavailability_of_consumption_units,
+    production_and_generation_units,
     current_balancing_state,
-    aggregated_balancing_energy_bids
+    aggregated_balancing_energy_bids,
+    imbalance_prices,
+    total_imbalance_volumes,
+    procured_balancing_capacity
 # `omi_other_market_information` is already exported by the codegen layer
 # (`ENTSOEAPI`); our paginated method is just a new dispatch on the same
 # name (`(::Client, …)` instead of `(::OMIApi, …)`), so no extra export.

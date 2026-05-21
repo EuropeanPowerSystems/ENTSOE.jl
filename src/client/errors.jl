@@ -121,6 +121,55 @@ function Base.showerror(io::IO, err::RateLimitError)
     return nothing
 end
 
+# ENTSO-E commonly serves HTML pages on errors (a 503 during scheduled
+# maintenance is ~100KB of CSS-laden HTML). Dumping the full body into a
+# stack trace is unreadable; truncate to a one-line summary instead.
+# Callers who need the full body can still reach for `err.body`.
+const _BODY_PREVIEW_CHARS = 200
+
+function _summarise_body(body::AbstractString)
+    isempty(body) && return ""
+    # Strip a leading <!DOCTYPE…> / <html…> so HTML bodies summarise as
+    # something other than just the doctype string.
+    cleaned = replace(String(body), r"<[^>]+>" => " ")
+    cleaned = strip(replace(cleaned, r"\s+" => " "))
+    isempty(cleaned) && return "(body $(length(body)) chars, all markup)"
+    return length(cleaned) > _BODY_PREVIEW_CHARS ?
+        first(cleaned, _BODY_PREVIEW_CHARS) * "…" : cleaned
+end
+
+function Base.showerror(io::IO, err::ServerError)
+    print(io, "ServerError: HTTP ", err.status)
+    body_preview = _summarise_body(err.body)
+    isempty(body_preview) || print(io, " — ", body_preview)
+    return nothing
+end
+
+function Base.showerror(io::IO, err::ClientError)
+    print(io, "ClientError: HTTP ", err.status)
+    body_preview = _summarise_body(err.body)
+    isempty(body_preview) || print(io, " — ", body_preview)
+    return nothing
+end
+
+function Base.showerror(io::IO, err::AuthError)
+    print(io, "AuthError: HTTP ", err.status)
+    isempty(err.message) || print(io, " — ", _summarise_body(err.message))
+    return nothing
+end
+
+function Base.showerror(io::IO, err::TimeoutError)
+    print(io, "TimeoutError: ", err.phase, " phase exceeded configured timeout")
+    return nothing
+end
+
+function Base.showerror(io::IO, err::NetworkError)
+    print(io, "NetworkError: ", typeof(err.cause).name.name)
+    msg = sprint(showerror, err.cause)
+    isempty(msg) || print(io, " — ", first(msg, _BODY_PREVIEW_CHARS))
+    return nothing
+end
+
 """
     check_response(status, body, headers=Dict()) -> Nothing
 

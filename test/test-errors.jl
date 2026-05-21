@@ -75,3 +75,39 @@ end
         ENTSOE.RateLimitError(; body = "rate limit exceeded — not html"),
     ) === nothing
 end
+
+@testset "showerror truncates HTML bodies to a one-line summary" begin
+    # A ServerError body modelled on ENTSO-E's maintenance page (HTML +
+    # CSS + JS, all wrapped around a short user-visible sentence). Full
+    # body should NOT land in the rendered error.
+    html_body = "<html><head><style>body { color: red; }</style></head>" *
+        "<body><h1>Service Temporarily Unavailable</h1>" *
+        "<p>Scheduled maintenance is currently underway. " *
+        "Please check back soon.</p></body></html>"
+    err = ENTSOE.ServerError(503, html_body)
+    rendered = sprint(showerror, err)
+    @test occursin("ServerError: HTTP 503", rendered)
+    @test occursin("Service Temporarily Unavailable", rendered)
+    @test occursin("maintenance", rendered)
+    # No raw HTML tags should leak.
+    @test !occursin("<html>", rendered)
+    @test !occursin("<style>", rendered)
+    # And the result is small enough to read in a stack trace.
+    @test length(rendered) < 400
+
+    # ClientError gets the same treatment.
+    ce = ENTSOE.ClientError(400, "<html><body><p>bad request</p></body></html>")
+    @test occursin("ClientError: HTTP 400 — bad request", sprint(showerror, ce))
+
+    # AuthError uses its `message` field, not a body.
+    ae = ENTSOE.AuthError(401, "Invalid securityToken")
+    @test occursin("AuthError: HTTP 401 — Invalid securityToken", sprint(showerror, ae))
+
+    # TimeoutError prints the phase.
+    @test occursin("TimeoutError: read", sprint(showerror, ENTSOE.TimeoutError(:read)))
+
+    # NetworkError wraps the cause.
+    ne = ENTSOE.NetworkError(ErrorException("dns lookup failed"))
+    @test occursin("NetworkError", sprint(showerror, ne))
+    @test occursin("dns lookup failed", sprint(showerror, ne))
+end
