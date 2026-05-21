@@ -117,6 +117,7 @@ parse_timeseries
 parse_timeseries_per_psr
 parse_installed_capacity
 parse_unavailability
+parse_unavailability_curve
 parse_master_data
 parse_acknowledgement
 check_acknowledgement
@@ -177,6 +178,9 @@ Raw
 
 ```@docs
 day_ahead_prices
+total_nominated_capacity
+congestion_income
+implicit_auction_net_positions
 ```
 
 ### Wrappers — Load (Load 6.1.A–E)

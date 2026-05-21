@@ -231,6 +231,136 @@ function day_ahead_prices(
 end
 
 # ---------------------------------------------------------------------------
+# Market — auction & allocation endpoints (12.1.A/B/C/E)
+
+"""
+    total_nominated_capacity(client, in_area, out_area, period_start[, period_end][, format])
+      -> StructVector | String
+
+Total nominated capacity per direction (Market 12.1.B,
+`documentType=A26`, `businessType=B08`). Quantities are the total
+capacity nominated by market participants for the day-ahead schedule.
+Returns `StructVector{(time, value)}` in MW.
+
+`period_end` is optional — when omitted, ENTSO-E returns the single
+publication snapshot at `period_start`.
+"""
+total_nominated_capacity(
+    client::Client,
+    in_area::AbstractString, out_area::AbstractString,
+    period_start, period_end = nothing;
+    kwargs...,
+) = total_nominated_capacity(
+    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function total_nominated_capacity(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market121_b_total_nominated_capacity(
+            apis.market, "A26", "B08",
+            String(out_area), String(in_area),
+            _to_period(period_start);
+            period_end = period_end === nothing ? nothing : _to_period(period_end),
+        )
+    end
+end
+
+"""
+    congestion_income(client, in_area, out_area, period_start, period_end[, format];
+                      contract_market_agreement_type="A01")
+      -> StructVector | String
+
+Congestion income from implicit + flow-based allocations (Market
+12.1.E, `documentType=A25`, `businessType=B10`). Returns
+`StructVector{(time, value)}` in the local currency. The wrapper's
+`parse_timeseries` follows the `<*.amount>` convention so the value is
+picked up regardless of whether the field is named `<settlement_Price.amount>`,
+`<congestionIncome_Price.amount>`, etc.
+
+`contract_market_agreement_type` defaults to `"A01"` (daily).
+"""
+congestion_income(
+    client::Client,
+    in_area::AbstractString, out_area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = congestion_income(
+    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function congestion_income(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        contract_market_agreement_type::AbstractString = "A01",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market121_e_implicit_and_flow_based_allocations_congestion_income(
+            apis.market, "A25", "B10",
+            String(contract_market_agreement_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+"""
+    implicit_auction_net_positions(client, area, period_start, period_end[, format];
+                                   contract_market_agreement_type="A07")
+      -> StructVector | String
+
+Net positions from implicit auctions (Market 12.1.E variant,
+`documentType=A25`, `businessType=B09` — Net position). Single-zone —
+`in_Domain` and `out_Domain` are both set to `area`, matching how
+ENTSO-E publishes the self-loop net position. Returns
+`StructVector{(time, value)}` in MW (positive = net export).
+
+`contract_market_agreement_type` defaults to `"A07"` (intraday — the
+typical use case for implicit auctions); pass `"A01"` for daily.
+"""
+implicit_auction_net_positions(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = implicit_auction_net_positions(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function implicit_auction_net_positions(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        contract_market_agreement_type::AbstractString = "A07",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    ) do
+        market121_e_implicit_auction_net_positions(
+            apis.market, "A25", "B09",
+            String(contract_market_agreement_type),
+            String(area), String(area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+# ---------------------------------------------------------------------------
 # Load
 
 # Single helper — every Load 6.1.* shares the same shape, only
@@ -831,6 +961,9 @@ function unavailability_of_generation_units(
         period_start, period_end, format::ResponseFormat;
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
+        doc_status::Union{Nothing, AbstractString} = nothing,
+        period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
+        period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         registered_resource::Union{Nothing, AbstractString} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
@@ -844,6 +977,11 @@ function unavailability_of_generation_units(
             apis.outages, "A80", String(area),
             _to_period(period_start), _to_period(period_end);
             business_type = business_type === nothing ? nothing : String(business_type),
+            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            period_start_update = period_start_update === nothing ?
+                nothing : _to_period(period_start_update),
+            period_end_update = period_end_update === nothing ?
+                nothing : _to_period(period_end_update),
             registered_resource = registered_resource === nothing ?
                 nothing : String(registered_resource),
             m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
@@ -877,6 +1015,9 @@ function unavailability_of_production_units(
         period_start, period_end, format::ResponseFormat;
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
+        doc_status::Union{Nothing, AbstractString} = nothing,
+        period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
+        period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         registered_resource::Union{Nothing, AbstractString} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
@@ -890,6 +1031,11 @@ function unavailability_of_production_units(
             apis.outages, "A77", String(area),
             _to_period(period_start), _to_period(period_end);
             business_type = business_type === nothing ? nothing : String(business_type),
+            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            period_start_update = period_start_update === nothing ?
+                nothing : _to_period(period_start_update),
+            period_end_update = period_end_update === nothing ?
+                nothing : _to_period(period_end_update),
             registered_resource = registered_resource === nothing ?
                 nothing : String(registered_resource),
             m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
@@ -925,6 +1071,9 @@ function unavailability_of_transmission_infrastructure(
         period_start, period_end, format::ResponseFormat;
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
+        doc_status::Union{Nothing, AbstractString} = nothing,
+        period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
+        period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
     )
@@ -938,6 +1087,11 @@ function unavailability_of_transmission_infrastructure(
             String(out_area), String(in_area),
             _to_period(period_start), _to_period(period_end);
             business_type = business_type === nothing ? nothing : String(business_type),
+            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            period_start_update = period_start_update === nothing ?
+                nothing : _to_period(period_start_update),
+            period_end_update = period_end_update === nothing ?
+                nothing : _to_period(period_end_update),
             m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )

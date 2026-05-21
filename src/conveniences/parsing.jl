@@ -46,10 +46,15 @@ function _resolution_minutes(s::AbstractString)
     s == "P7D"    && return 60 * 24 * 7
     s == "P1M"    && return 60 * 24 * 30   # nominal
     s == "P1Y"    && return 60 * 24 * 365  # nominal
-    error(
-        "unsupported ENTSO-E resolution `$s`; please open an issue at " *
-            "https://github.com/langestefan/ENTSOE.jl/issues"
-    )
+    # Unknown resolution — most likely a new ISO-8601 duration ENTSO-E
+    # has started emitting (or a sub-minute resolution we can't round-trip
+    # losslessly through `Minute(...)`). Warn once per call site and
+    # return `nothing` so the parser drops the offending Period rather
+    # than crashing an entire batch import.
+    @warn "ENTSOE: unsupported resolution `$s` — skipping Period. " *
+        "Please open an issue at https://github.com/langestefan/ENTSOE.jl/issues " *
+        "so this resolution can be added to the table." maxlog = 1 _id = Symbol(s)
+    return nothing
 end
 
 # ENTSO-E ISO timestamps look like `2024-09-01T22:00Z`. Drop the trailing
@@ -128,6 +133,7 @@ function parse_timeseries(xml::AbstractString)
         res_node = _first_named(period, "resolution")
         res_node === nothing && continue
         stride = _resolution_minutes(nodecontent(res_node))
+        stride === nothing && continue   # warned + skip this Period
 
         for pt in _named(period, "Point")
             pos_node = _first_named(pt, "position")
@@ -189,6 +195,7 @@ function parse_timeseries_per_psr(xml::AbstractString)
             res_node = _first_named(period, "resolution")
             res_node === nothing && continue
             stride = _resolution_minutes(nodecontent(res_node))
+            stride === nothing && continue   # warned + skip
 
             for pt in _named(period, "Point")
                 pos_node = _first_named(pt, "position")
@@ -398,6 +405,73 @@ function parse_unavailability(xml::AbstractString)
             resource_mrid = resource_mrids,
             psr_type = psr_types,
             nominal_mw = nominal_mws,
+        )
+    )
+end
+
+"""
+    parse_unavailability_curve(xml) -> StructVector{@NamedTuple{
+        time::DateTime, resource_mrid::String,
+        resource_name::String, available_mw::Float64}}
+
+Sister parser to [`parse_unavailability`](@ref) that walks each
+`<TimeSeries>`'s `<Available_Period>/<Point>` series and returns one row
+per timestamp — the per-15-minute (or per-resolution) MW curve the unit
+was curtailed to *during* the outage. Use this when the one-row-per-event
+summary `parse_unavailability` returns isn't enough — e.g. when you need
+to know "the unit ran at 50% from 14:00–16:00, full from 16:00–20:00."
+
+Each row carries the parent resource's `mRID` and `name` so you can
+group multiple outages on the same unit. The Available_Period
+`<Point>/<quantity>` value is the rated MW *available* during that
+slice (not the rated capacity — for that pair this with the
+`nominal_mw` column from `parse_unavailability`).
+
+For documents without `<Available_Period>` children (rare), the
+corresponding TimeSeries contributes no rows.
+"""
+function parse_unavailability_curve(xml::AbstractString)
+    times = DateTime[]
+    mrids = String[]
+    names = String[]
+    available_mws = Float64[]
+
+    doc = parsexml(xml)
+    for ts in _named(root(doc), "TimeSeries")
+        mrid = _resource_field(ts, "mRID", ["production_RegisteredResource", "mRID"])
+        name = _resource_field(ts, "name", ["production_RegisteredResource", "name"])
+
+        for ap in _named(ts, "Available_Period")
+            ti = _first_named(ap, "timeInterval")
+            ti === nothing && continue
+            start_node = _first_named(ti, "start")
+            start_node === nothing && continue
+            start = _parse_entsoe_datetime(nodecontent(start_node))
+
+            res_node = _first_named(ap, "resolution")
+            res_node === nothing && continue
+            stride = _resolution_minutes(nodecontent(res_node))
+            stride === nothing && continue
+
+            for pt in _named(ap, "Point")
+                pos_node = _first_named(pt, "position")
+                pos_node === nothing && continue
+                pos = parse(Int, nodecontent(pos_node))
+                qty = _first_named(pt, "quantity")
+                qty === nothing && continue
+                push!(times, start + Minute((pos - 1) * stride))
+                push!(mrids, mrid)
+                push!(names, name)
+                push!(available_mws, parse(Float64, nodecontent(qty)))
+            end
+        end
+    end
+    return StructArray(
+        (
+            time = times,
+            resource_mrid = mrids,
+            resource_name = names,
+            available_mw = available_mws,
         )
     )
 end

@@ -150,8 +150,12 @@ end
         @test rows[1].value == 10.0
     end
 
-    # Unknown resolution → loud error.
-    @test_throws ErrorException parse_timeseries(_ts_xml("PT42M"))
+    # Unknown resolution → @warn (max-once) + the offending Period is
+    # silently dropped. Avoids crashing batch imports when ENTSO-E
+    # starts emitting a new ISO-8601 duration we haven't seen.
+    let rows = @test_logs (:warn, r"unsupported resolution") parse_timeseries(_ts_xml("PT42M"))
+        @test isempty(rows)   # the only Period was skipped
+    end
 end
 
 @testset "parse_unavailability — aggregated consumption-units shape" begin
@@ -223,6 +227,40 @@ end
 @testset "parse_unavailability — empty document returns empty StructVector" begin
     xml = """<?xml version="1.0"?><Unavailability_MarketDocument xmlns="urn:x"></Unavailability_MarketDocument>"""
     @test length(parse_unavailability(xml)) == 0
+end
+
+@testset "parse_unavailability_curve — per-15-min curtailment trajectory" begin
+    # Modelled on a real Outages 15.1.A/B document: one TimeSeries with
+    # a single Available_Period describing the unit's curtailed output
+    # at 15-minute resolution. parse_unavailability_curve returns one
+    # row per timestamp, parse_unavailability returns one row per event.
+    xml = """
+    <?xml version="1.0"?><Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <mRID>1</mRID>
+        <production_RegisteredResource.mRID>22WRODENH000213L</production_RegisteredResource.mRID>
+        <production_RegisteredResource.name>RODENHUIZE 4</production_RegisteredResource.name>
+        <Available_Period>
+          <timeInterval>
+            <start>2024-01-15T08:00Z</start><end>2024-01-15T09:00Z</end>
+          </timeInterval>
+          <resolution>PT15M</resolution>
+          <Point><position>1</position><quantity>0</quantity></Point>
+          <Point><position>2</position><quantity>50</quantity></Point>
+          <Point><position>3</position><quantity>100</quantity></Point>
+          <Point><position>4</position><quantity>268</quantity></Point>
+        </Available_Period>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = parse_unavailability_curve(xml)
+    @test length(rows) == 4
+    @test rows[1].time == DateTime("2024-01-15T08:00")
+    @test rows[4].time == DateTime("2024-01-15T08:45")
+    @test rows[1].resource_name == "RODENHUIZE 4"
+    @test rows[1].resource_mrid == "22WRODENH000213L"
+    @test rows[1].available_mw == 0.0
+    @test rows[4].available_mw == 268.0     # back to full nominal
 end
 
 @testset "parse_unavailability — flat dot-notation form (real ENTSO-E shape)" begin

@@ -322,5 +322,278 @@ let BR = _load_brokenrecord()
             @test :value in propertynames(rows)
             @test length(rows) >= 0
         end
+
+        # ---------------------------------------------------------------
+        # Smoke cassettes for the rest of the wrapper layer. Each test
+        # routes through the named wrapper end-to-end (parameter order,
+        # code pre-fill, kwarg pass-through). Cassettes were recorded
+        # against Postman's canonical parameters; some return real data,
+        # some return Acknowledgements. The helper below accepts both.
+
+        function _expect_rows_or_ack(callable, cassette, required_cols)
+            err = nothing
+            rows = try
+                Base.invokelatest(BR.playback, callable, cassette)
+            catch e
+                err = e
+                nothing
+            end
+            if err !== nothing
+                @test err isa ENTSOEAcknowledgement
+            else
+                for col in required_cols
+                    @test col in propertynames(rows)
+                end
+            end
+            return rows
+        end
+
+        @testset "water_reservoirs_and_hydro_storage_plants (Gen 16.1.D)" begin
+            _expect_rows_or_ack(
+                () -> water_reservoirs_and_hydro_storage_plants(
+                    client, EIC.BG,
+                    202307092100, 202307162100,
+                ),
+                "generation161_d_water_reservoirs_and_hydro_storage_plants.yml",
+                (:time, :value),
+            )
+        end
+
+        @testset "current_balancing_state (Balancing 1.2.3.A)" begin
+            rows = _expect_rows_or_ack(
+                () -> current_balancing_state(
+                    client, EIC.HU,
+                    202405292200, 202405302200;
+                    business_type = "B33",
+                ),
+                "balancing123_a_current_balancing_state_gl_eb.yml",
+                (:time, :value),
+            )
+            # PT1M resolution; an entire 24h window is 1440 samples.
+            rows === nothing || @test length(rows) >= 1000
+        end
+
+        @testset "aggregated_balancing_energy_bids (Balancing 1.2.3.E)" begin
+            _expect_rows_or_ack(
+                () -> aggregated_balancing_energy_bids(
+                    client, EIC.AT,
+                    202309022200, 202309032200;
+                    process_type = "A51",
+                ),
+                "balancing123_e_aggregated_balancing_energy_bids_gl_eb.yml",
+                (:time, :value),
+            )
+        end
+
+        @testset "redispatching_internal (Transmission 13.1.A internal)" begin
+            _expect_rows_or_ack(
+                () -> redispatching_internal(
+                    client, EIC.NL,
+                    202310312300, 202311302300,
+                ),
+                "transmission131_a_redispatching_internal.yml",
+                (:time, :value),
+            )
+        end
+
+        @testset "redispatching_cross_border (Transmission 13.1.A cross-border)" begin
+            _expect_rows_or_ack(
+                () -> redispatching_cross_border(
+                    client, EIC.FR, EIC.AT,
+                    202311010000, 202312010000,
+                ),
+                "transmission131_a_redispatching_cross_border.yml",
+                (:time, :value),
+            )
+        end
+
+        @testset "countertrading (Transmission 13.1.B)" begin
+            _expect_rows_or_ack(
+                () -> countertrading(
+                    client, EIC.FR, EIC.ES,
+                    202309122200, 202309132200,
+                ),
+                "transmission131_b_countertrading.yml",
+                (:time, :value),
+            )
+        end
+
+        @testset "costs_of_congestion_management (Transmission 13.1.C)" begin
+            _expect_rows_or_ack(
+                () -> costs_of_congestion_management(
+                    client, EIC.BE,
+                    202112312300, 202212312300,
+                ),
+                "transmission131_c_costs_of_congestion_management.yml",
+                (:time, :value),
+            )
+        end
+
+        @testset "production_and_generation_units (Master Data)" begin
+            rows = _expect_rows_or_ack(
+                () -> production_and_generation_units(
+                    client, EIC.BE;
+                    implementation_date = "2017-01-01",
+                    business_type = "B11",
+                    psr_type = "B04",
+                ),
+                "master_data_production_and_generation_units.yml",
+                (
+                    :production_unit_mrid, :generating_unit_mrid,
+                    :psr_type, :nominal_mw,
+                ),
+            )
+            # BE registry as of 2017 had a meaningful number of B04 units.
+            rows === nothing || @test length(rows) > 5
+        end
+
+        @testset "aggregated_unavailability_of_consumption_units (7.1.A/B)" begin
+            _expect_rows_or_ack(
+                () -> aggregated_unavailability_of_consumption_units(
+                    client, EIC.DE_LU,
+                    202310312300, 202311302300;
+                    business_type = "A53",
+                ),
+                "outages71_a_b_aggregated_unavailability_of_consumption_units.yml",
+                (:start, :stop, :business_type),
+            )
+        end
+
+        @testset "unavailability_of_generation_units (Outages 15.1.A/B)" begin
+            _expect_rows_or_ack(
+                () -> unavailability_of_generation_units(
+                    client, EIC.BE,
+                    202301022200, 202401022200;
+                    business_type = "A53",
+                    doc_status = "A05",
+                    period_start_update = 202301031000,
+                    period_end_update = 202301032200,
+                    registered_resource = "22WCOOX6X000064W",
+                    m_r_i_d = "nCYGn4HPvOBiVrWtRFL35g",
+                    offset = 0,
+                ),
+                "outages151_a_b_unavailability_of_generation_units.yml",
+                (:start, :stop, :resource_name, :nominal_mw),
+            )
+        end
+
+        @testset "unavailability_of_production_units (Outages 15.1.C/D)" begin
+            _expect_rows_or_ack(
+                () -> unavailability_of_production_units(
+                    client, EIC.BE,
+                    202212312300, 202301312300;
+                    business_type = "A53",
+                    doc_status = "A05",
+                    period_start_update = 202301152300,
+                    period_end_update = 202301312300,
+                    registered_resource = "22W20200608A---8",
+                    m_r_i_d = "-WmcUg9Da9u8AF3A_gx8UQ",
+                    offset = 1,
+                ),
+                "outages151_c_d_unavailability_of_production_units.yml",
+                (:start, :stop, :resource_name, :nominal_mw),
+            )
+        end
+
+        @testset "unavailability_of_transmission_infrastructure (10.1.A/B)" begin
+            _expect_rows_or_ack(
+                () -> unavailability_of_transmission_infrastructure(
+                    client, EIC.BE, EIC.FR,
+                    202312012300, 202312022300;
+                    business_type = "A53",
+                    doc_status = "A05",
+                    period_start_update = 202111090000,
+                    period_end_update = 202112212300,
+                    m_r_i_d = "A47mJe5e9jml9FeSL6jfKg",
+                    offset = 0,
+                ),
+                "outages101_a_b_unavailability_of_transmission_infrastructure.yml",
+                (:start, :stop, :business_type),
+            )
+        end
+
+        # The next three exercise the zip-aware `_query` path —
+        # `application/zip` bodies get unzipped transparently and each
+        # member is run through `parse_timeseries` before vcat-ing.
+
+        @testset "imbalance_prices (Balancing 17.1.G, zipped)" begin
+            rows = _expect_rows_or_ack(
+                () -> imbalance_prices(
+                    client, EIC.AT,
+                    202401010000, 202401050000;
+                    psr_type = "A04",
+                ),
+                "balancing171_g_imbalance_prices.bson",
+                (:time, :value),
+            )
+            rows === nothing || @test length(rows) > 50
+        end
+
+        @testset "total_imbalance_volumes (Balancing 17.1.H, zipped)" begin
+            rows = _expect_rows_or_ack(
+                () -> total_imbalance_volumes(
+                    client, EIC.AT,
+                    202311032300, 202311042300;
+                    business_type = "A19",
+                ),
+                "balancing171_h_total_imbalance_volumes.bson",
+                (:time, :value),
+            )
+            rows === nothing || @test length(rows) > 50
+        end
+
+        @testset "procured_balancing_capacity (Balancing 1.2.3.F, zipped)" begin
+            _expect_rows_or_ack(
+                () -> procured_balancing_capacity(
+                    client, "10YDE-VE-------2",
+                    202306150000, 202306150100;
+                    process_type = "A51",
+                    type_market_agreement_type = "A01",
+                    offset = 0,
+                ),
+                "balancing123_f_procured_balancing_capacity_gl_eb.bson",
+                (:time, :value),
+            )
+        end
+
+        # Auction / allocation wrappers (Market 12.1.B/E variants).
+
+        @testset "total_nominated_capacity (Market 12.1.B)" begin
+            rows = _expect_rows_or_ack(
+                () -> total_nominated_capacity(
+                    client, EIC.BE, EIC.GB,
+                    202308202200, 202308212200,
+                ),
+                "market121_b_total_nominated_capacity.yml",
+                (:time, :value),
+            )
+            rows === nothing || @test length(rows) >= 1
+        end
+
+        @testset "congestion_income (Market 12.1.E)" begin
+            rows = _expect_rows_or_ack(
+                () -> congestion_income(
+                    client, EIC.AT, EIC.AT,
+                    202308232200, 202308242200;
+                    contract_market_agreement_type = "A01",
+                ),
+                "market121_e_implicit_and_flow_based_allocations_congestion_income.yml",
+                (:time, :value),
+            )
+            rows === nothing || @test length(rows) >= 1
+        end
+
+        @testset "implicit_auction_net_positions (Market 12.1.E variant)" begin
+            # Smoke cassette: BE intraday net positions (businessType=B09,
+            # contractMarketAgreementType=A07). Defaults match.
+            _expect_rows_or_ack(
+                () -> implicit_auction_net_positions(
+                    client, EIC.BE,
+                    202308222200, 202308232200,
+                ),
+                "market121_e_implicit_auction_net_positions.yml",
+                (:time, :value),
+            )
+        end
     end
 end

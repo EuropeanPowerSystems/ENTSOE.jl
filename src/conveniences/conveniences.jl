@@ -14,11 +14,14 @@ include("splitting.jl")
 export entsoe_period, EIC, ENTSOEClient, entsoe_apis, ENTSOE_BASE_URL, is_uuid_token
 export DOCUMENT_TYPE, PROCESS_TYPE, BUSINESS_TYPE, PSR_TYPE
 export parse_timeseries, parse_timeseries_per_psr, parse_installed_capacity,
-    parse_unavailability, parse_master_data
+    parse_unavailability, parse_unavailability_curve, parse_master_data
 export parse_acknowledgement, check_acknowledgement, ENTSOEAcknowledgement
 export unzip_response
 export EIC_REGISTRY, lookup_eic, is_known_eic, eics_of_type, validate_eic
 export day_ahead_prices,
+    total_nominated_capacity,
+    congestion_income,
+    implicit_auction_net_positions,
     actual_total_load,
     day_ahead_load_forecast, week_ahead_load_forecast,
     month_ahead_load_forecast, year_ahead_load_forecast,
