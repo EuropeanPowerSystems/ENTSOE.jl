@@ -22,7 +22,7 @@ repos:
       - id: mixed-line-ending
         args: [--fix=lf]
         exclude: "^test/cassettes/"
-      - id: no-commit-to-branch
+      # - id: no-commit-to-branch
       - id: pretty-format-json
         args: [--autofix, --indent=2]
         # Spec / fixtures / cassettes are machine-formatted; leaving

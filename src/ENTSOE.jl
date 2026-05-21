@@ -29,7 +29,7 @@ include("client/show.jl")
 
 export Client, Auth, NoAuth, BearerToken, APIKey, BasicAuth, resolve_credentials
 export APIError, NetworkError, ClientError, ServerError, AuthError,
-    RateLimitError, TimeoutError, check_response
+    RateLimitError, TimeoutError, check_response, rate_limit_message
 export RetryPolicy, with_retry
 export TokenBucket, acquire!, with_rate_limit
 export with_timeout

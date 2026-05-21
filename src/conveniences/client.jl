@@ -2,13 +2,41 @@ using OpenAPI: OpenAPI
 
 const ENTSOE_BASE_URL = "https://web-api.tp.entsoe.eu/api"
 
+# BrokenRecord-driven tests construct clients with this literal sentinel so
+# the URL still parses but no live credential is needed (playback never
+# touches the wire). It is always accepted by `validate_token=true`.
+const _PLAYBACK_TOKEN_SENTINEL = "PLAYBACK"
+
+# Canonical 8-4-4-4-12 UUID form. ENTSO-E's security tokens are UUIDs; the
+# platform accepts both the hyphenated form returned by the user portal and
+# the bare 32-hex-character form that some clients post. We accept either.
+const _UUID_HYPHENATED_RX = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"i
+const _UUID_BARE_RX = r"^[0-9a-f]{32}$"i
+
 """
-    ENTSOEClient(token; base_url=ENTSOE_BASE_URL, kwargs...) -> Client
+    is_uuid_token(token) -> Bool
+
+`true` when `token` is in canonical UUID form (8-4-4-4-12 hyphenated, or
+32 bare hex characters). ENTSO-E's API keys are UUIDs; callers can use this
+to fail fast on obviously-malformed input without paying a 401 round-trip.
+The opt-in `validate_token = true` kwarg on [`ENTSOEClient`](@ref) wraps it.
+"""
+is_uuid_token(token::AbstractString) =
+    occursin(_UUID_HYPHENATED_RX, token) || occursin(_UUID_BARE_RX, token)
+
+"""
+    ENTSOEClient(token; base_url=ENTSOE_BASE_URL, validate_token=false, kwargs...) -> Client
 
 Build a `Client` wired with ENTSO-E's `securityToken` query-parameter auth.
 Every operation in the generated API declares the `SecurityToken` security
 requirement, and this client's `pre_request_hook` injects the token into the
 query string for those operations.
+
+Empty or whitespace-only tokens are always rejected with `ArgumentError`.
+Pass `validate_token = true` to additionally require UUID format (see
+[`is_uuid_token`](@ref)) — useful when the token comes from user input or
+config files where typos are likely. The string `"PLAYBACK"` is always
+accepted so BrokenRecord-driven tests keep working.
 
 The generated `<Group>Api` constructors take an `OpenAPI.Clients.Client`, so
 unwrap with `.inner` before constructing them — or use [`entsoe_apis`](@ref)
@@ -16,7 +44,7 @@ which does that for you and returns one API per ENTSO-E group:
 
 ```julia
 using ENTSOE
-client = ENTSOEClient(ENV["ENTSOE_API_TOKEN"])
+client = ENTSOEClient(ENV["ENTSOE_API_TOKEN"]; validate_token = true)
 apis = entsoe_apis(client)
 
 start = entsoe_period(Dates.DateTime("2023-08-23T22:00"))
@@ -30,11 +58,29 @@ Extra keyword arguments are forwarded verbatim to `OpenAPI.Clients.Client`
 function ENTSOEClient(
         token::AbstractString;
         base_url::AbstractString = ENTSOE_BASE_URL,
+        validate_token::Bool = false,
         kwargs...,
     )
+    tok = String(token)
+    isempty(strip(tok)) && throw(
+        ArgumentError(
+            "ENTSOEClient: token is empty or whitespace-only. Pass your " *
+                "ENTSO-E API key (the UUID e-mailed to you by transparency@entsoe.eu) " *
+                "or the literal string \"PLAYBACK\" for BrokenRecord-driven tests."
+        )
+    )
+    if validate_token && tok != _PLAYBACK_TOKEN_SENTINEL && !is_uuid_token(tok)
+        throw(
+            ArgumentError(
+                "ENTSOEClient: token does not look like an ENTSO-E API key " *
+                    "(expected a UUID such as `1a2b3c4d-…`). Pass " *
+                    "`validate_token = false` to skip this check, or fix the token."
+            )
+        )
+    end
     inner = OpenAPI.Clients.Client(
         String(base_url);
-        pre_request_hook = _entsoe_pre_request_hook(String(token)),
+        pre_request_hook = _entsoe_pre_request_hook(tok),
         kwargs...,
     )
     return Client(inner, NoAuth(), String(base_url))

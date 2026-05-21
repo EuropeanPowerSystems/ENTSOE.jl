@@ -475,6 +475,134 @@ function cross_border_physical_flows(
     end
 end
 
+"""
+    commercial_schedules(client, in_area, out_area, start, stop[, format];
+                         contract_market_agreement_type="A01") -> StructVector | String
+
+Total scheduled commercial exchanges between two bidding zones
+(Transmission 12.1.F, `documentType=A09`). Returns
+`StructVector{(time, value)}` in MW — quantities are scheduled flows
+*from* `out_area` *into* `in_area*, mirroring the same convention as
+[`cross_border_physical_flows`](@ref).
+
+`contract_market_agreement_type` defaults to `"A01"` (daily) — set to
+`"A05"` for total, `"A07"` for intraday, etc.
+"""
+commercial_schedules(
+    client::Client,
+    in_area::AbstractString, out_area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = commercial_schedules(
+    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function commercial_schedules(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        contract_market_agreement_type::AbstractString = "A01",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        transmission121_f_commercial_schedules(
+            apis.transmission, "A09",
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            contract_market_agreement_type = String(contract_market_agreement_type),
+        )
+    end
+end
+
+"""
+    commercial_schedules_net_positions(client, area, start, stop[, format];
+                                       contract_market_agreement_type="A01")
+      -> StructVector | String
+
+Net position from total scheduled commercial exchanges (Transmission
+12.1.F, `documentType=A09`). Same endpoint as
+[`commercial_schedules`](@ref) but exposed via the
+`*_net_positions` codegen variant that ENTSO-E publishes for the
+self-loop case (where `in_area == out_area`).
+
+Pass a single `area` — it's used for both `in_Domain` and `out_Domain`,
+matching the platform's own net-position calculation.
+"""
+commercial_schedules_net_positions(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = commercial_schedules_net_positions(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function commercial_schedules_net_positions(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        contract_market_agreement_type::AbstractString = "A01",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    ) do
+        transmission121_f_commercial_schedules_net_positions(
+            apis.transmission, "A09",
+            String(area), String(area),
+            _to_period(period_start), _to_period(period_end);
+            contract_market_agreement_type = String(contract_market_agreement_type),
+        )
+    end
+end
+
+"""
+    forecasted_transfer_capacities(client, in_area, out_area, start, stop[, format];
+                                   contract_market_agreement_type="A01")
+      -> StructVector | String
+
+Forecasted transfer capacities between two bidding zones (Transmission
+11.1.A, `documentType=A61` — Estimated Net Transfer Capacity).
+`contract_market_agreement_type` defaults to `"A01"` (daily); pass
+`"A02"` for weekly, `"A03"` monthly, `"A04"` yearly, `"A07"` intraday.
+
+Returns `StructVector{(time, value)}` in MW, representing forecasted
+capacity *from* `out_area` *into* `in_area`.
+"""
+forecasted_transfer_capacities(
+    client::Client,
+    in_area::AbstractString, out_area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = forecasted_transfer_capacities(
+    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function forecasted_transfer_capacities(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        contract_market_agreement_type::AbstractString = "A01",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        transmission111_a_forecasted_transfer_capacities(
+            apis.transmission, "A61",
+            String(contract_market_agreement_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
 # ---------------------------------------------------------------------------
 # OMI — paginated. Always returns Vector{String} (one XML page per
 # response); the `ResponseFormat` switch doesn't apply because there's

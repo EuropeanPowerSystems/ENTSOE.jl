@@ -164,6 +164,43 @@ end
     @test other.base_url == "https://example.test/api"
 end
 
+@testset "ENTSOEClient rejects empty / whitespace tokens unconditionally" begin
+    @test_throws ArgumentError ENTSOEClient("")
+    @test_throws ArgumentError ENTSOEClient("   ")
+    @test_throws ArgumentError ENTSOEClient("\t\n")
+end
+
+@testset "is_uuid_token recognises both UUID forms" begin
+    # Hyphenated 8-4-4-4-12 (case-insensitive).
+    @test is_uuid_token("01234567-89ab-cdef-0123-456789abcdef")
+    @test is_uuid_token("01234567-89AB-CDEF-0123-456789ABCDEF")
+    # Bare 32 hex chars.
+    @test is_uuid_token("0123456789abcdef0123456789abcdef")
+    # Obvious negatives.
+    @test !is_uuid_token("PLAYBACK")
+    @test !is_uuid_token("TEST-TOKEN-XYZ")
+    @test !is_uuid_token("T")
+    @test !is_uuid_token("")
+    # Right shape, wrong content (`g` is not hex).
+    @test !is_uuid_token("g1234567-89ab-cdef-0123-456789abcdef")
+    # Right length, wrong group split.
+    @test !is_uuid_token("0123456789ab-cdef-0123-456789abcdef-0000")
+end
+
+@testset "ENTSOEClient(validate_token=true) enforces UUID format" begin
+    # Accepts a real UUID.
+    @test ENTSOEClient(
+        "01234567-89ab-cdef-0123-456789abcdef"; validate_token = true,
+    ) isa Client
+    # Accepts the PLAYBACK sentinel so the BrokenRecord-driven test
+    # files (test-cassettes.jl, test-smoke.jl, test-queries.jl) keep
+    # working when they opt into validation.
+    @test ENTSOEClient("PLAYBACK"; validate_token = true) isa Client
+    # Rejects placeholder / typo tokens.
+    @test_throws ArgumentError ENTSOEClient("TEST-TOKEN-XYZ"; validate_token = true)
+    @test_throws ArgumentError ENTSOEClient("T"; validate_token = true)
+end
+
 @testset "entsoe_apis" begin
     apis = entsoe_apis(ENTSOEClient("T"))
     expected = (

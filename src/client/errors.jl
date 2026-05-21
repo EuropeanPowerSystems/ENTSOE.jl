@@ -88,6 +88,39 @@ function parse_retry_after(header::AbstractString)
 end
 parse_retry_after(::Nothing) = nothing
 
+# ENTSO-E's 429 responses are HTML pages whose interesting text sits in the
+# first `<p>...</p>`. Pull it out (stripped, single-line) so end users and
+# `showerror` can surface the platform's own message instead of the raw HTML.
+const _RATE_LIMIT_HTML_BODY_RX = r"<p[^>]*>(.*?)</p>"is
+
+"""
+    rate_limit_message(err::RateLimitError) -> Union{String,Nothing}
+
+Extract the human-readable message from ENTSO-E's HTML 429 body, or `nothing`
+when the body is empty / non-HTML / shape-unrecognised. The platform serves a
+short HTML page on rate-limit hits whose first `<p>` carries the explanation
+(e.g. "Your request has exceeded the API throttling limit of 380 requests per
+minute. The platform will respond again at …"). For non-HTML bodies the raw
+`body` field is still available on the error.
+"""
+function rate_limit_message(err::RateLimitError)
+    isempty(err.body) && return nothing
+    m = match(_RATE_LIMIT_HTML_BODY_RX, err.body)
+    m === nothing && return nothing
+    msg = strip(replace(m.captures[1], r"\s+" => " "))
+    return isempty(msg) ? nothing : String(msg)
+end
+
+function Base.showerror(io::IO, err::RateLimitError)
+    print(io, "RateLimitError: HTTP ", err.status)
+    if err.retry_after !== nothing
+        print(io, " (Retry-After: ", err.retry_after, "s)")
+    end
+    msg = rate_limit_message(err)
+    msg === nothing || print(io, " — ", msg)
+    return nothing
+end
+
 """
     check_response(status, body, headers=Dict()) -> Nothing
 

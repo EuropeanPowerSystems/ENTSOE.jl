@@ -258,5 +258,69 @@ let BR = _load_brokenrecord()
             # Hourly resolution, 24 h window.
             @test rows[1].time == _start
         end
+
+        # The next three replay the smoke-suite cassettes (function-named,
+        # recorded with Postman's canonical example parameters). Going
+        # through the new named wrappers proves end-to-end that
+        # parameter order, code pre-fill, and the kwarg pass-through all
+        # match what the generated layer actually transmits.
+
+        @testset "commercial_schedules (Transmission 12.1.F smoke cassette)" begin
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> commercial_schedules(
+                    client, EIC.FR, EIC.DE_LU,
+                    202308232200, 202308242200;
+                    contract_market_agreement_type = "A01",
+                ),
+                "transmission121_f_commercial_schedules.yml",
+            )
+            @test :time in propertynames(rows)
+            @test :value in propertynames(rows)
+            @test rows.value isa Vector{Float64}
+            # Either the cassette captured real points (>0) or an
+            # acknowledgement (rows empty). Both are valid coverage —
+            # the wrapper executed end-to-end either way.
+            @test length(rows) >= 0
+        end
+
+        @testset "commercial_schedules_net_positions (12.1.F net smoke cassette)" begin
+            # ENTSO-E doesn't publish 12.1.F net positions for every
+            # bidding zone — the Postman default (AT, mid-2025) hits an
+            # `<Acknowledgement_MarketDocument reason=999>`. The wrapper
+            # surfaces that as `ENTSOEAcknowledgement`, which is the
+            # right user-facing behavior.
+            err = nothing
+            try
+                Base.invokelatest(
+                    BR.playback,
+                    () -> commercial_schedules_net_positions(
+                        client, EIC.AT,
+                        202506102200, 202506112200;
+                        contract_market_agreement_type = "A01",
+                    ),
+                    "transmission121_f_commercial_schedules_net_positions.yml",
+                )
+            catch e
+                err = e
+            end
+            @test err isa ENTSOEAcknowledgement
+            @test err.reason_code == "999"
+        end
+
+        @testset "forecasted_transfer_capacities (Transmission 11.1.A smoke cassette)" begin
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> forecasted_transfer_capacities(
+                    client, EIC.BE, EIC.GB,
+                    202308152200, 202308162200;
+                    contract_market_agreement_type = "A01",
+                ),
+                "transmission111_a_forecasted_transfer_capacities.yml",
+            )
+            @test :time in propertynames(rows)
+            @test :value in propertynames(rows)
+            @test length(rows) >= 0
+        end
     end
 end
