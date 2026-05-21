@@ -25,10 +25,16 @@ export day_ahead_prices,
     generation_forecast_day_ahead,
     wind_solar_forecast,
     actual_generation_per_production_type,
+    water_reservoirs_and_hydro_storage_plants,
     cross_border_physical_flows,
     commercial_schedules,
     commercial_schedules_net_positions,
-    forecasted_transfer_capacities
+    forecasted_transfer_capacities,
+    redispatching_internal,
+    redispatching_cross_border,
+    countertrading,
+    current_balancing_state,
+    aggregated_balancing_energy_bids
 # `omi_other_market_information` is already exported by the codegen layer
 # (`ENTSOEAPI`); our paginated method is just a new dispatch on the same
 # name (`(::Client, …)` instead of `(::OMIApi, …)`), so no extra export.

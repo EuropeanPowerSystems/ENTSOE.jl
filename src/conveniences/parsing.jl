@@ -30,9 +30,13 @@ function _first_named(el::EzXML.Node, name::AbstractString)
 end
 
 # Resolve the most common ISO-8601 durations the API uses to whole minutes.
-# These are the only resolutions ENTSO-E currently emits; anything else
-# is a spec change and we'd rather fail loud than silently misalign.
+# These cover every resolution observed across the eight Transparency
+# Platform groups; sub-minute resolutions (PT1S, PT4S etc.) are not
+# supported because they'd round-trip lossily through `Minute(...)`.
 function _resolution_minutes(s::AbstractString)
+    s == "PT1M"   && return 1     # 1.2.3.A current balancing state, 17.1.G imbalance prices
+    s == "PT5M"   && return 5
+    s == "PT10M"  && return 10
     s == "PT15M"  && return 15
     s == "PT30M"  && return 30
     s == "PT60M"  && return 60
@@ -41,7 +45,10 @@ function _resolution_minutes(s::AbstractString)
     s == "P7D"    && return 60 * 24 * 7
     s == "P1M"    && return 60 * 24 * 30   # nominal
     s == "P1Y"    && return 60 * 24 * 365  # nominal
-    error("unsupported ENTSO-E resolution `$s`; please open an issue")
+    error(
+        "unsupported ENTSO-E resolution `$s`; please open an issue at " *
+            "https://github.com/langestefan/ENTSOE.jl/issues"
+    )
 end
 
 # ENTSO-E ISO timestamps look like `2024-09-01T22:00Z`. Drop the trailing

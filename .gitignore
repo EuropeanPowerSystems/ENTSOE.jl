@@ -17,3 +17,4 @@ docs/package-lock.json
 node_modules/
 token.txt
 .claude
+examples/Manifest.toml

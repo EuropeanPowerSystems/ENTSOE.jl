@@ -142,7 +142,9 @@ end
         """
     end
 
-    for res in ("PT1H", "P1D", "P7D", "P1M", "P1Y")
+    # Sub-quarter-hour resolutions (PT1M, PT5M, PT10M) are also valid —
+    # balancing 1.2.3.A in particular emits PT1M for some control areas.
+    for res in ("PT1M", "PT5M", "PT10M", "PT1H", "P1D", "P7D", "P1M", "P1Y")
         rows = parse_timeseries(_ts_xml(res))
         @test length(rows) == 1
         @test rows[1].value == 10.0

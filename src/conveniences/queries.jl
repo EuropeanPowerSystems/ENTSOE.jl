@@ -603,6 +603,223 @@ function forecasted_transfer_capacities(
     end
 end
 
+"""
+    redispatching_internal(client, area, start, stop[, format]) -> StructVector | String
+
+Internal redispatching activations (Transmission 13.1.A,
+`documentType=A63`, `businessType=A85` — Internal redispatch).
+Single-zone query — `in_Domain` and `out_Domain` are both set to
+`area`. Returns `StructVector{(time, value)}` in MW.
+"""
+redispatching_internal(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = redispatching_internal(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function redispatching_internal(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    ) do
+        transmission131_a_redispatching_internal(
+            apis.transmission, "A63", "A85",
+            String(area), String(area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+"""
+    redispatching_cross_border(client, in_area, out_area, start, stop[, format])
+      -> StructVector | String
+
+Cross-border redispatching activations (Transmission 13.1.A,
+`documentType=A63`, `businessType=A46` — Cross-border redispatch).
+Returns `StructVector{(time, value)}` in MW representing energy
+redispatched between the two zones.
+"""
+redispatching_cross_border(
+    client::Client,
+    in_area::AbstractString, out_area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = redispatching_cross_border(
+    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function redispatching_cross_border(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        transmission131_a_redispatching_cross_border(
+            apis.transmission, "A63", "A46",
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+"""
+    countertrading(client, in_area, out_area, start, stop[, format])
+      -> StructVector | String
+
+Cross-border countertrading activations (Transmission 13.1.B,
+`documentType=A91`). Returns `StructVector{(time, value)}` in MW —
+volumes traded between the two zones to relieve congestion.
+"""
+countertrading(
+    client::Client,
+    in_area::AbstractString, out_area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = countertrading(
+    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function countertrading(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        transmission131_b_countertrading(
+            apis.transmission, "A91",
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+# ---------------------------------------------------------------------------
+# Generation — hydro state
+
+"""
+    water_reservoirs_and_hydro_storage_plants(client, area, start, stop[, format])
+      -> StructVector | String
+
+Filling rate of hydro reservoirs and pumped-storage plants (Generation
+16.1.D, `documentType=A72`, `processType=A16` — Realised). Quantities
+in MWh of stored energy. Returns `StructVector{(time, value)}`.
+"""
+water_reservoirs_and_hydro_storage_plants(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = water_reservoirs_and_hydro_storage_plants(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function water_reservoirs_and_hydro_storage_plants(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    ) do
+        generation161_d_water_reservoirs_and_hydro_storage_plants(
+            apis.generation, "A72", "A16", String(area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+# ---------------------------------------------------------------------------
+# Balancing
+
+"""
+    current_balancing_state(client, area, start, stop[, format];
+                            business_type="B33") -> StructVector | String
+
+Real-time area-control-error / imbalance state (Balancing 1.2.3.A,
+`documentType=A86`). `business_type` defaults to `"B33"` (Area control
+error). Returns `StructVector{(time, value)}` in MW — the cleared
+imbalance for the area.
+"""
+current_balancing_state(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = current_balancing_state(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function current_balancing_state(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        business_type::AbstractString = "B33",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    ) do
+        balancing123_a_current_balancing_state_gl_eb(
+            apis.balancing, "A86", String(business_type), String(area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+"""
+    aggregated_balancing_energy_bids(client, area, start, stop[, format];
+                                     process_type="A51") -> StructVector | String
+
+Aggregated balancing-energy bid volumes (Balancing 1.2.3.E,
+`documentType=A24`). `process_type` defaults to `"A51"` (Automatic
+frequency restoration reserve — aFRR); pass `"A47"` for mFRR or
+`"A46"` for RR. Returns `StructVector{(time, value)}` of bid volumes
+in MW.
+"""
+aggregated_balancing_energy_bids(
+    client::Client, area::AbstractString,
+    period_start, period_end;
+    kwargs...,
+) = aggregated_balancing_energy_bids(
+    client, area, period_start, period_end, Parsed(); kwargs...,
+)
+
+function aggregated_balancing_energy_bids(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat;
+        validate::Bool = false,
+        process_type::AbstractString = "A51",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    ) do
+        balancing123_e_aggregated_balancing_energy_bids_gl_eb(
+            apis.balancing, "A24", String(process_type), String(area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
 # ---------------------------------------------------------------------------
 # OMI — paginated. Always returns Vector{String} (one XML page per
 # response); the `ResponseFormat` switch doesn't apply because there's
