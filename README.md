@@ -30,6 +30,8 @@ e-mail the listed support address requesting access. Set
 ```julia
 using ENTSOE
 using Dates
+using Statistics: mean       # `mean` lives in stdlib but isn't auto-loaded
+using DataFrames             # only needed for the last line — see "Tables.jl interface"
 
 client = ENTSOEClient(ENV["ENTSOE_API_TOKEN"])
 

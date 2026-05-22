@@ -42,6 +42,12 @@ const PAGES = Any[
         "Five years of NL prices" => "tutorial_multiyear.md",
         "EU price heat-map (2025)" => "tutorial_eu_map.md",
         "Renewables share map" => "tutorial_renewables_map.md",
+        "Outage timeline (BE)" => "tutorial_outages.md",
+        "Master-data: BE gas fleet" => "tutorial_master_data.md",
+        "Imbalance market (AT)" => "tutorial_imbalance.md",
+        "Congestion-management costs" => "tutorial_congestion.md",
+        "PT1M balancing state (HU)" => "tutorial_balancing_state.md",
+        "Hydro reservoirs (BG)" => "tutorial_hydro.md",
     ],
     "Guides" => Any[
         "Recorded HTTP tests" => "cassette_testing.md",
