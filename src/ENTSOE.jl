@@ -42,4 +42,21 @@ export ResponseFormat, Parsed, Raw
 # Safe across `gen/regenerate.jl` runs — that script only rewrites `src/api/`.
 include("conveniences/conveniences.jl")
 
+# Typed XML document models — auto-generated from IEC 62325 XSDs in
+# `spec/xsd/`. Each module under `XmlModels/` exposes `parse_document`
+# returning a fully populated struct tree. Regenerate via
+# `gen/regenerate_xml_models.jl`. The hand-written DOM walkers in
+# `conveniences/parsing.jl` remain available for users who only want the
+# (time, value) flattening.
+module XmlModels
+    const _MODEL_DIR = joinpath(@__DIR__, "xml_models")
+    if isdir(_MODEL_DIR)
+        for file in sort!(readdir(_MODEL_DIR))
+            endswith(file, ".jl") || continue
+            include(joinpath(_MODEL_DIR, file))
+        end
+    end
+end
+export XmlModels
+
 end # module

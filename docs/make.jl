@@ -6,10 +6,19 @@ const HAS_SPEC = isfile(SPEC_SRC)
 
 # Bundle the committed OpenAPI spec into Vitepress's `public/` so the
 # vitepress-openapi components can fetch it from the deployed site.
+#
+# Only write when the content actually differs from what's already
+# there. `cp(...; force=true)` would unconditionally bump the
+# destination's mtime — and the destination lives inside `docs/src/`,
+# which `LiveServer.servedocs()` watches. A no-op rewrite would
+# trigger a rebuild, which would rewrite, which would re-trigger,
+# which is the infinite-build loop we saw before.
 if HAS_SPEC
     SPEC_DST = joinpath(@__DIR__, "src", "public", "openapi.json")
     mkpath(dirname(SPEC_DST))
-    cp(SPEC_SRC, SPEC_DST; force = true)
+    if !isfile(SPEC_DST) || read(SPEC_SRC) != read(SPEC_DST)
+        cp(SPEC_SRC, SPEC_DST; force = true)
+    end
 end
 
 # The per-tag REST reference pages live as committed source under
@@ -48,6 +57,7 @@ const PAGES = Any[
         "Congestion-management costs" => "tutorial_congestion.md",
         "PT1M balancing state (HU)" => "tutorial_balancing_state.md",
         "Hydro reservoirs (BG)" => "tutorial_hydro.md",
+        "Typed IEC 62325 models" => "tutorial_xml_models.md",
     ],
     "Guides" => Any[
         "Recorded HTTP tests" => "cassette_testing.md",
@@ -69,8 +79,18 @@ end
 # Make `ENTSOE` symbols available unqualified in every doctest — without
 # this, `julia> DOCUMENT_TYPE.A44` fails with `UndefVarError` because
 # Documenter's doctest runner uses `Main` by default.
+#
+# `recursive = false` (was `true` before XSD codegen landed): we now
+# have 198 auto-generated `ENTSOE.XmlModels.*` submodules + the
+# generated `ENTSOE.ENTSOEAPI` submodule, none of which carry doctests
+# of their own. A recursive walk visited every submodule on every
+# build pass — fine for two submodules, ~200× slower for 200, and
+# Vitepress's dev-server file watcher re-triggers each pass, so the
+# build appeared to loop. Setting only on `ENTSOE` is enough since
+# every doctest we write lives in `src/conveniences/` (which is
+# directly inside `ENTSOE`, not a child module).
 Documenter.DocMeta.setdocmeta!(
-    ENTSOE, :DocTestSetup, :(using ENTSOE); recursive = true,
+    ENTSOE, :DocTestSetup, :(using ENTSOE); recursive = false,
 )
 
 makedocs(;

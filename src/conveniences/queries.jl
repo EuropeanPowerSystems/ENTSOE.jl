@@ -209,15 +209,9 @@ prices_xml = day_ahead_prices(client, EIC.NL,
     DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"), Raw())
 ```
 """
-day_ahead_prices(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = day_ahead_prices(client, area, period_start, period_end, Parsed(); kwargs...)
-
 function day_ahead_prices(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -245,19 +239,10 @@ Returns `StructVector{(time, value)}` in MW.
 `period_end` is optional — when omitted, ENTSO-E returns the single
 publication snapshot at `period_start`.
 """
-total_nominated_capacity(
-    client::Client,
-    in_area::AbstractString, out_area::AbstractString,
-    period_start, period_end = nothing;
-    kwargs...,
-) = total_nominated_capacity(
-    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function total_nominated_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -288,19 +273,10 @@ picked up regardless of whether the field is named `<settlement_Price.amount>`,
 
 `contract_market_agreement_type` defaults to `"A01"` (daily).
 """
-congestion_income(
-    client::Client,
-    in_area::AbstractString, out_area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = congestion_income(
-    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function congestion_income(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A01",
     )
@@ -332,17 +308,9 @@ ENTSO-E publishes the self-loop net position. Returns
 `contract_market_agreement_type` defaults to `"A07"` (intraday — the
 typical use case for implicit auctions); pass `"A01"` for daily.
 """
-implicit_auction_net_positions(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = implicit_auction_net_positions(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function implicit_auction_net_positions(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A07",
     )
@@ -367,7 +335,7 @@ end
 # `processType` differs.
 function _load_query(
         client::Client, process::AbstractString, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool,
         api_fn::Function,
     )
@@ -388,10 +356,8 @@ Realised total system load (Load 6.1.A, `documentType=A65`,
 `StructVector{(time, value)}` with `value` in MW; pass [`Raw()`](@ref)
 for the XML body.
 """
-actual_total_load(client::Client, area, start, stop; kwargs...) =
-    actual_total_load(client, area, start, stop, Parsed(); kwargs...)
 actual_total_load(
-    client::Client, area, start, stop, format::ResponseFormat;
+    client::Client, area, start, stop, format::ResponseFormat = Parsed();
     validate = false,
 ) = _load_query(
     client, "A16", area, start, stop, format;
@@ -403,10 +369,8 @@ actual_total_load(
 
 Day-ahead total load forecast (Load 6.1.B, `processType=A01`).
 """
-day_ahead_load_forecast(client::Client, area, start, stop; kwargs...) =
-    day_ahead_load_forecast(client, area, start, stop, Parsed(); kwargs...)
 day_ahead_load_forecast(
-    client::Client, area, start, stop, format::ResponseFormat;
+    client::Client, area, start, stop, format::ResponseFormat = Parsed();
     validate = false,
 ) = _load_query(
     client, "A01", area, start, stop, format;
@@ -418,10 +382,8 @@ day_ahead_load_forecast(
 
 Week-ahead total load forecast (Load 6.1.C, `processType=A31`).
 """
-week_ahead_load_forecast(client::Client, area, start, stop; kwargs...) =
-    week_ahead_load_forecast(client, area, start, stop, Parsed(); kwargs...)
 week_ahead_load_forecast(
-    client::Client, area, start, stop, format::ResponseFormat;
+    client::Client, area, start, stop, format::ResponseFormat = Parsed();
     validate = false,
 ) = _load_query(
     client, "A31", area, start, stop, format;
@@ -433,10 +395,8 @@ week_ahead_load_forecast(
 
 Month-ahead total load forecast (Load 6.1.D, `processType=A32`).
 """
-month_ahead_load_forecast(client::Client, area, start, stop; kwargs...) =
-    month_ahead_load_forecast(client, area, start, stop, Parsed(); kwargs...)
 month_ahead_load_forecast(
-    client::Client, area, start, stop, format::ResponseFormat;
+    client::Client, area, start, stop, format::ResponseFormat = Parsed();
     validate = false,
 ) = _load_query(
     client, "A32", area, start, stop, format;
@@ -448,10 +408,8 @@ month_ahead_load_forecast(
 
 Year-ahead total load forecast (Load 6.1.E, `processType=A33`).
 """
-year_ahead_load_forecast(client::Client, area, start, stop; kwargs...) =
-    year_ahead_load_forecast(client, area, start, stop, Parsed(); kwargs...)
 year_ahead_load_forecast(
-    client::Client, area, start, stop, format::ResponseFormat;
+    client::Client, area, start, stop, format::ResponseFormat = Parsed();
     validate = false,
 ) = _load_query(
     client, "A33", area, start, stop, format;
@@ -472,17 +430,9 @@ spanning Dec 31 23:00 → Dec 31 23:00. Returns
 Map `psr_type` codes to labels via [`PSR_TYPE`](@ref) /
 [`describe`](@ref): `describe(PSR_TYPE, "B16") == "Solar"`.
 """
-installed_capacity_per_production_type(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = installed_capacity_per_production_type(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function installed_capacity_per_production_type(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -504,17 +454,9 @@ Day-ahead total generation forecast (Generation 14.1.C,
 `documentType=A71`, `processType=A01`). Returns
 `StructVector{(time, value)}` in MW.
 """
-generation_forecast_day_ahead(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = generation_forecast_day_ahead(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function generation_forecast_day_ahead(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -539,17 +481,9 @@ one TimeSeries per technology — we parse with
 Pass `psr_type="B19"` to filter at the API level (returns just that
 technology).
 """
-wind_solar_forecast(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = wind_solar_forecast(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function wind_solar_forecast(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         psr_type::Union{Nothing, AbstractString} = nothing,
     )
@@ -577,17 +511,9 @@ MW.
 
 Pass `psr_type="B16"` to fetch a single technology server-side.
 """
-actual_generation_per_production_type(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = actual_generation_per_production_type(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function actual_generation_per_production_type(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         psr_type::Union{Nothing, AbstractString} = nothing,
     )
@@ -619,19 +545,10 @@ Note ENTSO-E's ordering: `in_area` is the receiving zone, `out_area`
 is the sending zone — flows are positive when they go *from* `out_area`
 *into* `in_area`.
 """
-cross_border_physical_flows(
-    client::Client,
-    in_area::AbstractString, out_area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = cross_border_physical_flows(
-    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function cross_border_physical_flows(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -660,19 +577,10 @@ Total scheduled commercial exchanges between two bidding zones
 `contract_market_agreement_type` defaults to `"A01"` (daily) — set to
 `"A05"` for total, `"A07"` for intraday, etc.
 """
-commercial_schedules(
-    client::Client,
-    in_area::AbstractString, out_area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = commercial_schedules(
-    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function commercial_schedules(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A01",
     )
@@ -704,17 +612,9 @@ self-loop case (where `in_area == out_area`).
 Pass a single `area` — it's used for both `in_Domain` and `out_Domain`,
 matching the platform's own net-position calculation.
 """
-commercial_schedules_net_positions(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = commercial_schedules_net_positions(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function commercial_schedules_net_positions(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A01",
     )
@@ -745,19 +645,10 @@ Forecasted transfer capacities between two bidding zones (Transmission
 Returns `StructVector{(time, value)}` in MW, representing forecasted
 capacity *from* `out_area` *into* `in_area`.
 """
-forecasted_transfer_capacities(
-    client::Client,
-    in_area::AbstractString, out_area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = forecasted_transfer_capacities(
-    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function forecasted_transfer_capacities(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A01",
     )
@@ -783,17 +674,9 @@ Internal redispatching activations (Transmission 13.1.A,
 Single-zone query — `in_Domain` and `out_Domain` are both set to
 `area`. Returns `StructVector{(time, value)}` in MW.
 """
-redispatching_internal(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = redispatching_internal(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function redispatching_internal(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -818,19 +701,10 @@ Cross-border redispatching activations (Transmission 13.1.A,
 Returns `StructVector{(time, value)}` in MW representing energy
 redispatched between the two zones.
 """
-redispatching_cross_border(
-    client::Client,
-    in_area::AbstractString, out_area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = redispatching_cross_border(
-    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function redispatching_cross_border(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -860,17 +734,9 @@ reporting — typically EUR, sometimes the local currency).
 `<congestionCost_Price.amount>` automatically (any element ending in
 `.amount` is recognised).
 """
-costs_of_congestion_management(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = costs_of_congestion_management(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function costs_of_congestion_management(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -894,19 +760,10 @@ Cross-border countertrading activations (Transmission 13.1.B,
 `documentType=A91`). Returns `StructVector{(time, value)}` in MW —
 volumes traded between the two zones to relieve congestion.
 """
-countertrading(
-    client::Client,
-    in_area::AbstractString, out_area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = countertrading(
-    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function countertrading(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -948,17 +805,9 @@ Returns the [`parse_unavailability`](@ref) shape — one row per outage
 notice, with `resource_name`, `psr_type`, `nominal_mw`, and the time
 bounds.
 """
-unavailability_of_generation_units(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = unavailability_of_generation_units(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function unavailability_of_generation_units(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
@@ -1002,17 +851,9 @@ Outage notices for whole production units (Outages 15.1.C/D,
 [`unavailability_of_generation_units`](@ref) — production units
 aggregate one or more generation units under a single mRID.
 """
-unavailability_of_production_units(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = unavailability_of_production_units(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function unavailability_of_production_units(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
@@ -1056,19 +897,10 @@ Outage notices for cross-border transmission infrastructure (Outages
 10.1.A/B, `documentType=A78`). Pass `business_type="A53"` for planned
 outages only. Returns `parse_unavailability` rows.
 """
-unavailability_of_transmission_infrastructure(
-    client::Client,
-    in_area::AbstractString, out_area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = unavailability_of_transmission_infrastructure(
-    client, in_area, out_area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function unavailability_of_transmission_infrastructure(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
@@ -1124,14 +956,9 @@ Returns the [`parse_master_data`](@ref) shape: one row per generating
 unit with parent production-unit context, rated MW, location, etc. Pass
 [`Raw()`](@ref) to get the raw `Configuration_MarketDocument` XML.
 """
-production_and_generation_units(
-    client::Client, area::AbstractString;
-    kwargs...,
-) = production_and_generation_units(client, area, Parsed(); kwargs...)
-
 function production_and_generation_units(
         client::Client, area::AbstractString,
-        format::ResponseFormat;
+        format::ResponseFormat = Parsed();
         validate::Bool = false,
         implementation_date::Union{Date, AbstractString} = Date(2017, 1, 1),
         business_type::AbstractString = "B11",
@@ -1163,17 +990,9 @@ Aggregated consumption-side unavailability (Outages 7.1.A/B,
 `resource_*` fields are usually empty (the notice is aggregated for the
 bidding zone, not tied to a single facility).
 """
-aggregated_unavailability_of_consumption_units(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = aggregated_unavailability_of_consumption_units(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function aggregated_unavailability_of_consumption_units(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
     )
@@ -1198,17 +1017,9 @@ Filling rate of hydro reservoirs and pumped-storage plants (Generation
 16.1.D, `documentType=A72`, `processType=A16` — Realised). Quantities
 in MWh of stored energy. Returns `StructVector{(time, value)}`.
 """
-water_reservoirs_and_hydro_storage_plants(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = water_reservoirs_and_hydro_storage_plants(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function water_reservoirs_and_hydro_storage_plants(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
     )
     apis = entsoe_apis(client)
@@ -1235,17 +1046,9 @@ Real-time area-control-error / imbalance state (Balancing 1.2.3.A,
 error). Returns `StructVector{(time, value)}` in MW — the cleared
 imbalance for the area.
 """
-current_balancing_state(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = current_balancing_state(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function current_balancing_state(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         business_type::AbstractString = "B33",
     )
@@ -1274,15 +1077,9 @@ EUR/MWh.
 `psr_type` defaults to `nothing` (no filter); pass `"A04"` for
 generation only.
 """
-imbalance_prices(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = imbalance_prices(client, area, period_start, period_end, Parsed(); kwargs...)
-
 function imbalance_prices(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         psr_type::Union{Nothing, AbstractString} = nothing,
     )
@@ -1309,17 +1106,9 @@ Total imbalance volumes per settlement period (Balancing 17.1.H,
 
 `business_type` defaults to `"A19"` (Balance energy deviation).
 """
-total_imbalance_volumes(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = total_imbalance_volumes(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function total_imbalance_volumes(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         business_type::AbstractString = "A19",
     )
@@ -1349,17 +1138,9 @@ Response is `application/zip` and is unzipped transparently.
 `process_type` defaults to `"A51"` (aFRR); pass `"A47"` for mFRR.
 `type_market_agreement_type` defaults to `"A01"` (daily).
 """
-procured_balancing_capacity(
-    client::Client, area::AbstractString,
-    period_start, period_end = nothing;
-    kwargs...,
-) = procured_balancing_capacity(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function procured_balancing_capacity(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A51",
         type_market_agreement_type::AbstractString = "A01",
@@ -1389,17 +1170,9 @@ frequency restoration reserve — aFRR); pass `"A47"` for mFRR or
 `"A46"` for RR. Returns `StructVector{(time, value)}` of bid volumes
 in MW.
 """
-aggregated_balancing_energy_bids(
-    client::Client, area::AbstractString,
-    period_start, period_end;
-    kwargs...,
-) = aggregated_balancing_energy_bids(
-    client, area, period_start, period_end, Parsed(); kwargs...,
-)
-
 function aggregated_balancing_energy_bids(
         client::Client, area::AbstractString,
-        period_start, period_end, format::ResponseFormat;
+        period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A51",
     )
