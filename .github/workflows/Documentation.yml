@@ -32,10 +32,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Julia
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@v3
       - name: Load Julia packages from cache
         id: julia-cache
-        uses: julia-actions/cache@v2
+        uses: julia-actions/cache@v3
       - name: Build and deploy docs
         uses: julia-actions/julia-docdeploy@v1
         env:
@@ -44,7 +44,7 @@ jobs:
           JULIA_DEBUG: "Documenter"
       - name: Save Julia depot cache on cancel or failure
         if: cancelled() || failure()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             ${{ steps.julia-cache.outputs.cache-paths }}
