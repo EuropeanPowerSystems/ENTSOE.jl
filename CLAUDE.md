@@ -13,7 +13,9 @@ The user-facing surface is the *third* layer — named, code-prefilled wrappers 
 ```text
 src/
   conveniences/   ← hand-written ENTSO-E layer (untouched by codegen)
-    queries.jl    ←   ~28 named wrappers (day_ahead_prices, …, imbalance_prices)
+    queries.jl    ←   ~45 named wrappers (day_ahead_prices, …, imbalance_prices,
+                  ←     intraday_prices, year_ahead_forecast_margin,
+                  ←     prices_of_activated_balancing_energy, SO-GL reserve family, …)
                   ←   ResponseFormat dispatch (Parsed() default, Raw() escape hatch)
                   ←   `_query` is zip-aware — every wrapper transparently unzips
                       application/zip bodies (balancing 17.1.x, outages with many notices)
