@@ -2557,7 +2557,7 @@ end
 Prices of activated balancing energy (Balancing 17.1.F,
 `documentType=A84`). One row per published settlement period —
 `StructVector{(time, value)}` in EUR/MWh. Response is
-`application/zip`; [`_query`](@ref) unzips and parses transparently.
+`application/zip`; the wrapper unzips and parses transparently.
 
 `process_type` defaults to `"A16"` (Realised). Pass `business_type` /
 `psr_type` / market-product strings to filter server-side. Mirrors
