@@ -1,72 +1,43 @@
 """
-    EIC
+    EICTable
 
-Curated `NamedTuple` of EIC (Energy Identification Code) strings for the most
-frequently queried ENTSO-E bidding zones and control areas. Use these as
-`in_Domain` / `out_Domain` / `area` values for the generated query functions:
+Wrapper around the curated [`EIC`](@ref) lookup table. Owned by
+ENTSOE.jl so the `(::EICTable)(code)` call method isn't piracy on
+`Base.NamedTuple`. Supports the same surface as a NamedTuple:
 
-```julia
-market121_d_energy_prices(api, "A44", EIC.NL, EIC.NL, period_start, period_end)
-```
+  - Field access — `EIC.NL`
+  - Callable lookup — `EIC("NL")`
+  - Iteration over values — `for v in EIC; ...; end`
+  - `propertynames(EIC)`, `keys(EIC)`, `length(EIC)`, `haskey(EIC, :NL)`
 
-The list is intentionally not exhaustive — pass any 16-character EIC string
-directly when your zone isn't here. Authoritative codes are published by
-ENTSO-E at <https://www.entsoe.eu/data/energy-identification-codes-eic/>.
+The struct holds the underlying `NamedTuple` in the `entries` field.
+Most user code interacts through the public [`EIC`](@ref) constant.
 """
-const EIC = (
-    AT = "10YAT-APG------L",
-    BE = "10YBE----------2",
-    BG = "10YCA-BULGARIA-R",
-    CH = "10YCH-SWISSGRIDZ",
-    CZ = "10YCZ-CEPS-----N",
-    DE_LU = "10Y1001A1001A82H",   # Bidding zone DE/LU since 2018-10-01
-    DK1 = "10YDK-1--------W",
-    DK2 = "10YDK-2--------M",
-    EE = "10Y1001A1001A39I",
-    ES = "10YES-REE------0",
-    FI = "10YFI-1--------U",
-    FR = "10YFR-RTE------C",
-    GB = "10YGB----------A",
-    GR = "10YGR-HTSO-----Y",
-    HR = "10YHR-HEP------M",
-    HU = "10YHU-MAVIR----U",
-    IE_SEM = "10Y1001A1001A59C",
-    IT_NORTH = "10Y1001A1001A73I",
-    LT = "10YLT-1001A0008Q",
-    LU = "10YLU-CEGEDEL-NQ",
-    LV = "10YLV-1001A00074",
-    NL = "10YNL----------L",
-    NO1 = "10YNO-1--------2",
-    NO2 = "10YNO-2--------T",
-    NO3 = "10YNO-3--------J",
-    NO4 = "10YNO-4--------9",
-    NO5 = "10Y1001A1001A48H",
-    PL = "10YPL-AREA-----S",
-    PT = "10YPT-REN------W",
-    RO = "10YRO-TEL------P",
-    RS = "10YCS-SERBIATSOV",
-    SE1 = "10Y1001A1001A44P",
-    SE2 = "10Y1001A1001A45N",
-    SE3 = "10Y1001A1001A46L",
-    SE4 = "10Y1001A1001A47J",
-    SI = "10YSI-ELES-----O",
-    SK = "10YSK-SEPS-----K",
-)
+struct EICTable{NT <: NamedTuple}
+    entries::NT
+end
 
-# Make `EIC` callable with a string key — `EIC("NL")` is equivalent to
-# `EIC.NL`. Mirrors the country-code-string API entsoe-py exposes via
-# `lookup_area(code)`, so users porting Python code don't have to rewrite
-# every call site. Lookup is case-insensitive on the alpha-only portion;
-# zones with subscripts (`DE_LU`, `NO2`) still need the underscore /
-# digit form (`EIC("DE_LU")`, `EIC("NO2")`) — Symbol-ifying the
-# trimmed string and dispatching through `getproperty` keeps it cheap.
+# Forward NamedTuple-like introspection. Use `getfield` on the struct
+# directly so `getproperty(EICTable, :NL)` reaches into `.entries`
+# rather than recursing into itself.
+Base.getproperty(t::EICTable, sym::Symbol) =
+    getproperty(getfield(t, :entries), sym)
+Base.propertynames(t::EICTable, private::Bool = false) =
+    propertynames(getfield(t, :entries), private)
+Base.haskey(t::EICTable, sym::Symbol) = haskey(getfield(t, :entries), sym)
+Base.keys(t::EICTable) = keys(getfield(t, :entries))
+Base.values(t::EICTable) = values(getfield(t, :entries))
+Base.pairs(t::EICTable) = pairs(getfield(t, :entries))
+Base.length(t::EICTable) = length(getfield(t, :entries))
+Base.iterate(t::EICTable, st...) = iterate(getfield(t, :entries), st...)
+Base.show(io::IO, t::EICTable) = print(io, "EIC(", getfield(t, :entries), ")")
+
 """
-    EIC(code) :: String
+    EIC(code::AbstractString) -> String
 
 Resolve a short bidding-zone alias to its 16-character EIC. Equivalent
 to field access (`EIC.NL == EIC("NL") == "10YNL----------L"`), accepting
-any `AbstractString` and validating against the curated [`EIC`](@ref)
-table.
+any `AbstractString` and validating against the curated table.
 
 ```jldoctest
 julia> EIC("NL")
@@ -80,7 +51,7 @@ Throws `ArgumentError` for unknown aliases. For arbitrary EIC strings
 not in the curated set, pass the 16-character code directly (no lookup
 needed).
 """
-function (t::typeof(EIC))(code::AbstractString)
+function (t::EICTable)(code::AbstractString)
     sym = Symbol(code)
     haskey(t, sym) || throw(
         ArgumentError(
@@ -88,8 +59,75 @@ function (t::typeof(EIC))(code::AbstractString)
                 "Use one of `propertynames(EIC)` or pass a 16-character EIC string directly.",
         ),
     )
-    return getfield(t, sym)
+    return getproperty(t, sym)
 end
+
+"""
+    EIC
+
+Curated table of EIC (Energy Identification Code) strings for the most
+frequently queried ENTSO-E bidding zones and control areas. Use these
+as `in_Domain` / `out_Domain` / `area` values for the generated query
+functions:
+
+```julia
+market121_d_energy_prices(api, "A44", EIC.NL, EIC.NL, period_start, period_end)
+```
+
+Three equivalent spellings of the same zone:
+
+```julia
+EIC.NL       # field access — best when the zone is a literal
+EIC("NL")    # callable — useful when porting entsoe-py country strings
+"10YNL----------L"   # the raw 16-char code is always accepted
+```
+
+The list is intentionally not exhaustive — pass any 16-character EIC
+string directly when your zone isn't here. Authoritative codes are
+published by ENTSO-E at
+<https://www.entsoe.eu/data/energy-identification-codes-eic/>.
+"""
+const EIC = EICTable(
+    (
+        AT = "10YAT-APG------L",
+        BE = "10YBE----------2",
+        BG = "10YCA-BULGARIA-R",
+        CH = "10YCH-SWISSGRIDZ",
+        CZ = "10YCZ-CEPS-----N",
+        DE_LU = "10Y1001A1001A82H",   # Bidding zone DE/LU since 2018-10-01
+        DK1 = "10YDK-1--------W",
+        DK2 = "10YDK-2--------M",
+        EE = "10Y1001A1001A39I",
+        ES = "10YES-REE------0",
+        FI = "10YFI-1--------U",
+        FR = "10YFR-RTE------C",
+        GB = "10YGB----------A",
+        GR = "10YGR-HTSO-----Y",
+        HR = "10YHR-HEP------M",
+        HU = "10YHU-MAVIR----U",
+        IE_SEM = "10Y1001A1001A59C",
+        IT_NORTH = "10Y1001A1001A73I",
+        LT = "10YLT-1001A0008Q",
+        LU = "10YLU-CEGEDEL-NQ",
+        LV = "10YLV-1001A00074",
+        NL = "10YNL----------L",
+        NO1 = "10YNO-1--------2",
+        NO2 = "10YNO-2--------T",
+        NO3 = "10YNO-3--------J",
+        NO4 = "10YNO-4--------9",
+        NO5 = "10Y1001A1001A48H",
+        PL = "10YPL-AREA-----S",
+        PT = "10YPT-REN------W",
+        RO = "10YRO-TEL------P",
+        RS = "10YCS-SERBIATSOV",
+        SE1 = "10Y1001A1001A44P",
+        SE2 = "10Y1001A1001A45N",
+        SE3 = "10Y1001A1001A46L",
+        SE4 = "10Y1001A1001A47J",
+        SI = "10YSI-ELES-----O",
+        SK = "10YSK-SEPS-----K",
+    )
+)
 
 """
     EIC_REGISTRY :: Dict{String, Vector{NamedTuple{(:name, :types), …}}}
