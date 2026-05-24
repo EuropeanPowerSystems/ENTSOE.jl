@@ -41,11 +41,11 @@ prices = day_ahead_prices(client, EIC.NL,
 
 prices[1:3]
 # 3-element StructVector(@NamedTuple{time::DateTime, value::Float64}):
-#  (time = DateTime("2024-09-01T22:00"), value = 41.27)
-#  (time = DateTime("2024-09-01T22:15"), value = 41.27)
-#  (time = DateTime("2024-09-01T22:30"), value = 41.27)
+#  (time = DateTime("2024-09-01T22:00"), value = 91.24)
+#  (time = DateTime("2024-09-01T23:00"), value = 94.77)
+#  (time = DateTime("2024-09-02T00:00"), value = 92.39)
 
-prices.value          # Vector{Float64}, all 24 prices
+prices.value          # Vector{Float64}, all 24 hourly prices
 prices.time           # Vector{DateTime}
 DataFrame(prices)     # works directly — every wrapper is Tables.jl-compatible
 ```
@@ -89,11 +89,11 @@ type `ResponseFormat` that switches the return shape:
 | `Raw()` | `String` | Bypass the parser. Hand the XML to your own walker, archive the body, debug a parse mismatch. |
 
 ```julia
+t1, t2 = DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")
+
 # Default — parsed StructVector
-prices = day_ahead_prices(client, EIC.NL,
-    DateTime("2024-09-01T22:00"),
-    DateTime("2024-09-02T22:00"))
-prices.value[1:3]    # → [91.24, 89.50, 87.13]
+prices = day_ahead_prices(client, EIC.NL, t1, t2)
+prices.value[1:3]    # → [91.24, 94.77, 92.39]
 
 # Explicit Parsed() — identical to the default; reads better in
 # pipelines where multiple formats coexist.
@@ -105,20 +105,19 @@ typeof(xml)          # → String
 ```
 
 `Parsed` and `Raw` are subtypes of the abstract `ResponseFormat`, so
-each variant has a **concrete inferred return type**:
+each variant has a **concrete runtime return type**:
 
 ```julia
-Base.return_types(day_ahead_prices,
-    Tuple{Client, String, DateTime, DateTime, Raw})
-# → [String]
+typeof(prices)
+# → StructVector{@NamedTuple{time::DateTime, value::Float64},
+#                @NamedTuple{time::Vector{DateTime}, value::Vector{Float64}}, Int64}
 
-Base.return_types(day_ahead_prices,
-    Tuple{Client, String, DateTime, DateTime})
-# → [StructVector{@NamedTuple{time::DateTime, value::Float64}, …}]
+typeof(xml)
+# → String
 ```
 
-No `Union` widening, no `Any` — downstream code can specialize on the
-return type.
+Downstream code can branch on `ResponseFormat` at the call site — no
+runtime `isa Union{…}` dispatch needed.
 
 ### Day-ahead prices
 
@@ -126,10 +125,16 @@ return type.
 prices = day_ahead_prices(client, EIC.DE_LU,
     DateTime("2025-01-15"), DateTime("2025-01-16"))
 
-# 96-element Vector{@NamedTuple{time::DateTime, value::Float64}}
-# (15-min slots — German day-ahead is quarter-hourly)
-prices[1]   # → (time = DateTime("2025-01-14T23:00"), value = 105.32)
+prices[1]            # → (time = DateTime("2025-01-14T23:00"), value = 118.0)
+prices[2].time       # → DateTime("2025-01-14T23:15")
 ```
+
+Resolution and exact row count vary by bidding zone and date — NL
+day-ahead currently publishes hourly (24 rows for a 24 h window),
+DE_LU and most CWE zones publish quarter-hourly (96 rows), and on
+days where ENTSO-E republishes multiple TSO documents you may see
+several stitched curves in one response. Don't hard-code a length —
+trust `prices.time` and the row stride.
 
 ### Realised total system load
 
@@ -137,7 +142,8 @@ prices[1]   # → (time = DateTime("2025-01-14T23:00"), value = 105.32)
 load = actual_total_load(client, EIC.NL,
     DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"))
 
-load[1]   # → (time = DateTime("2024-09-01T22:00"), value = 8624.0)  # MW
+length(load)   # → 96   (15-min resolution)
+load[1]        # → (time = DateTime("2024-09-01T22:00"), value = 12156.45)  # MW
 ```
 
 Day/week/month/year-ahead forecasts are also wrapped:
@@ -151,15 +157,15 @@ signature.
 gen = actual_generation_per_production_type(client, EIC.FR,
     DateTime("2025-03-10"), DateTime("2025-03-11"))
 
-# rows tagged with PSR type:
-gen[1]    # → (time = DateTime("2025-03-09T23:00"),
-          #    psr_type = "B14",   # Nuclear
-          #    value = 41320.0)    # MW
+# rows tagged with PSR type, sorted by (psr_type, time):
+gen[1]    # → (time = DateTime("2025-03-10T00:00"),
+          #    psr_type = "B01",   # Biomass — see PSR_TYPE
+          #    value = 311.2)      # MW
 
 # Filter to one technology server-side:
 solar = actual_generation_per_production_type(client, EIC.FR,
     DateTime("2025-03-10"), DateTime("2025-03-11");
-    psr_type = "B16")    # B16 = Solar — see PSR_TYPE table below
+    psr_type = "B16")    # B16 = Solar
 ```
 
 ### Installed capacity per production type
@@ -168,21 +174,25 @@ solar = actual_generation_per_production_type(client, EIC.FR,
 caps = installed_capacity_per_production_type(client, EIC.NL,
     DateTime("2024-12-31T23:00"), DateTime("2025-12-31T23:00"))
 
-# 14-element Vector{@NamedTuple{psr_type::String, capacity_mw::Float64}}
-caps[1]   # → (psr_type = "B01", capacity_mw = 580.0)   # Biomass
+# Vector{@NamedTuple{psr_type::String, capacity_mw::Float64}}, one
+# row per PSR type present in the registry for that year.
+caps[1]   # → (psr_type = "B01", capacity_mw = 418.0)   # Biomass
 
-describe(PSR_TYPE, caps[1].psr_type)   # → "Biomass"
+# `ENTSOE.describe` resolves a code against any of the four code
+# tables. Qualified because the name collides with `DataFrames.describe`.
+ENTSOE.describe(PSR_TYPE, caps[1].psr_type)   # → "Biomass"
 ```
 
 ### Cross-border physical flows
 
 ```julia
-# Hourly flow from Germany into the Netherlands (positive = imports)
+# Flow from Germany into the Netherlands (positive = imports)
 flow = cross_border_physical_flows(client,
     EIC.NL, EIC.DE_LU,                 # in_area, out_area
     DateTime("2024-09-01"), DateTime("2024-09-02"))
 
-flow[1]   # → (time = DateTime("2024-08-31T22:00"), value = 2143.0)  # MW
+length(flow)   # → 96   (15-min resolution)
+flow[1]        # → (time = DateTime("2024-09-01T00:00"), value = 333.0)  # MW
 ```
 
 ## Codes and identifiers
@@ -196,9 +206,10 @@ PROCESS_TYPE.A16                # "Realised"
 BUSINESS_TYPE.A33               # "Outage"
 PSR_TYPE.B19                    # "Wind Onshore"
 
-# Reverse lookup by fragment:
-code_for(PSR_TYPE, "wind onshore")    # "B19"
-code_for(DOCUMENT_TYPE, "price")      # "A44"
+# Reverse lookup by fragment — must match exactly one entry:
+code_for(PSR_TYPE, "wind onshore")        # "B19"
+code_for(DOCUMENT_TYPE, "Price document") # "A44"
+# A too-generic fragment throws — "price" matches A44/A84/A85/A89.
 ```
 
 Bidding zones are
@@ -212,10 +223,12 @@ EIC.NO2         # "10YNO-2--------T"  (southern Norway)
 ```
 
 For zones not in `EIC`, pass the raw 16-character string directly. The
-extended `EIC_REGISTRY` table maps every ENTSO-E EIC to `(name, types)`
-where `types` is a vector of `[:BZN, :CTA, :MBA, …]`. Pass
-`validate = true` to any wrapper to assert the zone exists and is the
-right type for the endpoint.
+extended `EIC_REGISTRY` table covers a curated set of ~120 ENTSO-E
+EICs and maps each to a `Vector{@NamedTuple{name::String,
+types::Vector{Symbol}}}` (one entry per registration — `types`
+elements are `:BZN`, `:CTA`, `:MBA`, …). Pass `validate = true` to
+any wrapper to assert the zone exists and is the right type for the
+endpoint.
 
 ## Long periods (auto-split)
 
@@ -230,7 +243,8 @@ prices = query_split(
     window = Year(1),
 )
 
-length(prices)    # → 175296   (≈ 5 years × 8760 h × 4 quarter-hours)
+length(prices)    # → 43677   (5 years × 8760 h, minus a handful of
+                  #            DST/no-data slots)
 ```
 
 Internally `query_split` calls `day_ahead_prices` once per yearly chunk
