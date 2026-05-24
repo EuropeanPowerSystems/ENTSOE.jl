@@ -330,6 +330,72 @@ function congestion_income(
 end
 
 """
+    intraday_offered_capacity(client, in_area, out_area, period_start, period_end[, format];
+                              implicit=true, id_type="IDCT") -> StructVector | String
+
+Intraday cross-border offered transfer capacity. Thin router over the
+three underlying allocation endpoints, mirroring entsoe-py's
+`query_intraday_offered_capacity`:
+
+  - `implicit=false` → `explicit_allocations_offered_transfer_capacity`
+    with `auction_type="A02"` (used on the few explicit-ID borders
+    like BE↔GB).
+  - `implicit=true, id_type="IDCT"` →
+    `continuous_allocations_offered_transfer_capacity`
+    (SIDC continuous trading, `auction_type="A08"`).
+  - `implicit=true, id_type="IDA1"`/`"IDA2"`/`"IDA3"` →
+    `implicit_allocations_offered_transfer_capacity` with
+    `contract_market_agreement_type="A07"` and `sequence=1`/`2`/`3`
+    (SIDC pan-European IDA auctions).
+"""
+function intraday_offered_capacity(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        implicit::Bool = true,
+        id_type::AbstractString = "IDCT",
+    )
+    if !implicit
+        return explicit_allocations_offered_transfer_capacity(
+            client, in_area, out_area, period_start, period_end, format;
+            validate = validate,
+            auction_type = "A02",
+            contract_market_agreement_type = "A07",
+        )
+    end
+    if id_type == "IDCT"
+        return continuous_allocations_offered_transfer_capacity(
+            client, in_area, out_area, period_start, period_end, format;
+            validate = validate,
+            auction_type = "A08",
+            contract_market_agreement_type = "A07",
+        )
+    end
+    sequence = if id_type == "IDA1"
+        1
+    elseif id_type == "IDA2"
+        2
+    elseif id_type == "IDA3"
+        3
+    else
+        throw(
+            ArgumentError(
+                "Unknown id_type $(repr(String(id_type))). " *
+                    "Expected one of: IDCT, IDA1, IDA2, IDA3.",
+            ),
+        )
+    end
+    return implicit_allocations_offered_transfer_capacity(
+        client, in_area, out_area, period_start, period_end, format;
+        validate = validate,
+        auction_type = "A01",
+        contract_market_agreement_type = "A07",
+        sequence = sequence,
+    )
+end
+
+"""
     explicit_allocations_offered_transfer_capacity(client, in_area, out_area, period_start, period_end[, format];
                                                    auction_type="A02",
                                                    contract_market_agreement_type="A01",
@@ -1181,6 +1247,7 @@ function expansion_and_dismantling_project(
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
+        withdrawn::Bool = false,
     )
     apis = entsoe_apis(client)
     return _query(
@@ -1192,7 +1259,8 @@ function expansion_and_dismantling_project(
             String(out_area), String(in_area),
             _to_period(period_start), _to_period(period_end);
             business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            doc_status = withdrawn ? "A13" :
+                (doc_status === nothing ? nothing : String(doc_status)),
         )
     end
 end
@@ -1342,6 +1410,7 @@ function unavailability_of_generation_units(
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
+        withdrawn::Bool = false,
         period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         registered_resource::Union{Nothing, AbstractString} = nothing,
@@ -1357,7 +1426,8 @@ function unavailability_of_generation_units(
             apis.outages, "A80", String(area),
             _to_period(period_start), _to_period(period_end);
             business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            doc_status = withdrawn ? "A13" :
+                (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
@@ -1388,6 +1458,7 @@ function unavailability_of_production_units(
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
+        withdrawn::Bool = false,
         period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         registered_resource::Union{Nothing, AbstractString} = nothing,
@@ -1403,7 +1474,8 @@ function unavailability_of_production_units(
             apis.outages, "A77", String(area),
             _to_period(period_start), _to_period(period_end);
             business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            doc_status = withdrawn ? "A13" :
+                (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
@@ -1435,6 +1507,7 @@ function unavailability_of_transmission_infrastructure(
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
+        withdrawn::Bool = false,
         period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
@@ -1450,7 +1523,8 @@ function unavailability_of_transmission_infrastructure(
             String(out_area), String(in_area),
             _to_period(period_start), _to_period(period_end);
             business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            doc_status = withdrawn ? "A13" :
+                (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
@@ -1482,6 +1556,7 @@ function outages_fall_backs(
         process_type::AbstractString = "A47",
         business_type::AbstractString = "A53",
         doc_status::Union{Nothing, AbstractString} = nothing,
+        withdrawn::Bool = false,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
     )
@@ -1495,7 +1570,106 @@ function outages_fall_backs(
             String(process_type), String(business_type),
             String(bidding_zone),
             _to_period(period_start), _to_period(period_end);
-            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            doc_status = withdrawn ? "A13" :
+                (doc_status === nothing ? nothing : String(doc_status)),
+            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            offset = offset === nothing ? nothing : Int(offset),
+        )
+    end
+end
+
+"""
+    unavailability_of_transmission_infrastructure_available_capacity(
+        client, control_area, period_start, period_end[, format];
+        business_type=nothing, asset_registered_resource_m_r_i_d=nothing,
+        doc_status=nothing, period_start_update=nothing,
+        period_end_update=nothing, m_r_i_d=nothing,
+        offset=nothing) -> StructVector | String
+
+Available-capacity sub-view of transmission-infrastructure outage
+notices (Outages 10.1.A/B variant, `documentType=A78`). Single
+`control_area` query (no `in`/`out` split). Returns
+[`parse_unavailability`](@ref) rows.
+"""
+function unavailability_of_transmission_infrastructure_available_capacity(
+        client::Client, control_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        business_type::Union{Nothing, AbstractString} = nothing,
+        asset_registered_resource_m_r_i_d::Union{Nothing, AbstractString} = nothing,
+        doc_status::Union{Nothing, AbstractString} = nothing,
+        withdrawn::Bool = false,
+        period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
+        period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
+        m_r_i_d::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_unavailability;
+        validate = validate, eics = (control_area,),
+    ) do
+        outages101_a_b_unavailability_of_transmission_infrastructure_available_capacity(
+            apis.outages, "A78", String(control_area),
+            _to_period(period_start), _to_period(period_end);
+            business_type = business_type === nothing ? nothing : String(business_type),
+            asset_registered_resource_m_r_i_d = asset_registered_resource_m_r_i_d === nothing ?
+                nothing : String(asset_registered_resource_m_r_i_d),
+            doc_status = withdrawn ? "A13" :
+                (doc_status === nothing ? nothing : String(doc_status)),
+            period_start_update = period_start_update === nothing ?
+                nothing : _to_period(period_start_update),
+            period_end_update = period_end_update === nothing ?
+                nothing : _to_period(period_end_update),
+            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            offset = offset === nothing ? nothing : Int(offset),
+        )
+    end
+end
+
+"""
+    unavailability_of_transmission_infrastructure_net_position_impact(
+        client, ptdf_domain, period_start, period_end[, format];
+        business_type=nothing, asset_registered_resource_m_r_i_d=nothing,
+        doc_status=nothing, period_start_update=nothing,
+        period_end_update=nothing, m_r_i_d=nothing,
+        offset=nothing) -> StructVector | String
+
+Net-position-impact sub-view of transmission-infrastructure outage
+notices (Outages 10.1.A/B variant, `documentType=A78`). Takes a single
+PTDF domain mRID (`ptdf_domain`); returns [`parse_unavailability`](@ref)
+rows describing how each outage shifts NTC at that node.
+"""
+function unavailability_of_transmission_infrastructure_net_position_impact(
+        client::Client, ptdf_domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        business_type::Union{Nothing, AbstractString} = nothing,
+        asset_registered_resource_m_r_i_d::Union{Nothing, AbstractString} = nothing,
+        doc_status::Union{Nothing, AbstractString} = nothing,
+        withdrawn::Bool = false,
+        period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
+        period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
+        m_r_i_d::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_unavailability;
+        validate = validate, eics = (ptdf_domain,),
+    ) do
+        outages101_a_b_unavailability_of_transmission_infrastructure_net_position_impact(
+            apis.outages, "A78", String(ptdf_domain),
+            _to_period(period_start), _to_period(period_end);
+            business_type = business_type === nothing ? nothing : String(business_type),
+            asset_registered_resource_m_r_i_d = asset_registered_resource_m_r_i_d === nothing ?
+                nothing : String(asset_registered_resource_m_r_i_d),
+            doc_status = withdrawn ? "A13" :
+                (doc_status === nothing ? nothing : String(doc_status)),
+            period_start_update = period_start_update === nothing ?
+                nothing : _to_period(period_start_update),
+            period_end_update = period_end_update === nothing ?
+                nothing : _to_period(period_end_update),
             m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )
@@ -1525,6 +1699,7 @@ function unavailability_of_offshore_grid(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         doc_status::Union{Nothing, AbstractString} = nothing,
+        withdrawn::Bool = false,
         period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
@@ -1538,7 +1713,8 @@ function unavailability_of_offshore_grid(
         outages101_c_unavailability_of_offshore_grid_infrastructure(
             apis.outages, "A79", String(bidding_zone),
             _to_period(period_start), _to_period(period_end);
-            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            doc_status = withdrawn ? "A13" :
+                (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?

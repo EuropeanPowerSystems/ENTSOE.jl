@@ -638,6 +638,40 @@ let BR = _load_brokenrecord()
             @test :value in propertynames(rows)
         end
 
+        @testset "intraday_offered_capacity (implicit IDCT router)" begin
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> intraday_offered_capacity(client, EIC.BE, EIC.NL,
+                    DateTime("2024-09-01T22:00"),
+                    DateTime("2024-09-02T22:00")),
+                "market_111_intraday_offered_capacity_implicit_IDCT_BE_NL.yml",
+            )
+            @test :time in propertynames(rows)
+            @test :value in propertynames(rows)
+        end
+
+        @testset "Transmission outage sub-views (10.1.A/B available + NPI)" begin
+            cases = [
+                (() -> unavailability_of_transmission_infrastructure_available_capacity(
+                    client, EIC.DE_LU,
+                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
+                    "outages_101ab_transmission_available_capacity_DE.yml"),
+                (() -> unavailability_of_transmission_infrastructure_net_position_impact(
+                    client, "10YDOM-CZ-DE-SKK",
+                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
+                    "outages_101ab_transmission_npi_DE.yml"),
+            ]
+            for (call, cassette) in cases
+                err = nothing
+                try
+                    Base.invokelatest(BR.playback, call, cassette)
+                catch e
+                    err = e
+                end
+                @test err isa ENTSOE.APIError
+            end
+        end
+
         @testset "Balancing IF (Inter-platform) family" begin
             cases = [
                 (() -> cross_border_marginal_prices_for_afrr(
