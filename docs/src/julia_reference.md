@@ -102,6 +102,7 @@ EIC("NL")    # callable — useful when porting entsoe-py country strings
 EIC
 EIC(::AbstractString)
 EIC_REGISTRY
+NEIGHBOURS
 lookup_eic
 is_known_eic
 eics_of_type
@@ -232,6 +233,7 @@ water_reservoirs_and_hydro_storage_plants
 
 ```@docs
 cross_border_physical_flows
+cross_border_physical_flows_all
 commercial_schedules
 scheduled_exchanges
 commercial_schedules_net_positions

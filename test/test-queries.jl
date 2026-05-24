@@ -690,6 +690,26 @@ let BR = _load_brokenrecord()
             @test length(unique(rows.psr_type)) >= 3
         end
 
+        @testset "cross_border_physical_flows_all (NEIGHBOURS helper)" begin
+            # Override `neighbours` to a single border so we can reuse
+            # the existing 12.1.G cassette (NL↔DE_LU, in=NL, out=DE_LU).
+            # `export_=false` matches that wire direction (imports into NL).
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> cross_border_physical_flows_all(
+                    client, EIC.NL,
+                    DateTime("2024-09-01T22:00"),
+                    DateTime("2024-09-02T22:00");
+                    neighbours = [EIC.DE_LU], export_ = false),
+                "transmission_121g_cross_border_NL_DE.yml",
+            )
+            @test :time in propertynames(rows)
+            @test :border in propertynames(rows)
+            @test :value in propertynames(rows)
+            @test !isempty(rows)
+            @test all(rows.border .== EIC.DE_LU)
+        end
+
         @testset "intraday_offered_capacity (implicit IDCT router)" begin
             rows = Base.invokelatest(
                 BR.playback,

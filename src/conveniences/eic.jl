@@ -63,6 +63,40 @@ function (t::EICTable)(code::AbstractString)
 end
 
 """
+    NEIGHBOURS
+
+Curated EIC → `Vector{String}` map of cross-border interconnections,
+keyed by 16-character EIC. Used by
+[`cross_border_physical_flows_all`](@ref) to iterate over a zone's
+neighbours. Ported from entsoe-py's `NEIGHBOURS` mapping for the
+most-queried bidding zones — extend in user code by mutating the dict
+or by passing an explicit `neighbours` kwarg to the helper.
+"""
+const NEIGHBOURS = Dict{String, Vector{String}}(
+    "10YBE----------2" => ["10YNL----------L", "10YFR-RTE------C", "10YGB----------A", "10Y1001A1001A82H"],                          # BE
+    "10YNL----------L" => ["10YBE----------2", "10Y1001A1001A82H", "10YGB----------A", "10YNO-2--------T", "10YDK-1--------W"],     # NL
+    "10YFR-RTE------C" => ["10YBE----------2", "10YCH-SWISSGRIDZ", "10Y1001A1001A82H", "10YES-REE------0", "10YGB----------A", "10Y1001A1001A73I"],  # FR
+    "10YCH-SWISSGRIDZ" => ["10YAT-APG------L", "10Y1001A1001A82H", "10YFR-RTE------C", "10Y1001A1001A73I"],                                          # CH
+    "10YAT-APG------L" => ["10YCH-SWISSGRIDZ", "10YCZ-CEPS-----N", "10Y1001A1001A82H", "10YHU-MAVIR----U", "10Y1001A1001A73I", "10YSI-ELES-----O"],   # AT
+    "10YCZ-CEPS-----N" => ["10YAT-APG------L", "10Y1001A1001A82H", "10YPL-AREA-----S", "10YSK-SEPS-----K"],                                          # CZ
+    "10YGB----------A" => ["10YBE----------2", "10YFR-RTE------C", "10Y1001A1001A59C", "10YNL----------L", "10YNO-2--------T", "10YDK-1--------W"],  # GB
+    "10YNO-2--------T" => ["10Y1001A1001A82H", "10YDK-1--------W", "10YNL----------L", "10YNO-1--------2", "10Y1001A1001A48H", "10YGB----------A"], # NO2
+    "10YHU-MAVIR----U" => ["10YAT-APG------L", "10YHR-HEP------M", "10YRO-TEL------P", "10YCS-SERBIATSOV", "10YSI-ELES-----O", "10YSK-SEPS-----K"],  # HU
+    "10Y1001A1001A73I" => ["10YCH-SWISSGRIDZ", "10Y1001A1001A82H", "10YFR-RTE------C", "10YSI-ELES-----O", "10YAT-APG------L"],                      # IT_NORTH
+    "10YES-REE------0" => ["10YFR-RTE------C", "10YPT-REN------W"],                                                                                  # ES
+    "10YSI-ELES-----O" => ["10YAT-APG------L", "10Y1001A1001A82H", "10YHR-HEP------M", "10Y1001A1001A73I", "10YHU-MAVIR----U"],                      # SI
+    "10YPL-AREA-----S" => ["10YCZ-CEPS-----N", "10Y1001A1001A82H", "10YLT-1001A0008Q", "10YSK-SEPS-----K"],                                          # PL
+    "10YDK-1--------W" => ["10YNL----------L", "10YNO-2--------T", "10Y1001A1001A82H", "10YGB----------A", "10YDK-2--------M", "10Y1001A1001A44P"], # DK1
+    "10YDK-2--------M" => ["10Y1001A1001A82H", "10YDK-1--------W", "10Y1001A1001A47J"],                                                              # DK2
+    "10Y1001A1001A82H" => [                                                                                                                          # DE_LU
+        "10YBE----------2", "10YCH-SWISSGRIDZ", "10YCZ-CEPS-----N", "10YDK-1--------W", "10YDK-2--------M",
+        "10YFR-RTE------C", "10Y1001A1001A73I", "10YNL----------L", "10YPL-AREA-----S", "10Y1001A1001A47J",
+        "10YSI-ELES-----O", "10YNO-2--------T",
+    ],
+    "10YAT-APG------L" => ["10YCH-SWISSGRIDZ", "10YCZ-CEPS-----N", "10Y1001A1001A82H", "10YHU-MAVIR----U", "10Y1001A1001A73I", "10YSI-ELES-----O"],
+)
+
+"""
     EIC
 
 Curated table of EIC (Energy Identification Code) strings for the most

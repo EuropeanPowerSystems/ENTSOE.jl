@@ -1114,6 +1114,83 @@ function cross_border_physical_flows(
 end
 
 """
+    cross_border_physical_flows_all(client, area, period_start, period_end[, format];
+                                    export_=true,
+                                    neighbours=NEIGHBOURS[area])
+      -> StructVector | String
+
+Aggregate cross-border physical flows for a zone across every
+configured border. Calls [`cross_border_physical_flows`](@ref) once
+per neighbour and concatenates the results, tagging each row with
+a `border` column (the neighbouring EIC).
+
+`export_=true` (default) sums flows leaving `area`; `export_=false`
+sums flows arriving in `area`. Pass `neighbours` explicitly to
+restrict / extend the default list from [`NEIGHBOURS`](@ref).
+
+Mirrors entsoe-py's `query_physical_crossborder_allborders`.
+`ENTSOEAcknowledgement`s on individual borders are caught per-border
+and dropped — partial coverage is normal when ENTSO-E hasn't published
+flows on every link.
+"""
+function cross_border_physical_flows_all(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        export_::Bool = true,
+        neighbours::AbstractVector{<:AbstractString} = get(
+            NEIGHBOURS, String(area), String[],
+        ),
+    )
+    if isempty(neighbours)
+        throw(
+            ArgumentError(
+                "No neighbours configured for $(repr(String(area))). " *
+                    "Pass `neighbours = [...]` explicitly or extend `NEIGHBOURS`.",
+            ),
+        )
+    end
+    parts = StructArrays.StructArray{
+        @NamedTuple{time::DateTime, border::String, value::Float64}
+    }[]
+    raw_parts = String[]
+    for n in neighbours
+        in_area, out_area = export_ ? (n, area) : (area, n)
+        try
+            rows = cross_border_physical_flows(
+                client, in_area, out_area, period_start, period_end, format;
+                validate = validate,
+            )
+            if format isa Raw
+                push!(raw_parts, rows)
+            else
+                push!(
+                    parts,
+                    StructArrays.StructArray(
+                        (
+                            time = rows.time,
+                            border = fill(String(n), length(rows)),
+                            value = rows.value,
+                        ),
+                    ),
+                )
+            end
+        catch err
+            err isa ENTSOEAcknowledgement || rethrow()
+            # No flow published on this border for the window — skip.
+        end
+    end
+    if format isa Raw
+        return join(raw_parts, "\n<!-- next border -->\n")
+    end
+    return isempty(parts) ?
+        StructArrays.StructArray(
+            (time = DateTime[], border = String[], value = Float64[]),
+        ) :
+        reduce(vcat, parts)
+end
+
+"""
     commercial_schedules(client, in_area, out_area, start, stop[, format];
                          contract_market_agreement_type="A01") -> StructVector | String
 

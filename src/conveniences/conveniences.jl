@@ -18,7 +18,7 @@ export parse_timeseries, parse_timeseries_per_psr, parse_installed_capacity,
     parse_unavailability, parse_unavailability_curve, parse_master_data
 export parse_acknowledgement, check_acknowledgement, ENTSOEAcknowledgement
 export unzip_response
-export EIC_REGISTRY, lookup_eic, is_known_eic, eics_of_type, validate_eic
+export EIC_REGISTRY, NEIGHBOURS, lookup_eic, is_known_eic, eics_of_type, validate_eic
 export day_ahead_prices,
     intraday_prices,
     total_nominated_capacity,
@@ -47,6 +47,7 @@ export day_ahead_prices,
     actual_generation_per_generation_unit,
     water_reservoirs_and_hydro_storage_plants,
     cross_border_physical_flows,
+    cross_border_physical_flows_all,
     commercial_schedules,
     scheduled_exchanges,
     commercial_schedules_net_positions,
