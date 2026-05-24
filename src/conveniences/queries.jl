@@ -1715,6 +1715,254 @@ function imbalance_prices(
 end
 
 """
+    cross_border_marginal_prices_for_afrr(client, control_area, period_start, period_end[, format];
+                                          standard_market_product="A01")
+      -> StructVector | String
+
+Cross-border marginal prices (CBMPs) for aFRR central selection
+(Balancing IF aFRR 3.1.6, `documentType=A84`, `processType=A67`,
+`businessType=A96`). Returns the PICASSO clearing prices per control
+area.
+"""
+function cross_border_marginal_prices_for_afrr(
+        client::Client, control_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        standard_market_product::AbstractString = "A01",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing_if_afrr316_cross_border_marginal_prices_cbmps_for_afrr_central_selection_cs(
+            apis.balancing, "A84", "A67", "A96",
+            String(standard_market_product), String(control_area),
+            _to_period(period_start), _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (control_area,),
+    )
+end
+
+"""
+    netted_and_exchanged_volumes(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
+                                 process_type="A63")
+      -> StructVector | String
+
+Netted and exchanged volumes between platforms (Balancing IF
+3.10/3.16/3.17, `documentType=B17`). `process_type` default `"A63"`
+(Imbalance Netting); pass `"A60"` (mFRR scheduled), `"A61"` (mFRR
+direct), `"A67"` (aFRR central selection), etc.
+"""
+function netted_and_exchanged_volumes(
+        client::Client,
+        acquiring_domain::AbstractString, connecting_domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A63",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing_ifs310316317_netted_and_exchanged_volumes(
+            apis.balancing, "B17", String(process_type),
+            String(acquiring_domain), String(connecting_domain),
+            _to_period(period_start), _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    )
+end
+
+"""
+    netted_and_exchanged_volumes_per_border(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
+                                            process_type="A60")
+      -> StructVector | String
+
+Same data as [`netted_and_exchanged_volumes`](@ref) but published per
+border (Balancing IF 3.10/3.16/3.17, `documentType=A30`). `process_type`
+default `"A60"` (mFRR scheduled).
+"""
+function netted_and_exchanged_volumes_per_border(
+        client::Client,
+        acquiring_domain::AbstractString, connecting_domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A60",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing_ifs310316317_netted_and_exchanged_volumes_per_border(
+            apis.balancing, "A30", String(process_type),
+            String(acquiring_domain), String(connecting_domain),
+            _to_period(period_start), _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    )
+end
+
+"""
+    balancing_border_capacity_limitations(client, in_area, out_area, period_start, period_end[, format];
+                                          business_type="A26", process_type="A47",
+                                          registered_resource=nothing)
+      -> StructVector | String
+
+Balancing border capacity limitations (Balancing IF 4.3/4.4,
+`documentType=A31`). `business_type` default `"A26"`; `process_type`
+default `"A47"` (mFRR); pass `"A51"` (aFRR) or `"A63"` (Imbalance
+Netting).
+"""
+function balancing_border_capacity_limitations(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        business_type::AbstractString = "A26",
+        process_type::AbstractString = "A47",
+        registered_resource::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing_ifs4344_balancing_border_capacity_limitations(
+            apis.balancing, "A31",
+            String(business_type), String(process_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            registered_resource = registered_resource === nothing ?
+                nothing : String(registered_resource),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    )
+end
+
+"""
+    permanent_allocation_limitations_to_HVDC(client, in_area, out_area, period_start, period_end[, format];
+                                             process_type="A63", business_type="B06",
+                                             registered_resource=nothing)
+      -> StructVector | String
+
+Permanent allocation limitations on HVDC cross-border capacity
+(Balancing IF 4.5, `documentType=A99`). `process_type` default `"A63"`
+(Imbalance Netting); `business_type` default `"B06"`.
+"""
+function permanent_allocation_limitations_to_HVDC(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A63",
+        business_type::AbstractString = "B06",
+        registered_resource::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing_ifs45_permanent_allocation_limitations_to_cross_border_capacity_on_hvdc_lines(
+            apis.balancing, "A99",
+            String(process_type), String(business_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            registered_resource = registered_resource === nothing ?
+                nothing : String(registered_resource),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    )
+end
+
+"""
+    elastic_demands(client, acquiring_domain, period_start, period_end[, format];
+                    process_type="A47") -> StructVector | String
+
+Elastic-demand curves from IF platforms (Balancing IF aFRR 3.4 /
+mFRR 3.4, `documentType=A37`, `businessType=B75`). `process_type`
+default `"A47"` (mFRR); pass `"A51"` (aFRR).
+"""
+function elastic_demands(
+        client::Client, acquiring_domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A47",
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing_ifs_afrr34_mfrr34_elastic_demands(
+            apis.balancing, "A37", "B75", String(process_type),
+            String(acquiring_domain),
+            _to_period(period_start), _to_period(period_end);
+            offset = offset === nothing ? nothing : Int(offset),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (acquiring_domain,),
+    )
+end
+
+"""
+    changes_to_bid_availability(client, domain, period_start, period_end[, format];
+                                process_type="A47", business_type=nothing,
+                                offset=nothing) -> StructVector | String
+
+Changes to bid availability published by IF platforms (Balancing IF
+mFRR 9.9 / aFRR 9.6/9.8, `documentType=B45`). `process_type` default
+`"A47"` (mFRR). Pass `business_type` like `"C46"` (Conditional bid),
+`"C40"` (Thermal limit), etc.
+
+For historical periods use [`changes_to_bid_availability_archives`](@ref).
+"""
+function changes_to_bid_availability(
+        client::Client, domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A47",
+        business_type::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing_ifs_mfrr99_afrr9698_changes_to_bid_availability(
+            apis.balancing, "B45", String(process_type), String(domain),
+            _to_period(period_start), _to_period(period_end);
+            business_type = business_type === nothing ? nothing : String(business_type),
+            offset = offset === nothing ? nothing : Int(offset),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (domain,),
+    )
+end
+
+"""
+    changes_to_bid_availability_archives(client, domain, period_start, period_end[, format];
+                                         process_type="A47",
+                                         storage_type="archive",
+                                         business_type=nothing,
+                                         offset=nothing) -> StructVector | String
+
+Archived bid-availability changes (Balancing IF mFRR 9.9 / aFRR 9.6/9.8
+archive variant).
+"""
+function changes_to_bid_availability_archives(
+        client::Client, domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A47",
+        storage_type::AbstractString = "archive",
+        business_type::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing_ifs_mfrr99_afrr9698_changes_to_bid_availability_archives(
+            apis.balancing, "B45", String(process_type), String(domain),
+            _to_period(period_start), _to_period(period_end),
+            String(storage_type);
+            business_type = business_type === nothing ? nothing : String(business_type),
+            offset = offset === nothing ? nothing : Int(offset),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (domain,),
+    )
+end
+
+"""
     balancing_energy_bids(client, connecting_domain, period_start, period_end[, format];
                           process_type="A47",
                           direction=nothing,

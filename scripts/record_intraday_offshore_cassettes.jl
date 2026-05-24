@@ -287,6 +287,67 @@ const JOBS = Any[
             DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
         ),
     ),
+    # IF (Inter-platform) balancing family — Postman canonical params.
+    (
+        "balancing_if_afrr316_cbmps_DE_AMPRION.yml",
+        () -> cross_border_marginal_prices_for_afrr(
+            client, "10YDE-VE-------2",
+            202311082300, 202311092300,
+        ),
+    ),
+    (
+        "balancing_ifs310_netted_exchanged_DE.yml",
+        () -> netted_and_exchanged_volumes(
+            client, "10YDE-VE-------2", "10YDE-VE-------2",
+            202301012300, 202301022300,
+        ),
+    ),
+    (
+        "balancing_ifs310_netted_exchanged_per_border_BE_FR.yml",
+        () -> netted_and_exchanged_volumes_per_border(
+            client, EIC.BE, EIC.FR,
+            202503010000, 202503020000,
+        ),
+    ),
+    (
+        "balancing_ifs4344_border_capacity_limitations_CZ_AT.yml",
+        () -> balancing_border_capacity_limitations(
+            client, EIC.AT, EIC.CZ,
+            202401312300, 202402012300;
+            registered_resource = "22T201903146---W",
+        ),
+    ),
+    (
+        "balancing_ifs45_permanent_HVDC_NL_DK1.yml",
+        () -> permanent_allocation_limitations_to_HVDC(
+            client, "10YDK-1--------W", EIC.NL,
+            202101010000, 202112310000;
+            registered_resource = "10T-DK-NL-000012",
+        ),
+    ),
+    (
+        "balancing_ifs_afrr_mfrr34_elastic_demands_CZ.yml",
+        () -> elastic_demands(
+            client, EIC.CZ,
+            202311302300, 202312012300; offset = 0,
+        ),
+    ),
+    (
+        "balancing_ifs_mfrr99_changes_to_bid_availability_DE.yml",
+        () -> changes_to_bid_availability(
+            client, "10YDE-VE-------2",
+            202309232200, 202309242200;
+            business_type = "C46", offset = 100,
+        ),
+    ),
+    (
+        "balancing_ifs_mfrr99_changes_to_bid_availability_archives_DE.yml",
+        () -> changes_to_bid_availability_archives(
+            client, "10YDE-VE-------2",
+            202309232200, 202309242200;
+            business_type = "C46", offset = 100,
+        ),
+    ),
 ]
 
 for (cassette, fn) in JOBS
