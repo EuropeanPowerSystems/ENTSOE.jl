@@ -30,6 +30,7 @@
 # `gen/regenerate.jl` against a refreshed spec leaves them untouched.
 
 using Dates: Dates, DateTime, Date
+using TimeZones: TimeZones, ZonedDateTime, astimezone, @tz_str
 
 """
     ResponseFormat
@@ -65,6 +66,37 @@ and return the raw `application/xml` payload as a `String`. Useful for
 debugging or for endpoints whose XML shape isn't covered by our parsers.
 """
 struct Raw <: ResponseFormat end
+
+"""
+    LocalTime(tz) <: ResponseFormat
+    LocalTime("Europe/Amsterdam")
+
+Like [`Parsed()`](@ref) but converts the `time` column from UTC
+`DateTime` to timezone-aware `ZonedDateTime` in `tz`. Mirrors entsoe-py's
+`query_*_local` variants — useful when porting analyses that expect
+local-time stamps.
+
+```julia
+prices_local = day_ahead_prices(client, EIC.NL, t1, t2,
+    LocalTime("Europe/Amsterdam"))
+prices_local[1].time   # ZonedDateTime in CET/CEST
+```
+
+Pass either a `TimeZones.TimeZone` instance or a string accepted by
+`TimeZone(::String)`. For documents that don't carry a `time` column
+(e.g. installed-capacity snapshots), `LocalTime` is a no-op and
+returns the same shape as `Parsed()`.
+"""
+struct LocalTime <: ResponseFormat
+    tz::TimeZones.TimeZone
+end
+LocalTime(tz::AbstractString) = LocalTime(
+    TimeZones.TimeZone(
+        String(tz),
+        TimeZones.Class(:STANDARD) | TimeZones.Class(:LEGACY) |
+            TimeZones.Class(:FIXED),
+    ),
+)
 
 # Internal: normalise any of the accepted period inputs to the Int64
 # yyyymmddHHMM expected by the generated layer. Identity for already-
@@ -162,6 +194,25 @@ function _query(api_call::Function, ::Parsed, parser::F; kw...) where {F <: Func
     end
     check_acknowledgement(xml)
     return parser(xml)
+end
+
+# `LocalTime` dispatch: parse normally, then convert the `time` column
+# (if present) from UTC DateTime to ZonedDateTime in the target tz.
+function _query(api_call::Function, fmt::LocalTime, parser::F; kw...) where {F <: Function}
+    rows = _query(api_call, Parsed(), parser; kw...)
+    return _to_local_time(rows, fmt.tz)
+end
+
+# Convert the `time` column of a StructVector from naive UTC DateTime
+# to timezone-aware ZonedDateTime. Returns the input unchanged if the
+# row shape doesn't include a `time::Vector{DateTime}` column.
+function _to_local_time(rows, tz::TimeZones.TimeZone)
+    :time in propertynames(rows) || return rows
+    times = rows.time
+    times isa AbstractVector{DateTime} || return rows
+    zoned = ZonedDateTime[astimezone(ZonedDateTime(t, tz"UTC"), tz) for t in times]
+    cols = (k => k === :time ? zoned : getproperty(rows, k) for k in propertynames(rows))
+    return StructArrays.StructArray(NamedTuple(cols))
 end
 
 function _query(api_call::Function, ::Raw, ::F; kw...) where {F <: Function}

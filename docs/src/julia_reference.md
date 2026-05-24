@@ -183,6 +183,7 @@ specializes correctly, and downstream column access (`prices.value`,
 ResponseFormat
 Parsed
 Raw
+LocalTime
 ```
 
 ### Wrappers — Market

@@ -690,6 +690,22 @@ let BR = _load_brokenrecord()
             @test length(unique(rows.psr_type)) >= 3
         end
 
+        @testset "LocalTime() converts time column to ZonedDateTime" begin
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> day_ahead_prices(client, EIC.NL,
+                    DateTime("2024-09-01T22:00"),
+                    DateTime("2024-09-02T22:00"),
+                    LocalTime("Europe/Amsterdam")),
+                "market_121d_day_ahead_prices_NL.yml",
+            )
+            @test !isempty(rows)
+            @test eltype(rows.time) === ZonedDateTime
+            # 22:00 UTC = 00:00 CEST (summer offset +02:00) in the
+            # zone's local time.
+            @test DateTime(rows[1].time) == DateTime("2024-09-02T00:00")
+        end
+
         @testset "cross_border_physical_flows_all (NEIGHBOURS helper)" begin
             # Override `neighbours` to a single border so we can reuse
             # the existing 12.1.G cassette (NL↔DE_LU, in=NL, out=DE_LU).

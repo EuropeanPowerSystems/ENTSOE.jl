@@ -12,6 +12,7 @@ include("queries.jl")
 include("splitting.jl")
 
 export entsoe_period, EIC, ENTSOEClient, entsoe_apis, ENTSOE_BASE_URL, is_uuid_token
+export LocalTime
 export DOCUMENT_TYPE, PROCESS_TYPE, BUSINESS_TYPE, PSR_TYPE, code_for
 export parse_timeseries, parse_timeseries_per_psr, parse_installed_capacity,
     parse_installed_capacity_per_unit, parse_timeseries_per_unit,
