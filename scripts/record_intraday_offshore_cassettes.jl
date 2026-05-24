@@ -265,6 +265,28 @@ const JOBS = Any[
             sequence = 1,
         ),
     ),
+    # Balancing bids family
+    (
+        "balancing_123bc_balancing_energy_bids_DE_LU.yml",
+        () -> balancing_energy_bids(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_123bc_balancing_energy_bids_archives_DE_LU.yml",
+        () -> balancing_energy_bids_archives(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_123hi_allocation_cross_zonal_DE_AT.yml",
+        () -> allocation_and_use_of_cross_zonal_balancing_capacity(
+            client, EIC.DE_LU, EIC.AT,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
 ]
 
 for (cassette, fn) in JOBS

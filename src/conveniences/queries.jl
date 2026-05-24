@@ -1715,6 +1715,116 @@ function imbalance_prices(
 end
 
 """
+    balancing_energy_bids(client, connecting_domain, period_start, period_end[, format];
+                          process_type="A47",
+                          direction=nothing,
+                          standard_market_product=nothing,
+                          original_market_product=nothing)
+      -> StructVector | String
+
+Raw balancing-energy bid stream (Balancing 1.2.3.B/C, `documentType=A37`,
+`businessType=B74`). `process_type` default `"A47"` (mFRR); pass
+`"A46"` (RR), `"A51"` (aFRR), etc. `direction` filters by `A01`
+(Up) / `A02` (Down). Response is `application/zip`; `_query` unzips
+and parses transparently.
+
+For historical periods use
+[`balancing_energy_bids_archives`](@ref).
+"""
+function balancing_energy_bids(
+        client::Client, connecting_domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A47",
+        direction::Union{Nothing, AbstractString} = nothing,
+        standard_market_product::Union{Nothing, AbstractString} = nothing,
+        original_market_product::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing123_b_c_balancing_energy_bids(
+            apis.balancing, "A37", "B74", String(process_type),
+            String(connecting_domain),
+            _to_period(period_start), _to_period(period_end);
+            offset = offset === nothing ? nothing : Int(offset),
+            standard_market_product = standard_market_product === nothing ?
+                nothing : String(standard_market_product),
+            original_market_product = original_market_product === nothing ?
+                nothing : String(original_market_product),
+            direction = direction === nothing ? nothing : String(direction),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (connecting_domain,),
+    )
+end
+
+"""
+    balancing_energy_bids_archives(client, connecting_domain, period_start, period_end[, format];
+                                   process_type="A47",
+                                   storage_type="archive",
+                                   offset=nothing)
+      -> StructVector | String
+
+Archived balancing-energy bids (Balancing 1.2.3.B/C archive variant).
+Same shape as [`balancing_energy_bids`](@ref); use for historical
+periods. `storage_type` default `"archive"`.
+"""
+function balancing_energy_bids_archives(
+        client::Client, connecting_domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A47",
+        storage_type::AbstractString = "archive",
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing123_b_c_balancing_energy_bids_archives(
+            apis.balancing, "A37", "B74", String(process_type),
+            String(connecting_domain),
+            _to_period(period_start), _to_period(period_end),
+            String(storage_type);
+            offset = offset === nothing ? nothing : Int(offset),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (connecting_domain,),
+    )
+end
+
+"""
+    allocation_and_use_of_cross_zonal_balancing_capacity(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
+                                                         process_type="A46",
+                                                         type_market_agreement_type=nothing)
+      -> StructVector | String
+
+Allocation and use of cross-zonal balancing capacity (Balancing
+1.2.3.H/I, `documentType=A38`). `process_type` default `"A46"` (RR);
+pass `"A47"` (mFRR), `"A51"` (aFRR), etc.
+"""
+function allocation_and_use_of_cross_zonal_balancing_capacity(
+        client::Client,
+        acquiring_domain::AbstractString, connecting_domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A46",
+        type_market_agreement_type::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing123_h_i_allocation_and_use_of_cross_zonal_balancing_capacity(
+            apis.balancing, "A38", String(process_type),
+            String(connecting_domain), String(acquiring_domain),
+            _to_period(period_start), _to_period(period_end);
+            type_market_agreement_type = type_market_agreement_type === nothing ?
+                nothing : String(type_market_agreement_type),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    )
+end
+
+"""
     results_of_criteria_application_process(client, area, period_start, period_end[, format];
                                             process_type="A47") -> StructVector | String
 

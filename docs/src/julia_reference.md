@@ -250,6 +250,9 @@ transparently and route each member through `parse_timeseries`.
 ```@docs
 current_balancing_state
 aggregated_balancing_energy_bids
+balancing_energy_bids
+balancing_energy_bids_archives
+allocation_and_use_of_cross_zonal_balancing_capacity
 results_of_criteria_application_process
 fcr_total_capacity
 shares_of_fcr_capacity

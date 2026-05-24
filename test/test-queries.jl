@@ -638,6 +638,31 @@ let BR = _load_brokenrecord()
             @test :value in propertynames(rows)
         end
 
+        @testset "Balancing bids family (1.2.3.B/C, 1.2.3.H/I)" begin
+            cases = [
+                (() -> balancing_energy_bids(client, EIC.DE_LU,
+                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
+                    "balancing_123bc_balancing_energy_bids_DE_LU.yml"),
+                (() -> balancing_energy_bids_archives(client, EIC.DE_LU,
+                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
+                    "balancing_123bc_balancing_energy_bids_archives_DE_LU.yml"),
+                (() -> allocation_and_use_of_cross_zonal_balancing_capacity(
+                    client, EIC.DE_LU, EIC.AT,
+                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
+                    "balancing_123hi_allocation_cross_zonal_DE_AT.yml"),
+            ]
+            for (call, cassette) in cases
+                err = nothing
+                result = try
+                    Base.invokelatest(BR.playback, call, cassette)
+                catch e
+                    err = e
+                    nothing
+                end
+                @test result !== nothing || err isa ENTSOE.APIError
+            end
+        end
+
         # Balancing SO-GL reserve-capacity family. ENTSO-E publishes
         # these patchily — most return Acknowledgement(999), a couple
         # reject the canonical doctype/processType combo as 400. Either
