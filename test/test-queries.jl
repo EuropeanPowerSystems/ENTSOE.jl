@@ -638,6 +638,41 @@ let BR = _load_brokenrecord()
             @test :value in propertynames(rows)
         end
 
+        @testset "installed_capacity_per_production_unit (Generation 14.1.B)" begin
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> installed_capacity_per_production_unit(
+                    client, EIC.NL,
+                    DateTime("2023-12-31T23:00"),
+                    DateTime("2024-12-31T23:00")),
+                "generation_141b_installed_capacity_per_unit_NL.yml",
+            )
+            @test !isempty(rows)
+            for col in (:unit_mrid, :unit_name, :psr_type, :capacity_mw)
+                @test col in propertynames(rows)
+            end
+            # Wind Onshore should be one of the largest categories in NL.
+            wind = filter(r -> r.psr_type == "B19", rows)
+            @test !isempty(wind)
+        end
+
+        @testset "actual_generation_per_generation_unit (Generation 16.1.A)" begin
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> actual_generation_per_generation_unit(
+                    client, EIC.NL,
+                    DateTime("2024-09-01T22:00"),
+                    DateTime("2024-09-02T22:00")),
+                "generation_161a_actual_generation_per_unit_NL.yml",
+            )
+            @test !isempty(rows)
+            for col in (:time, :unit_mrid, :unit_name, :psr_type, :value)
+                @test col in propertynames(rows)
+            end
+            # Several different PSR types in a NL day.
+            @test length(unique(rows.psr_type)) >= 3
+        end
+
         @testset "intraday_offered_capacity (implicit IDCT router)" begin
             rows = Base.invokelatest(
                 BR.playback,

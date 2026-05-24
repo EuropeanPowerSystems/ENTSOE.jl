@@ -125,6 +125,8 @@ ENTSOE.code_for
 parse_timeseries
 parse_timeseries_per_psr
 parse_installed_capacity
+parse_installed_capacity_per_unit
+parse_timeseries_per_unit
 parse_unavailability
 parse_unavailability_curve
 parse_master_data
@@ -217,10 +219,12 @@ year_ahead_forecast_margin
 
 ```@docs
 installed_capacity_per_production_type
+installed_capacity_per_production_unit
 generation_forecast_day_ahead
 wind_solar_forecast
 intraday_wind_solar_forecast
 actual_generation_per_production_type
+actual_generation_per_generation_unit
 water_reservoirs_and_hydro_storage_plants
 ```
 

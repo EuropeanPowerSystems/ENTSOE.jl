@@ -1,0 +1,2946 @@
+responses:
+  - headers:
+      - Date: "Sun, 24 May 2026 18:41:17 GMT"
+      - Content-Type: "text/xml"
+      - Transfer-Encoding: "chunked"
+      - Connection: "keep-alive"
+      - Content-Disposition: |-
+          inline; filename="EXPORT_PRODUCTION_AND_GENERATION_UNITS_20231231100 - 20241231100.xml"
+      - X-Content-Type-Options: "nosniff"
+      - X-XSS-Protection: "0"
+      - vary: "accept-encoding"
+      - Content-Encoding: "gzip"
+      - Strict-Transport-Security: "max-age=15724800; includeSubDomains"
+    body: |-
+      <GL_MarketDocument xmlns="urn:iec62325.351:tc57wg16:451-6:generationloaddocument:3:0">
+          <mRID>01df3d5c079240ad901e01e31ec5ef56</mRID>
+          <type>A71</type>
+          <process.processType>A33</process.processType>
+          <sender_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</sender_MarketParticipant.mRID>
+          <sender_MarketParticipant.marketRole.type>A32</sender_MarketParticipant.marketRole.type>
+          <receiver_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</receiver_MarketParticipant.mRID>
+          <receiver_MarketParticipant.marketRole.type>A32</receiver_MarketParticipant.marketRole.type>
+          <createdDateTime>2026-05-24T18:41:17Z</createdDateTime>
+          <time_Period.timeInterval.start>2022-12-31T23:00:00Z</time_Period.timeInterval.start>
+          <time_Period.timeInterval.end>2024-12-31T23:00:00Z</time_Period.timeInterval.end>
+          <TimeSeries>
+              <mRID>3b3c48597174458c</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000000J</registeredResource.mRID>
+              <registeredResource.name>Westereems</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">120.3</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>120.3</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>27307518b5d445fa</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000000J</registeredResource.mRID>
+              <registeredResource.name>Westereems</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">120.3</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>120.3</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>0919a6784f5a4aee</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000045Y</registeredResource.mRID>
+              <registeredResource.name>Hemweg</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">440</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000039T</mRID>
+                      <name>Hemweg 9</name>
+                      <nominalP unit="MAW">440</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>440</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>817d16e0163d426e</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000045Y</registeredResource.mRID>
+              <registeredResource.name>Hemweg</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">440</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000039T</mRID>
+                      <name>Hemweg 9</name>
+                      <nominalP unit="MAW">440</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>440</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>41e2c7b5652c4693</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000046W</registeredResource.mRID>
+              <registeredResource.name>Velsen</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">869</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000021B</mRID>
+                      <name>IJmond</name>
+                      <nominalP unit="MAW">144</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000229</mRID>
+                      <name>Velsen 24</name>
+                      <nominalP unit="MAW">350</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000237</mRID>
+                      <name>Velsen 25</name>
+                      <nominalP unit="MAW">375</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>869</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>831ae408fd3847fc</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000046W</registeredResource.mRID>
+              <registeredResource.name>Velsen</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">869</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000021B</mRID>
+                      <name>IJmond</name>
+                      <nominalP unit="MAW">144</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000229</mRID>
+                      <name>Velsen 24</name>
+                      <nominalP unit="MAW">350</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000237</mRID>
+                      <name>Velsen 25</name>
+                      <nominalP unit="MAW">375</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>869</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>eb168148ac994092</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000047U</registeredResource.mRID>
+              <registeredResource.name>Lage Weide 6</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">248</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000245</mRID>
+                      <name>Lage Weide 6</name>
+                      <nominalP unit="MAW">247</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>248</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>aba2ca79fed647a8</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000047U</registeredResource.mRID>
+              <registeredResource.name>Lage Weide 6</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">248</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000245</mRID>
+                      <name>Lage Weide 6</name>
+                      <nominalP unit="MAW">247</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>248</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>78aff8855ed54cf0</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000048S</registeredResource.mRID>
+              <registeredResource.name>TNZ150 ELSTA</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">455</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000049Q</mRID>
+                      <name>Elsta 1</name>
+                      <nominalP unit="MAW">455</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>455</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>88ed99d7515d4ba1</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000048S</registeredResource.mRID>
+              <registeredResource.name>TNZ150 ELSTA</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">455</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000049Q</mRID>
+                      <name>Elsta 1</name>
+                      <nominalP unit="MAW">455</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>455</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>841a8cbd46b140d3</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000054X</registeredResource.mRID>
+              <registeredResource.name>Borssele 30</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B14</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">485</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000055V</mRID>
+                      <name>Borssele 30</name>
+                      <nominalP unit="MAW">485</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>485</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>4e59475bd9834f9c</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000054X</registeredResource.mRID>
+              <registeredResource.name>Borssele 30</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B14</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">485</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000055V</mRID>
+                      <name>Borssele 30</name>
+                      <nominalP unit="MAW">485</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>485</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>2fc1ba747aeb43fe</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000058P</registeredResource.mRID>
+              <registeredResource.name>Enecogen</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">928</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000059N</mRID>
+                      <name>ENECOGEN-U10</name>
+                      <nominalP unit="MAW">464</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000001209</mRID>
+                      <name>ENECOGEN-U20</name>
+                      <nominalP unit="MAW">464</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>928</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>56c2fb1b85e94458</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000058P</registeredResource.mRID>
+              <registeredResource.name>Enecogen</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">928</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000059N</mRID>
+                      <name>ENECOGEN-U10</name>
+                      <nominalP unit="MAW">464</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000001209</mRID>
+                      <name>ENECOGEN-U20</name>
+                      <nominalP unit="MAW">464</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>928</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>5781c22352354010</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000063W</registeredResource.mRID>
+              <registeredResource.name>Moerdijk</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">766</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000013A</mRID>
+                      <name>Moerdijk 1</name>
+                      <nominalP unit="MAW">348</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000148</mRID>
+                      <name>Moerdijk 2</name>
+                      <nominalP unit="MAW">418</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>766</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>cb0bc3dcecb34762</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000063W</registeredResource.mRID>
+              <registeredResource.name>Moerdijk</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">766</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000013A</mRID>
+                      <name>Moerdijk 1</name>
+                      <nominalP unit="MAW">348</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000148</mRID>
+                      <name>Moerdijk 2</name>
+                      <nominalP unit="MAW">418</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>766</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>b3b3b7c8f1644159</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000066Q</registeredResource.mRID>
+              <registeredResource.name>Eemshaven </registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B05</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">1580</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000075</mRID>
+                      <name>Eemshaven A</name>
+                      <nominalP unit="MAW">790</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000083</mRID>
+                      <name>Eemshaven B</name>
+                      <nominalP unit="MAW">790</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>1580</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>67b5a6580f6741ea</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000066Q</registeredResource.mRID>
+              <registeredResource.name>Eemshaven </registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B05</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">1580</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000075</mRID>
+                      <name>Eemshaven A</name>
+                      <nominalP unit="MAW">790</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000083</mRID>
+                      <name>Eemshaven B</name>
+                      <nominalP unit="MAW">790</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>1580</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>d92a2b75675e4b38</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000069K</registeredResource.mRID>
+              <registeredResource.name>Claus</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">1304</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000059</mRID>
+                      <name>Claus C</name>
+                      <nominalP unit="MAW">1304</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>1304</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>71dba9a7827042f8</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000069K</registeredResource.mRID>
+              <registeredResource.name>Claus</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">1304</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000059</mRID>
+                      <name>Claus C</name>
+                      <nominalP unit="MAW">1304</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>1304</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>4a813f4645714817</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000070Z</registeredResource.mRID>
+              <registeredResource.name>Amer</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B01</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">631</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000002F</mRID>
+                      <name>Amer 9</name>
+                      <nominalP unit="MAW">631</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>631</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>ea573f9dca994b80</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000070Z</registeredResource.mRID>
+              <registeredResource.name>Amer</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B01</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">631</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000002F</mRID>
+                      <name>Amer 9</name>
+                      <nominalP unit="MAW">631</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>631</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>7ac06cfea73a4ec5</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000072V</registeredResource.mRID>
+              <registeredResource.name>FLEVO 4</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">443</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000073T</mRID>
+                      <name>FLEVO 4</name>
+                      <nominalP unit="MAW">443</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>443</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>5c6c9f1ce0824cf0</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000072V</registeredResource.mRID>
+              <registeredResource.name>FLEVO 4</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">443</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000073T</mRID>
+                      <name>FLEVO 4</name>
+                      <nominalP unit="MAW">443</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>443</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>1d0ae930ede44b34</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000074R</registeredResource.mRID>
+              <registeredResource.name>FLEVO 5</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">464</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000075P</mRID>
+                      <name>FLEVO 5</name>
+                      <nominalP unit="MAW">464</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>464</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>de983f3e6a514b32</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000074R</registeredResource.mRID>
+              <registeredResource.name>FLEVO 5</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">464</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000075P</mRID>
+                      <name>FLEVO 5</name>
+                      <nominalP unit="MAW">464</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>464</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>928c6751fb354860</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000078J</registeredResource.mRID>
+              <registeredResource.name>NLROTTETH__1</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B05</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">731</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000079H</mRID>
+                      <name>NLROTTETH__1</name>
+                      <nominalP unit="MAW">731</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>731</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>2e5f741db03e4f39</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000078J</registeredResource.mRID>
+              <registeredResource.name>NLROTTETH__1</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B05</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">731</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000079H</mRID>
+                      <name>NLROTTETH__1</name>
+                      <nominalP unit="MAW">731</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>731</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>7b89cf2892934006</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000080W</registeredResource.mRID>
+              <registeredResource.name>Eems 7</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000081U</mRID>
+                      <name>Eems 7</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>a8ba3f6003454eeb</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000080W</registeredResource.mRID>
+              <registeredResource.name>Eems 7</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000081U</mRID>
+                      <name>Eems 7</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>6bb188d4509947e3</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000082S</registeredResource.mRID>
+              <registeredResource.name>Eems 6</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000083Q</mRID>
+                      <name>Eems 6</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>1e21e8cf4e3e4504</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000082S</registeredResource.mRID>
+              <registeredResource.name>Eems 6</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000083Q</mRID>
+                      <name>Eems 6</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>327d3e12e0184fe3</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000084O</registeredResource.mRID>
+              <registeredResource.name>Eems 5</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000085M</mRID>
+                      <name>Eems 5</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>5c133817ba0e487f</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000084O</registeredResource.mRID>
+              <registeredResource.name>Eems 5</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000085M</mRID>
+                      <name>Eems 5</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>b15373d7ca4243fd</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000086K</registeredResource.mRID>
+              <registeredResource.name>Eems 4</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000087I</mRID>
+                      <name>Eems 4</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>f9d9976558934d27</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000086K</registeredResource.mRID>
+              <registeredResource.name>Eems 4</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000087I</mRID>
+                      <name>Eems 4</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>0bd5be3e0a0d4deb</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000088G</registeredResource.mRID>
+              <registeredResource.name>Eems 3</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000089E</mRID>
+                      <name>Eems 3</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>ae3904a5be8647b1</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000088G</registeredResource.mRID>
+              <registeredResource.name>Eems 3</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">360</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000089E</mRID>
+                      <name>Eems 3</name>
+                      <nominalP unit="MAW">360</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>360</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>408694b994704fcf</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000090T</registeredResource.mRID>
+              <registeredResource.name>Merwedekanaal 12</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">225</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000261</mRID>
+                      <name>Merwedekanaal 12</name>
+                      <nominalP unit="MAW">224</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>225</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>bbdf593475af4fb9</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000090T</registeredResource.mRID>
+              <registeredResource.name>Merwedekanaal 12</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">225</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000261</mRID>
+                      <name>Merwedekanaal 12</name>
+                      <nominalP unit="MAW">224</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>225</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>635ceef259a94da1</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000092P</registeredResource.mRID>
+              <registeredResource.name>PERGEN 1</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">125</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000093N</mRID>
+                      <name>Pergen 1</name>
+                      <nominalP unit="MAW">125</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>125</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>96da06d2519a441a</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000092P</registeredResource.mRID>
+              <registeredResource.name>PERGEN 1</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">125</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000093N</mRID>
+                      <name>Pergen 1</name>
+                      <nominalP unit="MAW">125</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>125</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>d972a38ddfd34bd3</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000094L</registeredResource.mRID>
+              <registeredResource.name>PERGEN 2</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">125</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000095J</mRID>
+                      <name>Pergen 2</name>
+                      <nominalP unit="MAW">125</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>125</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>706c6fab0e584df0</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000094L</registeredResource.mRID>
+              <registeredResource.name>PERGEN 2</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">125</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000095J</mRID>
+                      <name>Pergen 2</name>
+                      <nominalP unit="MAW">125</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>125</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>9daeaf9438d14f70</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000096H</registeredResource.mRID>
+              <registeredResource.name>Eems 20</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">131</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000097F</mRID>
+                      <name>Eems 20</name>
+                      <nominalP unit="MAW">131</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>131</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>91b48ef575994d02</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000096H</registeredResource.mRID>
+              <registeredResource.name>Eems 20</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">220</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">131</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000097F</mRID>
+                      <name>Eems 20</name>
+                      <nominalP unit="MAW">131</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>131</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>ade5648448c4499f</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000102B</registeredResource.mRID>
+              <registeredResource.name>Maasvlakte</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B05</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">1070</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000326</mRID>
+                      <name>Maasvlakte 3</name>
+                      <nominalP unit="MAW">1070</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>1070</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>a26fb5e9c4384d9b</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000102B</registeredResource.mRID>
+              <registeredResource.name>Maasvlakte</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B05</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">1070</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000326</mRID>
+                      <name>Maasvlakte 3</name>
+                      <nominalP unit="MAW">1070</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>1070</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>d4ccc7f9204e442c</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000110C</registeredResource.mRID>
+              <registeredResource.name>Prinses Alexia Windpark</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">122</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>122</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>91fcd34b34bb4224</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000110C</registeredResource.mRID>
+              <registeredResource.name>Prinses Alexia Windpark</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">122</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>122</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>66b32365a4974d2d</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000111A</registeredResource.mRID>
+              <registeredResource.name>OWEZ</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">108</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>108</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>5a6e760eb8a74781</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000111A</registeredResource.mRID>
+              <registeredResource.name>OWEZ</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">108</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>108</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>124820eaac2443aa</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000117Z</registeredResource.mRID>
+              <registeredResource.name>Sloecentrale 20</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">435</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000423</mRID>
+                      <name>Sloecentrale 20</name>
+                      <nominalP unit="MAW">435</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>435</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>e9b7f7c923bc424e</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000117Z</registeredResource.mRID>
+              <registeredResource.name>Sloecentrale 20</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">435</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000423</mRID>
+                      <name>Sloecentrale 20</name>
+                      <nominalP unit="MAW">435</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>435</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>3bbf1763f8634d03</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000119V</registeredResource.mRID>
+              <registeredResource.name>Eemshaven</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">1410</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000180</mRID>
+                      <name>Eemshaven 10</name>
+                      <nominalP unit="MAW">470</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000019Z</mRID>
+                      <name>Eemshaven 20</name>
+                      <nominalP unit="MAW">470</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000020D</mRID>
+                      <name>Eemshaven 30</name>
+                      <nominalP unit="MAW">470</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>1410</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>ec0ca1947fba4dee</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000119V</registeredResource.mRID>
+              <registeredResource.name>Eemshaven</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">1410</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000180</mRID>
+                      <name>Eemshaven 10</name>
+                      <nominalP unit="MAW">470</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000019Z</mRID>
+                      <name>Eemshaven 20</name>
+                      <nominalP unit="MAW">470</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000020D</mRID>
+                      <name>Eemshaven 30</name>
+                      <nominalP unit="MAW">470</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>1410</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>2f76517a032a47b8</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000127W</registeredResource.mRID>
+              <registeredResource.name>Windpark Gemini</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">600</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>600</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>d6ee42b164aa4381</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000127W</registeredResource.mRID>
+              <registeredResource.name>Windpark Gemini</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">600</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>600</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>bdd1e94b40e74bb5</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000143Y</registeredResource.mRID>
+              <registeredResource.name>WP NOP Agrowind</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">195</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>195</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>9f91572c60e24568</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000143Y</registeredResource.mRID>
+              <registeredResource.name>WP NOP Agrowind</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">195</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>195</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>d335f8b4873a47ea</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000144W</registeredResource.mRID>
+              <registeredResource.name>Windfarm Luchterduinen</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">129</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>129</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>ccbe0478b3484592</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000144W</registeredResource.mRID>
+              <registeredResource.name>Windfarm Luchterduinen</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">129</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>129</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>fb22de1ce8854a34</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000146S</registeredResource.mRID>
+              <registeredResource.name>Windfarm Princess Amalia</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">120</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>120</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>616bafd0df5d4f4e</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000146S</registeredResource.mRID>
+              <registeredResource.name>Windfarm Princess Amalia</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">120</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>120</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>b1dd54930ae04020</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000147Q</registeredResource.mRID>
+              <registeredResource.name>Borssele 1</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">66</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">376</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>376</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>80288aa0b2a7411d</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000147Q</registeredResource.mRID>
+              <registeredResource.name>Borssele 1</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">66</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">376</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>376</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>0ccf3d2c4d1240b7</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000148O</registeredResource.mRID>
+              <registeredResource.name>Borssele 2</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">66</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">376</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>376</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>3c38b49b55194685</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000148O</registeredResource.mRID>
+              <registeredResource.name>Borssele 2</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">66</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">376</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>376</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>a1566ea75022442e</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000152X</registeredResource.mRID>
+              <registeredResource.name>Delesto 2</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">343</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000153V</mRID>
+                      <name>Delesto 2</name>
+                      <nominalP unit="MAW">343</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>343</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>88ca510e6fe644ef</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000152X</registeredResource.mRID>
+              <registeredResource.name>Delesto 2</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">343</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000153V</mRID>
+                      <name>Delesto 2</name>
+                      <nominalP unit="MAW">343</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>343</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>a0f3ce5630ac4d3d</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000154T</registeredResource.mRID>
+              <registeredResource.name>Borssele Windfarm III and IV</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">400</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">731.5</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000155R</mRID>
+                      <name>NOZ BSB Blauwwind String A</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000156P</mRID>
+                      <name>NOZ BSB Blauwwind String B</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000157N</mRID>
+                      <name>NOZ BSB Blauwwind String C</name>
+                      <nominalP unit="MAW">19</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000158L</mRID>
+                      <name>NOZ BSB Blauwwind String D</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000159J</mRID>
+                      <name>NOZ BSB Blauwwind String E</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000160Y</mRID>
+                      <name>NOZ BSB Blauwwind String F</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000161W</mRID>
+                      <name>NOZ BSB Blauwwind String G</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000162U</mRID>
+                      <name>NOZ BSB Blauwwind String H</name>
+                      <nominalP unit="MAW">47.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000163S</mRID>
+                      <name>NOZ BSB Blauwwind String I</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000164Q</mRID>
+                      <name>NOZ BSB Blauwwind String J</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000165O</mRID>
+                      <name>NOZ BSB Blauwwind String K</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000166M</mRID>
+                      <name>NOZ BSB Blauwwind String L</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>731.5</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>66b26167ebc14afa</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000154T</registeredResource.mRID>
+              <registeredResource.name>Borssele Windfarm III and IV</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">400</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">731.5</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000155R</mRID>
+                      <name>NOZ BSB Blauwwind String A</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000156P</mRID>
+                      <name>NOZ BSB Blauwwind String B</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000157N</mRID>
+                      <name>NOZ BSB Blauwwind String C</name>
+                      <nominalP unit="MAW">19</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000158L</mRID>
+                      <name>NOZ BSB Blauwwind String D</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000159J</mRID>
+                      <name>NOZ BSB Blauwwind String E</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000160Y</mRID>
+                      <name>NOZ BSB Blauwwind String F</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000161W</mRID>
+                      <name>NOZ BSB Blauwwind String G</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000162U</mRID>
+                      <name>NOZ BSB Blauwwind String H</name>
+                      <nominalP unit="MAW">47.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000163S</mRID>
+                      <name>NOZ BSB Blauwwind String I</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000164Q</mRID>
+                      <name>NOZ BSB Blauwwind String J</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000165O</mRID>
+                      <name>NOZ BSB Blauwwind String K</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000166M</mRID>
+                      <name>NOZ BSB Blauwwind String L</name>
+                      <nominalP unit="MAW">66.5</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>731.5</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>96f57f204dff41fb</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000168I</registeredResource.mRID>
+              <registeredResource.name>Windpark Fryslan</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">382.7</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>382.7</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>8dca2941a6514341</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000168I</registeredResource.mRID>
+              <registeredResource.name>Windpark Fryslan</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">382.7</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>382.7</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>1c980f9c840e4dba</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000171T</registeredResource.mRID>
+              <registeredResource.name>Hollandse Kust Zuid</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">657</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>657</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>59393023bf3e4c90</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000179D</registeredResource.mRID>
+              <registeredResource.name>Windpark Wieringermeer</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">184</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>184</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>b327f0ef439842a8</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000179D</registeredResource.mRID>
+              <registeredResource.name>Windpark Wieringermeer</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">184</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>184</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>18a82a577ae846ed</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000180S</registeredResource.mRID>
+              <registeredResource.name>Wieringermeer Extension</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">118</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>118</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>b308915db252474d</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000180S</registeredResource.mRID>
+              <registeredResource.name>Wieringermeer Extension</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">118</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>118</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>6ca5943d2b984a6c</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W000000000184K</registeredResource.mRID>
+              <registeredResource.name>OWF Hollandse Kust Noord</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">760</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>760</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>5c9e09a7fbb14137</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000000342</registeredResource.mRID>
+              <registeredResource.name>Den Haag</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">112</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000342</mRID>
+                      <name>EDH</name>
+                      <nominalP unit="MAW">112</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>112</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>2a40f9b16b974703</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000000342</registeredResource.mRID>
+              <registeredResource.name>Den Haag</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">112</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000342</mRID>
+                      <name>EDH</name>
+                      <nominalP unit="MAW">112</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>112</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>798d6a95d05c4b31</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000000431</registeredResource.mRID>
+              <registeredResource.name>Diemen</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">684</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000164</mRID>
+                      <name>Diemen 33</name>
+                      <nominalP unit="MAW">249</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000172</mRID>
+                      <name>Diemen 34</name>
+                      <nominalP unit="MAW">435</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>684</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>a8ac5fd0e5c54965</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000000431</registeredResource.mRID>
+              <registeredResource.name>Diemen</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">684</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000164</mRID>
+                      <name>Diemen 33</name>
+                      <nominalP unit="MAW">249</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000172</mRID>
+                      <name>Diemen 34</name>
+                      <nominalP unit="MAW">435</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>684</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>abb4529a822d47b6</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000000504</registeredResource.mRID>
+              <registeredResource.name>NAM Schoonebeek</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">128</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000407</mRID>
+                      <name>NAM Schoonebeek</name>
+                      <nominalP unit="MAW">128</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>128</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>76ff2f2e55b54399</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000000504</registeredResource.mRID>
+              <registeredResource.name>NAM Schoonebeek</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">128</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000407</mRID>
+                      <name>NAM Schoonebeek</name>
+                      <nominalP unit="MAW">128</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>128</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>83fcd41beb944ef6</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000000512</registeredResource.mRID>
+              <registeredResource.name>Sloecentrale 10</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">435</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000415</mRID>
+                      <name>Sloecentrale 10</name>
+                      <nominalP unit="MAW">435</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>435</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>486dbfc37fc84043</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000000512</registeredResource.mRID>
+              <registeredResource.name>Sloecentrale 10</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">435</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000415</mRID>
+                      <name>Sloecentrale 10</name>
+                      <nominalP unit="MAW">435</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>435</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>a5c38d64e163452e</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001047</registeredResource.mRID>
+              <registeredResource.name>RoCa</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">220</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000037X</mRID>
+                      <name>RoCa 3</name>
+                      <nominalP unit="MAW">220</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>220</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>204a4062b6594167</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001047</registeredResource.mRID>
+              <registeredResource.name>RoCa</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">220</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000037X</mRID>
+                      <name>RoCa 3</name>
+                      <nominalP unit="MAW">220</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>220</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>c79e3716d308459f</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001128</registeredResource.mRID>
+              <registeredResource.name>Rijnmond</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">750</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000001136</mRID>
+                      <name>Rijnmond REC-A</name>
+                      <nominalP unit="MAW">250</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000001144</mRID>
+                      <name>Rijnmond REC-B</name>
+                      <nominalP unit="MAW">250</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000001152</mRID>
+                      <name>Rijnmond REC-X</name>
+                      <nominalP unit="MAW">250</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>750</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>e0fe8100038f43d9</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001128</registeredResource.mRID>
+              <registeredResource.name>Rijnmond</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">750</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000001136</mRID>
+                      <name>Rijnmond REC-A</name>
+                      <nominalP unit="MAW">250</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000001144</mRID>
+                      <name>Rijnmond REC-B</name>
+                      <nominalP unit="MAW">250</nominalP>
+                  </PowerSystemResources>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000001152</mRID>
+                      <name>Rijnmond REC-X</name>
+                      <nominalP unit="MAW">250</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>750</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>f3e1fc4063014133</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001217</registeredResource.mRID>
+              <registeredResource.name>Swentibold</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">209</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000156</mRID>
+                      <name>Swentibold 1</name>
+                      <nominalP unit="MAW">209</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>209</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>14acc819cb3a4c52</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001217</registeredResource.mRID>
+              <registeredResource.name>Swentibold</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">150</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">209</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W0000000000156</mRID>
+                      <name>Swentibold 1</name>
+                      <nominalP unit="MAW">209</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>209</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>b9f76cebe90742bb</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001225</registeredResource.mRID>
+              <registeredResource.name>Maastroom Energie CV</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B04</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">380</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">426</nominalIP_PowerSystemResources.nominalP>
+                  <PowerSystemResources>
+                      <mRID codingScheme="A01">49W000000000109Y</mRID>
+                      <name>Maasstroom Energie</name>
+                      <nominalP unit="MAW">426</nominalP>
+                  </PowerSystemResources>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>426</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>16ceadac51594b89</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001411</registeredResource.mRID>
+              <registeredResource.name>Westermeerwind</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">144</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2022-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2023-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>144</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>d9bbeaf756034e52</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001411</registeredResource.mRID>
+              <registeredResource.name>Westermeerwind</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B18</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">110</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">144</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>144</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+          <TimeSeries>
+              <mRID>e87fe6abd8bc4e87</mRID>
+              <businessType>B11</businessType>
+              <objectAggregation>A06</objectAggregation>
+              <inBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</inBiddingZone_Domain.mRID>
+              <registeredResource.mRID codingScheme="A01">49W0000000001989</registeredResource.mRID>
+              <registeredResource.name>WP Maasvlakte 2</registeredResource.name>
+              <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
+              <curveType>A03</curveType>
+              <MktPSRType>
+                  <psrType>B19</psrType>
+                  <production_PowerSystemResources.highVoltageLimit unit="KVT">66</production_PowerSystemResources.highVoltageLimit>
+                  <nominalIP_PowerSystemResources.nominalP unit="MAW">116.7</nominalIP_PowerSystemResources.nominalP>
+              </MktPSRType>
+              <Period>
+                  <timeInterval.start>2023-12-31T23:00:00Z</timeInterval.start>
+                  <timeInterval.end>2024-12-31T23:00:00Z</timeInterval.end>
+                  <resolution>P1Y</resolution>
+                  <Point>
+                      <position>1</position>
+                      <quantity>116.7</quantity>
+                  </Point>
+              </Period>
+          </TimeSeries>
+      </GL_MarketDocument>
+    status: 200
+    request:
+      txcount: 0
+      headers:
+        - Content-Length: "0"
+        - Accept: "application/xml"
+        - Host: "web-api.tp.entsoe.eu"
+      body: ""
+      method: "GET"
+      target: "/api?periodEnd=202412312300&in_Domain=10YNL----------L&processType=A33&periodStart=202312312300&documentType=A71"
+      version: "1.1.0"
+    version: "1.1.0"
+format: "1.0.0"

@@ -895,6 +895,38 @@ function installed_capacity_per_production_type(
 end
 
 """
+    installed_capacity_per_production_unit(client, area, period_start, period_end[, format];
+                                           psr_type=nothing) -> StructVector | String
+
+Year-ahead installed capacity broken out per *generating unit* (rather
+than aggregated per production type) — Generation 14.1.B,
+`documentType=A71`, `processType=A33`. Returns
+`StructVector{(unit_mrid, unit_name, psr_type, capacity_mw)}`.
+
+Pass `psr_type="B19"` (Wind Onshore) etc. to filter to a single
+technology. Mirrors entsoe-py's
+`query_installed_generation_capacity_per_unit`.
+"""
+function installed_capacity_per_production_unit(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        psr_type::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_installed_capacity_per_unit;
+        validate = validate, eics = (area,),
+    ) do
+        generation141_b_installed_capacity_per_production_unit(
+            apis.generation, "A71", "A33", String(area),
+            _to_period(period_start), _to_period(period_end);
+            psr_type = psr_type === nothing ? nothing : String(psr_type),
+        )
+    end
+end
+
+"""
     generation_forecast_day_ahead(client, area, start, stop[, format]) -> StructVector | String
 
 Day-ahead total generation forecast (Generation 14.1.C,
@@ -1007,6 +1039,42 @@ function actual_generation_per_production_type(
             apis.generation, "A75", "A16", String(area),
             _to_period(period_start), _to_period(period_end);
             psr_type = psr_type === nothing ? nothing : String(psr_type),
+        )
+    end
+end
+
+"""
+    actual_generation_per_generation_unit(client, area, period_start, period_end[, format];
+                                          psr_type=nothing, registered_resource=nothing)
+      -> StructVector | String
+
+Realised generation broken down per *generating unit* (Generation
+16.1.A, `documentType=A73`, `processType=A16`). One row per
+`<Point>` per unit; fields are
+`(time, unit_mrid, unit_name, psr_type, value)` with `value` in MW.
+
+Pass `psr_type="B16"` to filter to one technology; pass
+`registered_resource` to filter to a single generating unit by mRID.
+Mirrors entsoe-py's `query_generation_per_plant`.
+"""
+function actual_generation_per_generation_unit(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        psr_type::Union{Nothing, AbstractString} = nothing,
+        registered_resource::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries_per_unit;
+        validate = validate, eics = (area,),
+    ) do
+        generation161_a_actual_generation_per_generation_unit(
+            apis.generation, "A73", "A16", String(area),
+            _to_period(period_start), _to_period(period_end);
+            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            registered_resource = registered_resource === nothing ?
+                nothing : String(registered_resource),
         )
     end
 end

@@ -14,6 +14,7 @@ include("splitting.jl")
 export entsoe_period, EIC, ENTSOEClient, entsoe_apis, ENTSOE_BASE_URL, is_uuid_token
 export DOCUMENT_TYPE, PROCESS_TYPE, BUSINESS_TYPE, PSR_TYPE, code_for
 export parse_timeseries, parse_timeseries_per_psr, parse_installed_capacity,
+    parse_installed_capacity_per_unit, parse_timeseries_per_unit,
     parse_unavailability, parse_unavailability_curve, parse_master_data
 export parse_acknowledgement, check_acknowledgement, ENTSOEAcknowledgement
 export unzip_response
@@ -38,10 +39,12 @@ export day_ahead_prices,
     month_ahead_load_forecast, year_ahead_load_forecast,
     year_ahead_forecast_margin,
     installed_capacity_per_production_type,
+    installed_capacity_per_production_unit,
     generation_forecast_day_ahead,
     wind_solar_forecast,
     intraday_wind_solar_forecast,
     actual_generation_per_production_type,
+    actual_generation_per_generation_unit,
     water_reservoirs_and_hydro_storage_plants,
     cross_border_physical_flows,
     commercial_schedules,

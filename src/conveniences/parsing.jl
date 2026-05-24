@@ -260,6 +260,138 @@ function parse_installed_capacity(xml::AbstractString)
     return StructArray((psr_type = psr_types, capacity_mw = caps))
 end
 
+"""
+    parse_installed_capacity_per_unit(xml) -> StructVector{@NamedTuple{
+        unit_mrid::String, unit_name::String, psr_type::String,
+        capacity_mw::Float64}}
+
+Parse a 14.1.B "Installed Capacity per Production Unit" document. One
+row per `<TimeSeries>` (one per unit), with fields:
+
+  - `unit_mrid`    — `<registeredResource.mRID>`, the unit's EIC
+  - `unit_name`    — `<registeredResource.name>`
+  - `psr_type`     — `<MktPSRType><psrType>` (e.g. `B19` Wind Onshore)
+  - `capacity_mw`  — `<Period>/<Point>/<quantity>`, year-ahead declared
+                     capacity in MW
+
+Tables.jl-compatible `StructVector`; pull columns directly with
+`rows.capacity_mw` or `DataFrame(rows)`.
+"""
+function parse_installed_capacity_per_unit(xml::AbstractString)
+    unit_mrids = String[]
+    unit_names = String[]
+    psr_types = String[]
+    caps = Float64[]
+    doc = parsexml(xml)
+    for ts in _named(root(doc), "TimeSeries")
+        mrid = _first_text(ts, "registeredResource.mRID")
+        name = _first_text(ts, "registeredResource.name")
+
+        psrwrap = _first_named(ts, "MktPSRType")
+        psr = if psrwrap === nothing
+            ""
+        else
+            n = _first_named(psrwrap, "psrType")
+            n === nothing ? "" : nodecontent(n)
+        end
+
+        period = _first_named(ts, "Period")
+        period === nothing && continue
+        for pt in _named(period, "Point")
+            qty = _first_named(pt, "quantity")
+            qty === nothing && continue
+            push!(unit_mrids, mrid)
+            push!(unit_names, name)
+            push!(psr_types, psr)
+            push!(caps, parse(Float64, nodecontent(qty)))
+        end
+    end
+    return StructArray(
+        (
+            unit_mrid = unit_mrids,
+            unit_name = unit_names,
+            psr_type = psr_types,
+            capacity_mw = caps,
+        )
+    )
+end
+
+"""
+    parse_timeseries_per_unit(xml) -> StructVector{@NamedTuple{
+        time::DateTime, unit_mrid::String, unit_name::String,
+        psr_type::String, value::Float64}}
+
+Parse a per-generation-unit time-series document — used by 16.1.A
+"Actual Generation per Generation Unit". One row per `<Point>`,
+tagged with the parent generating unit's mRID and name (extracted
+from `<MktPSRType>/<PowerSystemResources>`) plus the PSR type.
+"""
+function parse_timeseries_per_unit(xml::AbstractString)
+    times = DateTime[]
+    unit_mrids = String[]
+    unit_names = String[]
+    psr_types = String[]
+    values = Float64[]
+    doc = parsexml(xml)
+    for ts in _named(root(doc), "TimeSeries")
+        psrwrap = _first_named(ts, "MktPSRType")
+        psr = ""
+        unit_mrid = ""
+        unit_name = ""
+        if psrwrap !== nothing
+            n = _first_named(psrwrap, "psrType")
+            psr = n === nothing ? "" : nodecontent(n)
+            psr_block = _first_named(psrwrap, "PowerSystemResources")
+            if psr_block !== nothing
+                unit_mrid = _first_text(psr_block, "mRID")
+                unit_name = _first_text(psr_block, "name")
+            end
+        end
+        # Fall back to top-level `registeredResource.*` if the
+        # per-PSR `PowerSystemResources` block is absent.
+        if isempty(unit_mrid)
+            unit_mrid = _first_text(ts, "registeredResource.mRID")
+        end
+        if isempty(unit_name)
+            unit_name = _first_text(ts, "registeredResource.name")
+        end
+
+        for period in _named(ts, "Period")
+            ti = _first_named(period, "timeInterval")
+            ti === nothing && continue
+            start_node = _first_named(ti, "start")
+            start_node === nothing && continue
+            start = _parse_entsoe_datetime(nodecontent(start_node))
+            res_node = _first_named(period, "resolution")
+            res_node === nothing && continue
+            stride = _resolution_minutes(nodecontent(res_node))
+            stride === nothing && continue
+
+            for pt in _named(period, "Point")
+                pos_node = _first_named(pt, "position")
+                pos_node === nothing && continue
+                pos = parse(Int, nodecontent(pos_node))
+                vnode = _point_value_node(pt)
+                vnode === nothing && continue
+                push!(times, start + Minute((pos - 1) * stride))
+                push!(unit_mrids, unit_mrid)
+                push!(unit_names, unit_name)
+                push!(psr_types, psr)
+                push!(values, parse(Float64, nodecontent(vnode)))
+            end
+        end
+    end
+    return StructArray(
+        (
+            time = times,
+            unit_mrid = unit_mrids,
+            unit_name = unit_names,
+            psr_type = psr_types,
+            value = values,
+        )
+    )
+end
+
 # ---------------------------------------------------------------------------
 # Unavailability_MarketDocument — outage notifications.
 #
