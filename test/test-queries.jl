@@ -638,6 +638,23 @@ let BR = _load_brokenrecord()
             @test :value in propertynames(rows)
         end
 
+        @testset "volumes_and_prices_of_contracted_reserves (Balancing 17.1.B/C)" begin
+            err = nothing
+            try
+                Base.invokelatest(
+                    BR.playback,
+                    () -> volumes_and_prices_of_contracted_reserves(
+                        client, EIC.DE_LU,
+                        DateTime("2024-09-01T22:00"),
+                        DateTime("2024-09-02T22:00")),
+                    "balancing_171bc_volumes_prices_contracted_reserves_DE.yml",
+                )
+            catch e
+                err = e
+            end
+            @test err isa ENTSOEAcknowledgement
+        end
+
         @testset "installed_capacity_per_production_unit (Generation 14.1.B)" begin
             rows = Base.invokelatest(
                 BR.playback,

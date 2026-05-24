@@ -277,6 +277,7 @@ sharing_of_rr_and_frr
 sharing_of_fcr_between_sas
 exchanged_reserve_capacity
 financial_expenses_and_income_for_balancing
+volumes_and_prices_of_contracted_reserves
 prices_of_activated_balancing_energy
 imbalance_prices
 total_imbalance_volumes

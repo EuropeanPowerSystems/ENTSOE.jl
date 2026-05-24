@@ -2590,6 +2590,50 @@ function exchanged_reserve_capacity(
 end
 
 """
+    volumes_and_prices_of_contracted_reserves(client, control_area, period_start, period_end[, format];
+                                              type_market_agreement_type="A01",
+                                              process_type=nothing,
+                                              psr_type=nothing,
+                                              offset=nothing)
+      -> StructVector | String
+
+Volumes and prices of contracted balancing reserves (Balancing 17.1.B/C,
+`documentType=A81`, `businessType=B95`). `type_market_agreement_type`
+default `"A01"` (Daily); pass `"A02"` (Weekly), `"A03"` (Monthly),
+`"A04"` (Yearly), `"A13"` (Hourly).
+
+Optional kwargs:
+  - `process_type` — `"A51"` (aFRR), `"A52"` (FCR), `"A47"` (mFRR),
+    `"A46"` (RR)
+  - `psr_type` — `"A03"` (Mixed), `"A04"` (Generation), `"A05"` (Load)
+
+Mirrors entsoe-py's `query_contracted_reserve_{amount,prices}`.
+"""
+function volumes_and_prices_of_contracted_reserves(
+        client::Client, control_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        type_market_agreement_type::AbstractString = "A01",
+        process_type::Union{Nothing, AbstractString} = nothing,
+        psr_type::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing171_b_c_volumes_and_prices_of_contracted_reserves(
+            apis.balancing, "A81", "B95",
+            String(type_market_agreement_type), String(control_area),
+            _to_period(period_start), _to_period(period_end);
+            process_type = process_type === nothing ? nothing : String(process_type),
+            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            offset = offset === nothing ? nothing : Int(offset),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (control_area,),
+    )
+end
+
+"""
     financial_expenses_and_income_for_balancing(client, control_area, period_start, period_end[, format])
       -> StructVector | String
 
