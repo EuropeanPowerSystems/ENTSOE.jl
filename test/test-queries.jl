@@ -646,7 +646,8 @@ let BR = _load_brokenrecord()
                     () -> volumes_and_prices_of_contracted_reserves(
                         client, EIC.DE_LU,
                         DateTime("2024-09-01T22:00"),
-                        DateTime("2024-09-02T22:00")),
+                        DateTime("2024-09-02T22:00")
+                    ),
                     "balancing_171bc_volumes_prices_contracted_reserves_DE.yml",
                 )
             catch e
@@ -661,7 +662,8 @@ let BR = _load_brokenrecord()
                 () -> installed_capacity_per_production_unit(
                     client, EIC.NL,
                     DateTime("2023-12-31T23:00"),
-                    DateTime("2024-12-31T23:00")),
+                    DateTime("2024-12-31T23:00")
+                ),
                 "generation_141b_installed_capacity_per_unit_NL.yml",
             )
             @test !isempty(rows)
@@ -679,7 +681,8 @@ let BR = _load_brokenrecord()
                 () -> actual_generation_per_generation_unit(
                     client, EIC.NL,
                     DateTime("2024-09-01T22:00"),
-                    DateTime("2024-09-02T22:00")),
+                    DateTime("2024-09-02T22:00")
+                ),
                 "generation_161a_actual_generation_per_unit_NL.yml",
             )
             @test !isempty(rows)
@@ -693,10 +696,12 @@ let BR = _load_brokenrecord()
         @testset "LocalTime() converts time column to ZonedDateTime" begin
             rows = Base.invokelatest(
                 BR.playback,
-                () -> day_ahead_prices(client, EIC.NL,
+                () -> day_ahead_prices(
+                    client, EIC.NL,
                     DateTime("2024-09-01T22:00"),
                     DateTime("2024-09-02T22:00"),
-                    LocalTime("Europe/Amsterdam")),
+                    LocalTime("Europe/Amsterdam")
+                ),
                 "market_121d_day_ahead_prices_NL.yml",
             )
             @test !isempty(rows)
@@ -716,7 +721,8 @@ let BR = _load_brokenrecord()
                     client, EIC.NL,
                     DateTime("2024-09-01T22:00"),
                     DateTime("2024-09-02T22:00");
-                    neighbours = [EIC.DE_LU], export_ = false),
+                    neighbours = [EIC.DE_LU], export_ = false
+                ),
                 "transmission_121g_cross_border_NL_DE.yml",
             )
             @test :time in propertynames(rows)
@@ -729,9 +735,11 @@ let BR = _load_brokenrecord()
         @testset "intraday_offered_capacity (implicit IDCT router)" begin
             rows = Base.invokelatest(
                 BR.playback,
-                () -> intraday_offered_capacity(client, EIC.BE, EIC.NL,
+                () -> intraday_offered_capacity(
+                    client, EIC.BE, EIC.NL,
                     DateTime("2024-09-01T22:00"),
-                    DateTime("2024-09-02T22:00")),
+                    DateTime("2024-09-02T22:00")
+                ),
                 "market_111_intraday_offered_capacity_implicit_IDCT_BE_NL.yml",
             )
             @test :time in propertynames(rows)
@@ -740,14 +748,20 @@ let BR = _load_brokenrecord()
 
         @testset "Transmission outage sub-views (10.1.A/B available + NPI)" begin
             cases = [
-                (() -> unavailability_of_transmission_infrastructure_available_capacity(
-                    client, EIC.DE_LU,
-                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
-                    "outages_101ab_transmission_available_capacity_DE.yml"),
-                (() -> unavailability_of_transmission_infrastructure_net_position_impact(
-                    client, "10YDOM-CZ-DE-SKK",
-                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
-                    "outages_101ab_transmission_npi_DE.yml"),
+                (
+                    () -> unavailability_of_transmission_infrastructure_available_capacity(
+                        client, EIC.DE_LU,
+                        DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")
+                    ),
+                    "outages_101ab_transmission_available_capacity_DE.yml",
+                ),
+                (
+                    () -> unavailability_of_transmission_infrastructure_net_position_impact(
+                        client, "10YDOM-CZ-DE-SKK",
+                        DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")
+                    ),
+                    "outages_101ab_transmission_npi_DE.yml",
+                ),
             ]
             for (call, cassette) in cases
                 err = nothing
@@ -762,42 +776,66 @@ let BR = _load_brokenrecord()
 
         @testset "Balancing IF (Inter-platform) family" begin
             cases = [
-                (() -> cross_border_marginal_prices_for_afrr(
-                    client, "10YDE-VE-------2",
-                    202311082300, 202311092300),
-                    "balancing_if_afrr316_cbmps_DE_AMPRION.yml"),
-                (() -> netted_and_exchanged_volumes(
-                    client, "10YDE-VE-------2", "10YDE-VE-------2",
-                    202301012300, 202301022300),
-                    "balancing_ifs310_netted_exchanged_DE.bson"),
-                (() -> netted_and_exchanged_volumes_per_border(
-                    client, EIC.BE, EIC.FR,
-                    202503010000, 202503020000),
-                    "balancing_ifs310_netted_exchanged_per_border_BE_FR.bson"),
-                (() -> balancing_border_capacity_limitations(
-                    client, EIC.AT, EIC.CZ,
-                    202401312300, 202402012300;
-                    registered_resource = "22T201903146---W"),
-                    "balancing_ifs4344_border_capacity_limitations_CZ_AT.yml"),
-                (() -> permanent_allocation_limitations_to_HVDC(
-                    client, "10YDK-1--------W", EIC.NL,
-                    202101010000, 202112310000;
-                    registered_resource = "10T-DK-NL-000012"),
-                    "balancing_ifs45_permanent_HVDC_NL_DK1.yml"),
-                (() -> elastic_demands(
-                    client, EIC.CZ,
-                    202311302300, 202312012300; offset = 0),
-                    "balancing_ifs_afrr_mfrr34_elastic_demands_CZ.yml"),
-                (() -> changes_to_bid_availability(
-                    client, "10YDE-VE-------2",
-                    202309232200, 202309242200;
-                    business_type = "C46", offset = 100),
-                    "balancing_ifs_mfrr99_changes_to_bid_availability_DE.yml"),
-                (() -> changes_to_bid_availability_archives(
-                    client, "10YDE-VE-------2",
-                    202309232200, 202309242200;
-                    business_type = "C46", offset = 100),
-                    "balancing_ifs_mfrr99_changes_to_bid_availability_archives_DE.yml"),
+                (
+                    () -> cross_border_marginal_prices_for_afrr(
+                        client, "10YDE-VE-------2",
+                        202311082300, 202311092300
+                    ),
+                    "balancing_if_afrr316_cbmps_DE_AMPRION.yml",
+                ),
+                (
+                    () -> netted_and_exchanged_volumes(
+                        client, "10YDE-VE-------2", "10YDE-VE-------2",
+                        202301012300, 202301022300
+                    ),
+                    "balancing_ifs310_netted_exchanged_DE.bson",
+                ),
+                (
+                    () -> netted_and_exchanged_volumes_per_border(
+                        client, EIC.BE, EIC.FR,
+                        202503010000, 202503020000
+                    ),
+                    "balancing_ifs310_netted_exchanged_per_border_BE_FR.bson",
+                ),
+                (
+                    () -> balancing_border_capacity_limitations(
+                        client, EIC.AT, EIC.CZ,
+                        202401312300, 202402012300;
+                        registered_resource = "22T201903146---W"
+                    ),
+                    "balancing_ifs4344_border_capacity_limitations_CZ_AT.yml",
+                ),
+                (
+                    () -> permanent_allocation_limitations_to_HVDC(
+                        client, "10YDK-1--------W", EIC.NL,
+                        202101010000, 202112310000;
+                        registered_resource = "10T-DK-NL-000012"
+                    ),
+                    "balancing_ifs45_permanent_HVDC_NL_DK1.yml",
+                ),
+                (
+                    () -> elastic_demands(
+                        client, EIC.CZ,
+                        202311302300, 202312012300; offset = 0
+                    ),
+                    "balancing_ifs_afrr_mfrr34_elastic_demands_CZ.yml",
+                ),
+                (
+                    () -> changes_to_bid_availability(
+                        client, "10YDE-VE-------2",
+                        202309232200, 202309242200;
+                        business_type = "C46", offset = 100
+                    ),
+                    "balancing_ifs_mfrr99_changes_to_bid_availability_DE.yml",
+                ),
+                (
+                    () -> changes_to_bid_availability_archives(
+                        client, "10YDE-VE-------2",
+                        202309232200, 202309242200;
+                        business_type = "C46", offset = 100
+                    ),
+                    "balancing_ifs_mfrr99_changes_to_bid_availability_archives_DE.yml",
+                ),
             ]
             for (call, cassette) in cases
                 err = nothing
@@ -813,16 +851,27 @@ let BR = _load_brokenrecord()
 
         @testset "Balancing bids family (1.2.3.B/C, 1.2.3.H/I)" begin
             cases = [
-                (() -> balancing_energy_bids(client, EIC.DE_LU,
-                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
-                    "balancing_123bc_balancing_energy_bids_DE_LU.yml"),
-                (() -> balancing_energy_bids_archives(client, EIC.DE_LU,
-                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
-                    "balancing_123bc_balancing_energy_bids_archives_DE_LU.yml"),
-                (() -> allocation_and_use_of_cross_zonal_balancing_capacity(
-                    client, EIC.DE_LU, EIC.AT,
-                    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")),
-                    "balancing_123hi_allocation_cross_zonal_DE_AT.yml"),
+                (
+                    () -> balancing_energy_bids(
+                        client, EIC.DE_LU,
+                        DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")
+                    ),
+                    "balancing_123bc_balancing_energy_bids_DE_LU.yml",
+                ),
+                (
+                    () -> balancing_energy_bids_archives(
+                        client, EIC.DE_LU,
+                        DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")
+                    ),
+                    "balancing_123bc_balancing_energy_bids_archives_DE_LU.yml",
+                ),
+                (
+                    () -> allocation_and_use_of_cross_zonal_balancing_capacity(
+                        client, EIC.DE_LU, EIC.AT,
+                        DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00")
+                    ),
+                    "balancing_123hi_allocation_cross_zonal_DE_AT.yml",
+                ),
             ]
             for (call, cassette) in cases
                 err = nothing
