@@ -596,6 +596,23 @@ let BR = _load_brokenrecord()
             )
         end
 
+        @testset "unavailability_of_offshore_grid (Outages 10.1.C)" begin
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> unavailability_of_offshore_grid(
+                    client, EIC.DE_LU,
+                    DateTime("2024-01-01"), DateTime("2024-04-01"),
+                ),
+                "outages_101c_unavailability_offshore_grid_DE_LU.bson",
+            )
+            @test !isempty(rows)
+            # Reuses `parse_unavailability` — same column shape as the
+            # onshore-transmission/generation/production wrappers.
+            for col in (:start, :stop, :business_type, :nominal_mw)
+                @test col in propertynames(rows)
+            end
+        end
+
         @testset "year_ahead_forecast_margin (Load 8.1, doc A70)" begin
             rows = Base.invokelatest(
                 BR.playback,

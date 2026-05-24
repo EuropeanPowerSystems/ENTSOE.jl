@@ -232,15 +232,16 @@ total_imbalance_volumes
 procured_balancing_capacity
 ```
 
-### Wrappers — Outages (7.1.A/B, 10.1.A/B, 15.1.A–D)
+### Wrappers — Outages (7.1.A/B, 10.1.A/B/C, 15.1.A–D)
 
-All four return [`Unavailability_MarketDocument`](@ref parse_unavailability),
+All return [`Unavailability_MarketDocument`](@ref parse_unavailability),
 parsed into one row per outage event.
 
 ```@docs
 unavailability_of_generation_units
 unavailability_of_production_units
 unavailability_of_transmission_infrastructure
+unavailability_of_offshore_grid
 aggregated_unavailability_of_consumption_units
 ```
 

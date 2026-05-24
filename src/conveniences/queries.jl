@@ -1025,6 +1025,53 @@ function unavailability_of_transmission_infrastructure(
     end
 end
 
+"""
+    unavailability_of_offshore_grid(client, bidding_zone, period_start, period_end[, format];
+                                    doc_status=nothing, m_r_i_d=nothing,
+                                    period_start_update=nothing,
+                                    period_end_update=nothing,
+                                    offset=nothing) -> StructVector | String
+
+Outage notices for offshore-grid infrastructure (Outages 10.1.C,
+`documentType=A79`). Unlike the 10.1.A/B variant for onshore
+transmission, this one takes a single `bidding_zone` (no `in_Domain` /
+`out_Domain` split) and has **no `businessType` parameter** — ENTSO-E
+treats offshore-grid outages as a single document family.
+
+Returns [`parse_unavailability`](@ref) rows (one row per outage event).
+Pass `doc_status="A09"` for withdrawn notices, or the `*_update` pair
+to slice by publication-update window. Mirrors entsoe-py's
+`query_unavailability_of_offshore_grid`.
+"""
+function unavailability_of_offshore_grid(
+        client::Client, bidding_zone::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        doc_status::Union{Nothing, AbstractString} = nothing,
+        period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
+        period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
+        m_r_i_d::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_unavailability;
+        validate = validate, eics = (bidding_zone,),
+    ) do
+        outages101_c_unavailability_of_offshore_grid_infrastructure(
+            apis.outages, "A79", String(bidding_zone),
+            _to_period(period_start), _to_period(period_end);
+            doc_status = doc_status === nothing ? nothing : String(doc_status),
+            period_start_update = period_start_update === nothing ?
+                nothing : _to_period(period_start_update),
+            period_end_update = period_end_update === nothing ?
+                nothing : _to_period(period_end_update),
+            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            offset = offset === nothing ? nothing : Int(offset),
+        )
+    end
+end
+
 # ---------------------------------------------------------------------------
 # Master data — registry of production + generation units.
 # Different shape from every other endpoint: no period_start/period_end,
