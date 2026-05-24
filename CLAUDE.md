@@ -13,7 +13,7 @@ The user-facing surface is the *third* layer — named, code-prefilled wrappers 
 ```text
 src/
   conveniences/   ← hand-written ENTSO-E layer (untouched by codegen)
-    queries.jl    ←   ~27 named wrappers (day_ahead_prices, …, imbalance_prices)
+    queries.jl    ←   ~28 named wrappers (day_ahead_prices, …, imbalance_prices)
                   ←   ResponseFormat dispatch (Parsed() default, Raw() escape hatch)
                   ←   `_query` is zip-aware — every wrapper transparently unzips
                       application/zip bodies (balancing 17.1.x, outages with many notices)
@@ -49,6 +49,10 @@ spec/
 scripts/
   postman_to_openapi.jl              ← Postman → OpenAPI converter (self-installing deps)
   regenerate_smoke_cassettes.jl      ← re-record the 77-endpoint smoke fixtures
+  record_tutorial_cassettes.jl       ← re-record the descriptive `tut_*.yml` fixtures
+  record_eu_prices_2025.jl           ← one-off recorder for the EU-wide prices demo
+examples/
+  walkthrough.jl                     ← runnable end-to-end demo (own Project.toml)
 ```
 
 The generated `src/api/` directory carries `linguist-generated=true` in `.gitattributes`. Re-running `gen/regenerate.jl` nukes and re-creates `src/api/` only — nothing else.
