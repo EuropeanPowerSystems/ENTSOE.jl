@@ -596,6 +596,23 @@ let BR = _load_brokenrecord()
             )
         end
 
+        @testset "year_ahead_forecast_margin (Load 8.1, doc A70)" begin
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> year_ahead_forecast_margin(
+                    client, EIC.BE,
+                    DateTime("2023-12-31T23:00"),
+                    DateTime("2024-12-31T23:00"),
+                ),
+                "load_81_year_ahead_forecast_margin_BE.yml",
+            )
+            # One row per published period — typically a single annual
+            # snapshot, in MW.
+            @test !isempty(rows)
+            @test :time in propertynames(rows)
+            @test :value in propertynames(rows)
+        end
+
         @testset "intraday_wind_solar_forecast (Generation 14.1.D, process A40)" begin
             rows = Base.invokelatest(
                 BR.playback,

@@ -184,7 +184,7 @@ congestion_income
 implicit_auction_net_positions
 ```
 
-### Wrappers — Load (Load 6.1.A–E)
+### Wrappers — Load (Load 6.1.A–E, 8.1)
 
 ```@docs
 actual_total_load
@@ -192,6 +192,7 @@ day_ahead_load_forecast
 week_ahead_load_forecast
 month_ahead_load_forecast
 year_ahead_load_forecast
+year_ahead_forecast_margin
 ```
 
 ### Wrappers — Generation (14.1.x, 16.1.x)

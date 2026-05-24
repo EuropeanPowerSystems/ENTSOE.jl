@@ -451,6 +451,32 @@ year_ahead_load_forecast(
     validate = validate, api_fn = load61_e_year_ahead_total_load_forecast,
 )
 
+"""
+    year_ahead_forecast_margin(client, area, start, stop[, format]) -> StructVector | String
+
+Year-ahead generation-adequacy forecast margin (Load 8.1,
+`documentType=A70`, `processType=A33`). The surplus of forecasted
+available capacity over forecasted peak load for the year ahead;
+one row per published period (`StructVector{(time, value)}` in MW).
+
+Distinct from [`year_ahead_load_forecast`](@ref): that's the *demand*
+forecast (documentType A65), whereas this is the *margin* —
+margin = available capacity − peak load.
+"""
+function year_ahead_forecast_margin(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(format, parse_timeseries; validate = validate, eics = (area,)) do
+        load81_year_ahead_forecast_margin(
+            apis.load, "A70", "A33", String(area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
 # ---------------------------------------------------------------------------
 # Generation
 
