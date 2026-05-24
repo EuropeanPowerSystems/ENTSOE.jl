@@ -53,6 +53,44 @@ const EIC = (
     SK = "10YSK-SEPS-----K",
 )
 
+# Make `EIC` callable with a string key — `EIC("NL")` is equivalent to
+# `EIC.NL`. Mirrors the country-code-string API entsoe-py exposes via
+# `lookup_area(code)`, so users porting Python code don't have to rewrite
+# every call site. Lookup is case-insensitive on the alpha-only portion;
+# zones with subscripts (`DE_LU`, `NO2`) still need the underscore /
+# digit form (`EIC("DE_LU")`, `EIC("NO2")`) — Symbol-ifying the
+# trimmed string and dispatching through `getproperty` keeps it cheap.
+"""
+    EIC(code) :: String
+
+Resolve a short bidding-zone alias to its 16-character EIC. Equivalent
+to field access (`EIC.NL == EIC("NL") == "10YNL----------L"`), accepting
+any `AbstractString` and validating against the curated [`EIC`](@ref)
+table.
+
+```jldoctest
+julia> EIC("NL")
+"10YNL----------L"
+
+julia> EIC("DE_LU")
+"10Y1001A1001A82H"
+```
+
+Throws `ArgumentError` for unknown aliases. For arbitrary EIC strings
+not in the curated set, pass the 16-character code directly (no lookup
+needed).
+"""
+function (t::typeof(EIC))(code::AbstractString)
+    sym = Symbol(code)
+    haskey(t, sym) || throw(
+        ArgumentError(
+            "Unknown EIC alias: $(repr(String(code))). " *
+            "Use one of `propertynames(EIC)` or pass a 16-character EIC string directly.",
+        ),
+    )
+    return getfield(t, sym)
+end
+
 """
     EIC_REGISTRY :: Dict{String, Vector{NamedTuple{(:name, :types), …}}}
 

@@ -23,6 +23,16 @@ using TimeZones: ZonedDateTime, FixedTimeZone
     )
 end
 
+@testset "EIC callable form (`EIC(\"NL\")`)" begin
+    # Field access and the string-callable form must agree, and unknown
+    # aliases must raise a clear error rather than returning a stub
+    # value that would then silently 999 against the API.
+    @test EIC("NL") === EIC.NL
+    @test EIC("DE_LU") === EIC.DE_LU
+    @test EIC("NO2") === EIC.NO2
+    @test_throws ArgumentError EIC("NOT_A_ZONE")
+end
+
 @testset "_to_period overloads" begin
     # `Int` round-trip.
     @test ENTSOE._to_period(Int64(202409012200)) === Int64(202409012200)

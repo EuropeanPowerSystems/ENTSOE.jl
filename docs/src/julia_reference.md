@@ -90,8 +90,17 @@ get_config
 
 ## EIC codes
 
+Three ways to spell the same zone:
+
+```julia
+EIC.NL       # field access — best when the zone is a literal
+EIC("NL")    # callable — useful when porting entsoe-py country strings
+"10YNL----------L"   # the raw 16-char code is always accepted
+```
+
 ```@docs
 EIC
+EIC(::AbstractString)
 EIC_REGISTRY
 lookup_eic
 is_known_eic
