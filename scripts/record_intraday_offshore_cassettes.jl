@@ -94,6 +94,13 @@ const JOBS = Any[
             DateTime("2024-01-01"), DateTime("2024-04-01"),
         ),
     ),
+    (
+        "balancing_171f_prices_of_activated_balancing_energy_DE_LU.yml",
+        () -> prices_of_activated_balancing_energy(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
 ]
 
 for (cassette, fn) in JOBS

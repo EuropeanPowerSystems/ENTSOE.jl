@@ -235,6 +235,7 @@ transparently and route each member through `parse_timeseries`.
 ```@docs
 current_balancing_state
 aggregated_balancing_energy_bids
+prices_of_activated_balancing_energy
 imbalance_prices
 total_imbalance_volumes
 procured_balancing_capacity

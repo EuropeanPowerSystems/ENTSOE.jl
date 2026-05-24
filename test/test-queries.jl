@@ -606,6 +606,27 @@ let BR = _load_brokenrecord()
             )
         end
 
+        @testset "prices_of_activated_balancing_energy (Balancing 17.1.F)" begin
+            # 17.1.F data is published patchily — DE_LU 2024-09-01 hits
+            # an Acknowledgement. The wrapper must surface that cleanly.
+            err = nothing
+            try
+                Base.invokelatest(
+                    BR.playback,
+                    () -> prices_of_activated_balancing_energy(
+                        client, EIC.DE_LU,
+                        DateTime("2024-09-01T22:00"),
+                        DateTime("2024-09-02T22:00"),
+                    ),
+                    "balancing_171f_prices_of_activated_balancing_energy_DE_LU.yml",
+                )
+            catch e
+                err = e
+            end
+            @test err isa ENTSOEAcknowledgement
+            @test err.reason_code == "999"
+        end
+
         @testset "unavailability_of_offshore_grid (Outages 10.1.C)" begin
             rows = Base.invokelatest(
                 BR.playback,

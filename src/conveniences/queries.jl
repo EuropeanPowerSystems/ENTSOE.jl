@@ -1238,6 +1238,51 @@ function imbalance_prices(
 end
 
 """
+    prices_of_activated_balancing_energy(client, control_area, period_start, period_end[, format];
+                                         process_type="A16",
+                                         business_type=nothing,
+                                         psr_type=nothing,
+                                         standard_market_product=nothing,
+                                         original_market_product=nothing)
+      -> StructVector | String
+
+Prices of activated balancing energy (Balancing 17.1.F,
+`documentType=A84`). One row per published settlement period —
+`StructVector{(time, value)}` in EUR/MWh. Response is
+`application/zip`; [`_query`](@ref) unzips and parses transparently.
+
+`process_type` defaults to `"A16"` (Realised). Pass `business_type` /
+`psr_type` / market-product strings to filter server-side. Mirrors
+entsoe-py's `query_activated_balancing_energy_prices`.
+"""
+function prices_of_activated_balancing_energy(
+        client::Client, control_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A16",
+        business_type::Union{Nothing, AbstractString} = nothing,
+        psr_type::Union{Nothing, AbstractString} = nothing,
+        standard_market_product::Union{Nothing, AbstractString} = nothing,
+        original_market_product::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing171_f_prices_of_activated_balancing_energy(
+            apis.balancing, "A84", String(process_type), String(control_area),
+            _to_period(period_start), _to_period(period_end);
+            business_type = business_type === nothing ? nothing : String(business_type),
+            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            standard_market_product = standard_market_product === nothing ?
+                nothing : String(standard_market_product),
+            original_market_product = original_market_product === nothing ?
+                nothing : String(original_market_product),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (control_area,),
+    )
+end
+
+"""
     total_imbalance_volumes(client, area, start, stop[, format]; business_type="A19")
       -> StructVector | String
 
