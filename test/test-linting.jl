@@ -16,7 +16,19 @@ let aqua_id = Base.identify_package("Aqua")
             # the call site's.
             Base.invokelatest(
                 Aqua.test_all, ENTSOE;
-                ambiguities = false, stale_deps = false
+                ambiguities = false, stale_deps = false,
+                piracies = false,
+            )
+            # Run piracy check separately so we can whitelist the one
+            # intentional case — the `(::typeof(EIC))(::AbstractString)`
+            # call method on the curated `EIC` NamedTuple. That's
+            # technically piracy on a Base NamedTuple type, but the
+            # exact shape is owned by ENTSOE — no other package could
+            # have the same `@NamedTuple{AT::String, BE::String, …}`
+            # field set, so there's no collision risk.
+            Base.invokelatest(
+                Aqua.test_piracies, ENTSOE;
+                treat_as_own = Any[typeof(ENTSOE.EIC)],
             )
         end
     end
