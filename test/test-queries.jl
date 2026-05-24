@@ -606,6 +606,22 @@ let BR = _load_brokenrecord()
             )
         end
 
+        @testset "net_transfer_capacity_day_ahead (NTC A01 alias)" begin
+            # Thin alias over `forecasted_transfer_capacities` — reuse
+            # the same Transmission 11.1.A smoke cassette (recorded
+            # against contractMarketAgreementType=A01).
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> net_transfer_capacity_day_ahead(
+                    client, EIC.BE, EIC.GB,
+                    202308152200, 202308162200,
+                ),
+                "transmission111_a_forecasted_transfer_capacities.yml",
+            )
+            @test :time in propertynames(rows)
+            @test :value in propertynames(rows)
+        end
+
         @testset "prices_of_activated_balancing_energy (Balancing 17.1.F)" begin
             # 17.1.F data is published patchily — DE_LU 2024-09-01 hits
             # an Acknowledgement. The wrapper must surface that cleanly.

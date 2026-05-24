@@ -762,6 +762,64 @@ function forecasted_transfer_capacities(
 end
 
 """
+    net_transfer_capacity_day_ahead(client, in_area, out_area, period_start, period_end[, format])
+      -> StructVector | String
+
+Day-ahead forecasted net transfer capacity (`contract_marketagreement_type=A01`).
+Thin wrapper over [`forecasted_transfer_capacities`](@ref); mirrors
+entsoe-py's `query_net_transfer_capacity_dayahead`.
+"""
+net_transfer_capacity_day_ahead(
+    client::Client, in_area, out_area, start, stop, format::ResponseFormat = Parsed();
+    validate = false,
+) = forecasted_transfer_capacities(
+    client, in_area, out_area, start, stop, format;
+    validate = validate, contract_market_agreement_type = "A01",
+)
+
+"""
+    net_transfer_capacity_week_ahead(client, in_area, out_area, period_start, period_end[, format])
+      -> StructVector | String
+
+Week-ahead forecasted net transfer capacity (`contract_marketagreement_type=A02`).
+"""
+net_transfer_capacity_week_ahead(
+    client::Client, in_area, out_area, start, stop, format::ResponseFormat = Parsed();
+    validate = false,
+) = forecasted_transfer_capacities(
+    client, in_area, out_area, start, stop, format;
+    validate = validate, contract_market_agreement_type = "A02",
+)
+
+"""
+    net_transfer_capacity_month_ahead(client, in_area, out_area, period_start, period_end[, format])
+      -> StructVector | String
+
+Month-ahead forecasted net transfer capacity (`contract_marketagreement_type=A03`).
+"""
+net_transfer_capacity_month_ahead(
+    client::Client, in_area, out_area, start, stop, format::ResponseFormat = Parsed();
+    validate = false,
+) = forecasted_transfer_capacities(
+    client, in_area, out_area, start, stop, format;
+    validate = validate, contract_market_agreement_type = "A03",
+)
+
+"""
+    net_transfer_capacity_year_ahead(client, in_area, out_area, period_start, period_end[, format])
+      -> StructVector | String
+
+Year-ahead forecasted net transfer capacity (`contract_marketagreement_type=A04`).
+"""
+net_transfer_capacity_year_ahead(
+    client::Client, in_area, out_area, start, stop, format::ResponseFormat = Parsed();
+    validate = false,
+) = forecasted_transfer_capacities(
+    client, in_area, out_area, start, stop, format;
+    validate = validate, contract_market_agreement_type = "A04",
+)
+
+"""
     redispatching_internal(client, area, start, stop[, format]) -> StructVector | String
 
 Internal redispatching activations (Transmission 13.1.A,
