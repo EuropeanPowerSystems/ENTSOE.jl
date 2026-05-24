@@ -190,6 +190,15 @@ intraday_prices
 total_nominated_capacity
 congestion_income
 implicit_auction_net_positions
+explicit_allocations_offered_transfer_capacity
+flow_based_allocations
+flow_based_allocations_archives
+continuous_allocations_offered_transfer_capacity
+implicit_allocations_offered_transfer_capacity
+explicit_allocations_auction_revenue
+explicit_allocations_use_of_transfer_capacity
+total_capacity_already_allocated
+transfer_capacities_with_third_countries
 ```
 
 ### Wrappers — Load (Load 6.1.A–E, 8.1)

@@ -195,6 +195,76 @@ const JOBS = Any[
             DateTime("2024-01-01"), DateTime("2024-06-01"),
         ),
     ),
+    # Market allocation wrappers — mostly publish only for explicit
+    # auction borders. Cassettes capture either the auction data or an
+    # Acknowledgement(999) per zone+date.
+    (
+        "market_111a_explicit_allocations_offered_BE_GB.yml",
+        () -> explicit_allocations_offered_transfer_capacity(
+            client, EIC.BE, EIC.GB,
+            202308152200, 202308162200;
+            auction_category = "A04",
+            sequence = 1,
+            update_date_and_or_time = 20230313123900,
+        ),
+    ),
+    (
+        "market_111b_flow_based_allocations_REGION1V.yml",
+        () -> flow_based_allocations(
+            client, "10YDOM-REGION-1V", "10YDOM-REGION-1V",
+            201402032300, 201402040500,
+        ),
+    ),
+    (
+        "market_111c_continuous_allocations_BE_NL.yml",
+        () -> continuous_allocations_offered_transfer_capacity(
+            client, EIC.BE, EIC.NL,
+            202405152200, 202504162200;
+            update_date_and_or_time = 20240515123900,
+        ),
+    ),
+    (
+        "market_111d_implicit_allocations_DK1_DE.yml",
+        () -> implicit_allocations_offered_transfer_capacity(
+            client, "10YDK-1--------W", EIC.DE_LU,
+            202212312300, 202301012300;
+            update_date_and_or_time = 20230313123900,
+            sequence = 1,
+        ),
+    ),
+    (
+        "market_121a_explicit_allocations_auction_revenue_HR_BA.yml",
+        () -> explicit_allocations_auction_revenue(
+            client, "10YBA-JPCC-----D", EIC.HR,
+            202308242200, 202308252200,
+        ),
+    ),
+    (
+        "market_121a_explicit_allocations_use_of_capacity_BE_GB.yml",
+        () -> explicit_allocations_use_of_transfer_capacity(
+            client, EIC.BE, EIC.GB,
+            202308152200, 202308162200;
+            auction_category = "A04",
+            sequence = 1,
+        ),
+    ),
+    (
+        "market_121c_total_capacity_already_allocated_HR_BA.yml",
+        () -> total_capacity_already_allocated(
+            client, "10YBA-JPCC-----D", EIC.HR,
+            202308242200, 202308252200;
+            auction_category = "A02",
+        ),
+    ),
+    (
+        "market_121h_third_country_capacities_FI_RU.yml",
+        () -> transfer_capacities_with_third_countries(
+            client, "10Y1001A1001A49F", EIC.FI,
+            202308232200, 202308242200;
+            auction_category = "A04",
+            sequence = 1,
+        ),
+    ),
 ]
 
 for (cassette, fn) in JOBS

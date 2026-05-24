@@ -330,6 +330,326 @@ function congestion_income(
 end
 
 """
+    explicit_allocations_offered_transfer_capacity(client, in_area, out_area, period_start, period_end[, format];
+                                                   auction_type="A02",
+                                                   contract_market_agreement_type="A01",
+                                                   auction_category=nothing,
+                                                   sequence=nothing)
+      -> StructVector | String
+
+Explicit allocations offered transfer capacity (Market 11.1.A,
+`documentType=A31`). Returns the capacity offered to explicit-auction
+participants per direction/timeframe.
+
+Defaults match the Postman canonical example (`auction_type="A02"`
+monthly, `contract_market_agreement_type="A01"` daily).
+"""
+function explicit_allocations_offered_transfer_capacity(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        auction_type::AbstractString = "A02",
+        contract_market_agreement_type::AbstractString = "A01",
+        auction_category::Union{Nothing, AbstractString} = nothing,
+        sequence::Union{Nothing, Integer} = nothing,
+        update_date_and_or_time::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market111_a_explicit_allocations_offered_transfer_capacity(
+            apis.market, "A31",
+            String(auction_type), String(contract_market_agreement_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            auction_category = auction_category === nothing ? nothing : String(auction_category),
+            update_date_and_or_time = update_date_and_or_time === nothing ?
+                nothing : Int(update_date_and_or_time),
+            classification_sequence_attribute_instance_component_position =
+                sequence === nothing ? nothing : Int(sequence),
+        )
+    end
+end
+
+"""
+    flow_based_allocations(client, in_area, out_area, period_start, period_end[, format];
+                           process_type="A44") -> StructVector | String
+
+Flow-based allocation results (Market 11.1.B, `documentType=B09`).
+`process_type` default `"A44"` (Intraday); pass `"A01"` for day-ahead.
+For historical periods use [`flow_based_allocations_archives`](@ref).
+"""
+function flow_based_allocations(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A44",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market111_b_flow_based_allocations(
+            apis.market, "B09", String(process_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+"""
+    flow_based_allocations_archives(client, in_area, out_area, period_start, period_end[, format];
+                                    process_type="A32",
+                                    storage_type="archive") -> StructVector | String
+
+Archived flow-based allocations (Market 11.1.B archive variant).
+`process_type` default `"A32"` (Monthly); `storage_type` default
+`"archive"` matches the published archive bucket.
+"""
+function flow_based_allocations_archives(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A32",
+        storage_type::AbstractString = "archive",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market111_b_flow_based_allocations_archives(
+            apis.market, "B09", String(process_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end),
+            String(storage_type),
+        )
+    end
+end
+
+"""
+    continuous_allocations_offered_transfer_capacity(client, in_area, out_area, period_start, period_end[, format];
+                                                     auction_type="A08",
+                                                     contract_market_agreement_type="A07")
+      -> StructVector | String
+
+Continuous-intraday offered transfer capacity (Market 11.1, SIDC IDCT),
+`documentType=A31`. `auction_type="A08"` is the continuous-intraday
+auction; `contract_market_agreement_type="A07"` is intraday.
+"""
+function continuous_allocations_offered_transfer_capacity(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        auction_type::AbstractString = "A08",
+        contract_market_agreement_type::AbstractString = "A07",
+        update_date_and_or_time::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market111_continuous_allocations_offered_transfer_capacity(
+            apis.market, "A31", String(auction_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end),
+            String(contract_market_agreement_type);
+            update_date_and_or_time = update_date_and_or_time === nothing ?
+                nothing : Int(update_date_and_or_time),
+        )
+    end
+end
+
+"""
+    implicit_allocations_offered_transfer_capacity(client, in_area, out_area, period_start, period_end[, format];
+                                                   auction_type="A01",
+                                                   contract_market_agreement_type="A01",
+                                                   sequence=nothing)
+      -> StructVector | String
+
+Implicit-auction offered transfer capacity (Market 11.1, implicit
+day-ahead), `documentType=A31`. Defaults to day-ahead implicit auction
+(`auction_type="A01"`, `contract_market_agreement_type="A01"`).
+Pass `sequence` to filter SIDC IDA1/2/3 results.
+"""
+function implicit_allocations_offered_transfer_capacity(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        auction_type::AbstractString = "A01",
+        contract_market_agreement_type::AbstractString = "A01",
+        sequence::Union{Nothing, Integer} = nothing,
+        update_date_and_or_time::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market111_implicit_allocations_offered_transfer_capacity(
+            apis.market, "A31",
+            String(auction_type), String(contract_market_agreement_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            update_date_and_or_time = update_date_and_or_time === nothing ?
+                nothing : Int(update_date_and_or_time),
+            classification_sequence_attribute_instance_component_position =
+                sequence === nothing ? nothing : Int(sequence),
+        )
+    end
+end
+
+"""
+    explicit_allocations_auction_revenue(client, in_area, out_area, period_start, period_end[, format];
+                                         business_type="B07",
+                                         contract_market_agreement_type="A01")
+      -> StructVector | String
+
+Explicit-allocation auction revenue (Market 12.1.A, `documentType=A25`,
+default `businessType=B07` — congestion revenue).
+"""
+function explicit_allocations_auction_revenue(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        business_type::AbstractString = "B07",
+        contract_market_agreement_type::AbstractString = "A01",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market121_a_explicit_allocations_auction_revenue(
+            apis.market, "A25",
+            String(business_type), String(contract_market_agreement_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end),
+        )
+    end
+end
+
+"""
+    explicit_allocations_use_of_transfer_capacity(client, in_area, out_area, period_start, period_end[, format];
+                                                  business_type="B05",
+                                                  contract_market_agreement_type="A07",
+                                                  auction_category=nothing,
+                                                  sequence=nothing)
+      -> StructVector | String
+
+Use of transfer capacity from explicit allocations (Market 12.1.A,
+`documentType=A25`, default `businessType=B05` — already allocated).
+"""
+function explicit_allocations_use_of_transfer_capacity(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        business_type::AbstractString = "B05",
+        contract_market_agreement_type::AbstractString = "A07",
+        auction_category::Union{Nothing, AbstractString} = nothing,
+        sequence::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market121_a_explicit_allocations_use_of_the_transfer_capacity(
+            apis.market, "A25",
+            String(business_type), String(contract_market_agreement_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            auction_category = auction_category === nothing ? nothing : String(auction_category),
+            classification_sequence_attribute_instance_component_position =
+                sequence === nothing ? nothing : Int(sequence),
+        )
+    end
+end
+
+"""
+    total_capacity_already_allocated(client, in_area, out_area, period_start, period_end[, format];
+                                     business_type="A29",
+                                     contract_market_agreement_type="A01",
+                                     auction_category=nothing)
+      -> StructVector | String
+
+Total capacity already allocated (Market 12.1.C, `documentType=A26`,
+default `businessType=A29` — already allocated capacity).
+"""
+function total_capacity_already_allocated(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        business_type::AbstractString = "A29",
+        contract_market_agreement_type::AbstractString = "A01",
+        auction_category::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market121_c_total_capacity_already_allocated(
+            apis.market, "A26",
+            String(business_type), String(contract_market_agreement_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            auction_category = auction_category === nothing ? nothing : String(auction_category),
+        )
+    end
+end
+
+"""
+    transfer_capacities_with_third_countries(client, in_area, out_area, period_start, period_end[, format];
+                                             auction_type="A02",
+                                             contract_market_agreement_type="A07",
+                                             auction_category=nothing,
+                                             sequence=nothing)
+      -> StructVector | String
+
+Transfer capacities allocated with third countries (Market 12.1.H,
+`documentType=A94`).
+"""
+function transfer_capacities_with_third_countries(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        auction_type::AbstractString = "A02",
+        contract_market_agreement_type::AbstractString = "A07",
+        auction_category::Union{Nothing, AbstractString} = nothing,
+        sequence::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        market121_h_transfer_capacities_allocated_with_third_countries121_h_explicit(
+            apis.market, "A94",
+            String(auction_type), String(contract_market_agreement_type),
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            auction_category = auction_category === nothing ? nothing : String(auction_category),
+            classification_sequence_attribute_instance_component_position =
+                sequence === nothing ? nothing : Int(sequence),
+        )
+    end
+end
+
+"""
     implicit_auction_net_positions(client, area, period_start, period_end[, format];
                                    contract_market_agreement_type="A07")
       -> StructVector | String
