@@ -595,5 +595,28 @@ let BR = _load_brokenrecord()
                 (:time, :value),
             )
         end
+
+        @testset "intraday_prices (Market 12.1.D, contract A07)" begin
+            # ENTSO-E publishes A07 intraday prices patchily — DE_LU
+            # 2024-09-01 hits an `<Acknowledgement reason=999>`. Verify
+            # the wrapper surfaces that as `ENTSOEAcknowledgement` rather
+            # than crashing the parser on an empty document.
+            err = nothing
+            try
+                Base.invokelatest(
+                    BR.playback,
+                    () -> intraday_prices(
+                        client, EIC.DE_LU,
+                        DateTime("2024-09-01T22:00"),
+                        DateTime("2024-09-02T22:00"),
+                    ),
+                    "market_121d_intraday_prices_DE_LU.yml",
+                )
+            catch e
+                err = e
+            end
+            @test err isa ENTSOEAcknowledgement
+            @test err.reason_code == "999"
+        end
     end
 end

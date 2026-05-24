@@ -19,6 +19,7 @@ export parse_acknowledgement, check_acknowledgement, ENTSOEAcknowledgement
 export unzip_response
 export EIC_REGISTRY, lookup_eic, is_known_eic, eics_of_type, validate_eic
 export day_ahead_prices,
+    intraday_prices,
     total_nominated_capacity,
     congestion_income,
     implicit_auction_net_positions,

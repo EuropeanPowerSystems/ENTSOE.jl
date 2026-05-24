@@ -178,6 +178,7 @@ Raw
 
 ```@docs
 day_ahead_prices
+intraday_prices
 total_nominated_capacity
 congestion_income
 implicit_auction_net_positions

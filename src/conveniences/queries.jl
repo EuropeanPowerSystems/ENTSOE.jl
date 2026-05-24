@@ -224,6 +224,41 @@ function day_ahead_prices(
     end
 end
 
+"""
+    intraday_prices(client, area, period_start, period_end[, format];
+                    sequence=nothing) -> StructVector | String
+
+Intraday clearing prices (Market 12.1.D, `documentType=A44`,
+`contract_MarketAgreement.type=A07`). Same wire endpoint as
+[`day_ahead_prices`](@ref) but flipped to the intraday contract type;
+ENTSO-E returns one TimeSeries per intraday auction sequence (SIDC IDA
+1/2/3 etc.).
+
+Pass `sequence=1`/`2`/`3` to filter server-side to a single auction;
+omit it to receive every sequence the publication exposes. Returns a
+Tables.jl-compatible `StructVector{(time, value)}` in EUR/MWh.
+
+Mirrors entsoe-py's `query_intraday_prices`.
+"""
+function intraday_prices(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        sequence::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(format, parse_timeseries; validate = validate, eics = (area,)) do
+        market121_d_energy_prices(
+            apis.market, "A44",
+            _to_period(period_start), _to_period(period_end),
+            String(area), String(area);
+            contract_market_agreement_type = "A07",
+            classification_sequence_attribute_instance_component_position =
+                sequence === nothing ? nothing : Int(sequence),
+        )
+    end
+end
+
 # ---------------------------------------------------------------------------
 # Market — auction & allocation endpoints (12.1.A/B/C/E)
 
