@@ -606,6 +606,22 @@ let BR = _load_brokenrecord()
             )
         end
 
+        @testset "scheduled_exchanges (alias for commercial_schedules A05/A01)" begin
+            # `dayahead=true` → A01 → identical wire URL to the existing
+            # `commercial_schedules` smoke cassette (FR→DE_LU, A01).
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> scheduled_exchanges(
+                    client, EIC.FR, EIC.DE_LU,
+                    202308232200, 202308242200;
+                    dayahead = true,
+                ),
+                "transmission121_f_commercial_schedules.yml",
+            )
+            @test :time in propertynames(rows)
+            @test :value in propertynames(rows)
+        end
+
         @testset "net_transfer_capacity_day_ahead (NTC A01 alias)" begin
             # Thin alias over `forecasted_transfer_capacities` — reuse
             # the same Transmission 11.1.A smoke cassette (recorded

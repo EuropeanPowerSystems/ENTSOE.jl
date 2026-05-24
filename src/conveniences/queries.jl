@@ -694,6 +694,31 @@ function commercial_schedules(
 end
 
 """
+    scheduled_exchanges(client, in_area, out_area, period_start, period_end[, format];
+                        dayahead=false) -> StructVector | String
+
+Scheduled cross-border exchanges (Transmission 12.1.F, `documentType=A09`).
+Same endpoint as [`commercial_schedules`](@ref); this alias preserves
+the entsoe-py call shape — `dayahead=true` selects A01 (day-ahead),
+`dayahead=false` (default) selects A05 (total).
+
+Use `commercial_schedules(...; contract_market_agreement_type=...)`
+directly for finer control (e.g. A07 intraday).
+"""
+function scheduled_exchanges(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false, dayahead::Bool = false,
+    )
+    return commercial_schedules(
+        client, in_area, out_area, period_start, period_end, format;
+        validate = validate,
+        contract_market_agreement_type = dayahead ? "A01" : "A05",
+    )
+end
+
+"""
     commercial_schedules_net_positions(client, area, start, stop[, format];
                                        contract_market_agreement_type="A01")
       -> StructVector | String

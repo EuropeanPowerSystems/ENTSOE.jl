@@ -219,6 +219,7 @@ water_reservoirs_and_hydro_storage_plants
 ```@docs
 cross_border_physical_flows
 commercial_schedules
+scheduled_exchanges
 commercial_schedules_net_positions
 forecasted_transfer_capacities
 net_transfer_capacity_day_ahead
