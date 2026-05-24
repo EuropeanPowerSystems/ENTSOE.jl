@@ -57,6 +57,7 @@ const PAGES = Any[
         "Congestion-management costs" => "tutorial_congestion.md",
         "PT1M balancing state (HU)" => "tutorial_balancing_state.md",
         "Hydro reservoirs (BG)" => "tutorial_hydro.md",
+        "Intraday + offshore wrappers" => "tutorial_intraday_and_offshore.md",
     ],
     "Guides" => Any[
         "Recorded HTTP tests" => "cassette_testing.md",

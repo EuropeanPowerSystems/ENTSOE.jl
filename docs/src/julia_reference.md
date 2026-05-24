@@ -159,23 +159,22 @@ prices_xml = day_ahead_prices(client, EIC.NL, t1, t2, Raw())     # bypass parser
 | [`Raw()`](@ref)   | `String`               | Skip the parser. Hand the XML to `EzXML`/`XML.jl` yourself, archive the body, debug a parse mismatch, etc. |
 
 The dispatch is on the singleton types `Parsed`/`Raw` (subtypes of
-`ResponseFormat`), so each variant has a **concrete inferred return
+`ResponseFormat`), so each variant has a **concrete runtime return
 type**:
 
 ```julia
-julia> Base.return_types(day_ahead_prices,
-           Tuple{Client, String, DateTime, DateTime, Raw})
-1-element Vector{Any}:
- String
+julia> typeof(prices)
+StructVector{@NamedTuple{time::DateTime, value::Float64}, …}
 
-julia> Base.return_types(day_ahead_prices,
-           Tuple{Client, String, DateTime, DateTime})   # default → Parsed
-1-element Vector{Any}:
- StructVector{@NamedTuple{time::DateTime, value::Float64}, …}
+julia> typeof(prices_xml)
+String
 ```
 
-No `Union` widening, no `Any` — downstream code can specialize on the
-returned type.
+Static inference is widened to `StructArrays.StructArray` for the
+parsed branch (the parser is plumbed through an `F <: Function` type
+parameter), but the runtime layout is concrete — `DataFrame(prices)`
+specializes correctly, and downstream column access (`prices.value`,
+`prices.time`) hits the typed backing vectors directly.
 
 ```@docs
 ResponseFormat
