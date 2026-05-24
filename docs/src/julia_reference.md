@@ -240,6 +240,7 @@ transparently and route each member through `parse_timeseries`.
 ```@docs
 current_balancing_state
 aggregated_balancing_energy_bids
+exchanged_reserve_capacity
 financial_expenses_and_income_for_balancing
 prices_of_activated_balancing_energy
 imbalance_prices

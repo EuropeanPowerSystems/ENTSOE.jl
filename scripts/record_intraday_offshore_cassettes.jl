@@ -108,6 +108,13 @@ const JOBS = Any[
             DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
         ),
     ),
+    (
+        "balancing_1903_exchanged_reserve_capacity_DE_AT.yml",
+        () -> exchanged_reserve_capacity(
+            client, EIC.DE_LU, EIC.AT,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
 ]
 
 for (cassette, fn) in JOBS

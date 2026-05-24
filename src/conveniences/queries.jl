@@ -1321,6 +1321,41 @@ function imbalance_prices(
 end
 
 """
+    exchanged_reserve_capacity(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
+                               process_type="A46") -> StructVector | String
+
+Exchanged balancing-reserve capacity between control areas
+(Balancing 19.0.3 SO GL, `documentType=A26`, `businessType=C21`).
+`process_type` default `"A46"` (Replacement reserve); pass `"A51"`
+(aFRR), `"A52"` (mFRR), etc. for other reserve products.
+
+`StructVector{(time, value)}` in MW.
+"""
+function exchanged_reserve_capacity(
+        client::Client,
+        acquiring_domain::AbstractString, connecting_domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A46",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing1903_exchanged_reserve_capacity_so_gl(
+            apis.balancing;
+            document_type = "A26",
+            process_type = String(process_type),
+            business_type = "C21",
+            acquiring_domain = String(acquiring_domain),
+            connecting_domain = String(connecting_domain),
+            period_start = _to_period(period_start),
+            period_end = _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    )
+end
+
+"""
     financial_expenses_and_income_for_balancing(client, control_area, period_start, period_end[, format])
       -> StructVector | String
 
