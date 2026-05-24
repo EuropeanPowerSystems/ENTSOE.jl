@@ -737,6 +737,39 @@ let BR = _load_brokenrecord()
             @test err.reason_code == "999"
         end
 
+        @testset "outages_fall_backs (Outages IF, A53)" begin
+            err = nothing
+            try
+                Base.invokelatest(
+                    BR.playback,
+                    () -> outages_fall_backs(client, EIC.NL,
+                        DateTime("2024-09-01T22:00"),
+                        DateTime("2024-09-02T22:00")),
+                    "outages_fall_backs_NL.yml",
+                )
+            catch e
+                err = e
+            end
+            @test err isa ENTSOEAcknowledgement || err isa ClientError
+        end
+
+        @testset "expansion_and_dismantling_project (Transmission 9.1, A90)" begin
+            err = nothing
+            try
+                Base.invokelatest(
+                    BR.playback,
+                    () -> expansion_and_dismantling_project(
+                        client, EIC.BE, EIC.FR,
+                        DateTime("2024-01-01"), DateTime("2024-06-01"),
+                    ),
+                    "transmission_91_expansion_BE_FR.yml",
+                )
+            catch e
+                err = e
+            end
+            @test err isa ENTSOEAcknowledgement || err isa ClientError
+        end
+
         @testset "unavailability_of_offshore_grid (Outages 10.1.C)" begin
             rows = Base.invokelatest(
                 BR.playback,

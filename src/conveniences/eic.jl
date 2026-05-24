@@ -85,7 +85,7 @@ function (t::typeof(EIC))(code::AbstractString)
     haskey(t, sym) || throw(
         ArgumentError(
             "Unknown EIC alias: $(repr(String(code))). " *
-            "Use one of `propertynames(EIC)` or pass a 16-character EIC string directly.",
+                "Use one of `propertynames(EIC)` or pass a 16-character EIC string directly.",
         ),
     )
     return getfield(t, sym)

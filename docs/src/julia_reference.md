@@ -230,6 +230,7 @@ redispatching_internal
 redispatching_cross_border
 countertrading
 costs_of_congestion_management
+expansion_and_dismantling_project
 ```
 
 ### Wrappers — Balancing (1.2.3.A/E, 17.1.B/C/F/G/H)
@@ -267,6 +268,7 @@ unavailability_of_generation_units
 unavailability_of_production_units
 unavailability_of_transmission_infrastructure
 unavailability_of_offshore_grid
+outages_fall_backs
 aggregated_unavailability_of_consumption_units
 ```
 

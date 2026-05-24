@@ -1,0 +1,41 @@
+responses:
+  - headers:
+      - Date: "Sun, 24 May 2026 17:55:16 GMT"
+      - Content-Type: "text/xml"
+      - Content-Length: "984"
+      - Connection: "keep-alive"
+      - Content-Disposition: |-
+          inline; filename="acknowledgement.xml"
+      - X-Content-Type-Options: "nosniff"
+      - X-XSS-Protection: "0"
+      - Strict-Transport-Security: "max-age=15724800; includeSubDomains"
+    body: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <Acknowledgement_MarketDocument
+      	xmlns="urn:iec62325.351:tc57wg16:451-1:acknowledgementdocument:7:0">
+      	<mRID>33dafb88-25f7-4</mRID>
+      	<createdDateTime>2026-05-24T17:55:16Z</createdDateTime>
+      	<sender_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</sender_MarketParticipant.mRID>
+      	<sender_MarketParticipant.marketRole.type>A32</sender_MarketParticipant.marketRole.type>
+      	<receiver_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</receiver_MarketParticipant.mRID>
+      	<receiver_MarketParticipant.marketRole.type>A39</receiver_MarketParticipant.marketRole.type>
+      	<received_MarketDocument.createdDateTime>2026-05-24T17:55:16Z</received_MarketDocument.createdDateTime>
+      	<Reason>
+      		<code>999</code>
+      		<text>No matching data found for Data item EXPANSION_AND_DISMANTLING_PROJECTS_R3 [9.1] (10YBE----------2, 10YFR-RTE------C) and interval 2024-01-01T00:00:00Z/2024-06-01T00:00:00Z.</text>
+      	</Reason>
+      </Acknowledgement_MarketDocument>
+      
+    status: 200
+    request:
+      txcount: 0
+      headers:
+        - Content-Length: "0"
+        - Accept: "application/xml"
+        - Host: "web-api.tp.entsoe.eu"
+      body: ""
+      method: "GET"
+      target: "/api?periodEnd=202406010000&out_Domain=10YFR-RTE------C&in_Domain=10YBE----------2&periodStart=202401010000&documentType=A90"
+      version: "1.1.0"
+    version: "1.1.0"
+format: "1.0.0"

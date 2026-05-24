@@ -181,6 +181,20 @@ const JOBS = Any[
             DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
         ),
     ),
+    (
+        "outages_fall_backs_NL.yml",
+        () -> outages_fall_backs(
+            client, EIC.NL,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "transmission_91_expansion_BE_FR.yml",
+        () -> expansion_and_dismantling_project(
+            client, EIC.BE, EIC.FR,
+            DateTime("2024-01-01"), DateTime("2024-06-01"),
+        ),
+    ),
 ]
 
 for (cassette, fn) in JOBS

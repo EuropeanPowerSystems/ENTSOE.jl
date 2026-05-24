@@ -845,6 +845,39 @@ net_transfer_capacity_year_ahead(
 )
 
 """
+    expansion_and_dismantling_project(client, in_area, out_area, period_start, period_end[, format];
+                                      business_type=nothing, doc_status=nothing)
+      -> StructVector | String
+
+Interconnector network expansion and dismantling projects (Transmission
+9.1, `documentType=A90`). TYNDP-related project announcements.
+`StructVector{(time, value)}` per project — passing `Raw()` exposes
+the full project metadata for richer consumers.
+"""
+function expansion_and_dismantling_project(
+        client::Client,
+        in_area::AbstractString, out_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        business_type::Union{Nothing, AbstractString} = nothing,
+        doc_status::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries;
+        validate = validate, eics = (in_area, out_area),
+    ) do
+        transmission91_expansion_and_dismantling_project(
+            apis.transmission, "A90",
+            String(out_area), String(in_area),
+            _to_period(period_start), _to_period(period_end);
+            business_type = business_type === nothing ? nothing : String(business_type),
+            doc_status = doc_status === nothing ? nothing : String(doc_status),
+        )
+    end
+end
+
+"""
     redispatching_internal(client, area, start, stop[, format]) -> StructVector | String
 
 Internal redispatching activations (Transmission 13.1.A,
@@ -1102,6 +1135,47 @@ function unavailability_of_transmission_infrastructure(
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
                 nothing : _to_period(period_end_update),
+            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            offset = offset === nothing ? nothing : Int(offset),
+        )
+    end
+end
+
+"""
+    outages_fall_backs(client, bidding_zone, period_start, period_end[, format];
+                       process_type="A47", business_type="A53",
+                       doc_status=nothing, m_r_i_d=nothing,
+                       offset=nothing) -> StructVector | String
+
+Fall-back outage notices on the IF platforms (Outages IFs IN 7.2 /
+mFRR 3.11 / aFRR 3.10, `documentType=A53`). `process_type` default
+`"A47"` (mFRR); pass `"A51"` (aFRR) or `"A63"` (Imbalance Netting).
+`business_type` default `"A53"` (Planned maintenance); pass `"A54"`
+(Unplanned) etc.
+
+Returns [`parse_unavailability`](@ref) rows.
+"""
+function outages_fall_backs(
+        client::Client, bidding_zone::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A47",
+        business_type::AbstractString = "A53",
+        doc_status::Union{Nothing, AbstractString} = nothing,
+        m_r_i_d::Union{Nothing, AbstractString} = nothing,
+        offset::Union{Nothing, Integer} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_unavailability;
+        validate = validate, eics = (bidding_zone,),
+    ) do
+        outages_fall_backs_ifs_in72_mfrr311_afrr310(
+            apis.outages, "A53",
+            String(process_type), String(business_type),
+            String(bidding_zone),
+            _to_period(period_start), _to_period(period_end);
+            doc_status = doc_status === nothing ? nothing : String(doc_status),
             m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )
