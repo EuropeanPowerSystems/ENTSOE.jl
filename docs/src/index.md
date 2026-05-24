@@ -4,7 +4,7 @@ CurrentModule = ENTSOE
 
 # ENTSOE.jl
 
-Documentation for [ENTSOE.jl](https://github.com/langestefan/ENTSOE.jl).
+Documentation for [ENTSOE.jl](https://github.com/EuropeanPowerSystems/ENTSOE.jl).
 
 A Julia REST/JSON API wrapper scaffolded with
 [OpenAPITemplate.jl](https://github.com/langestefan/OpenAPITemplate.jl).

@@ -52,7 +52,7 @@ function _resolution_minutes(s::AbstractString)
     # return `nothing` so the parser drops the offending Period rather
     # than crashing an entire batch import.
     @warn "ENTSOE: unsupported resolution `$s` — skipping Period. " *
-        "Please open an issue at https://github.com/langestefan/ENTSOE.jl/issues " *
+        "Please open an issue at https://github.com/EuropeanPowerSystems/ENTSOE.jl/issues " *
         "so this resolution can be added to the table." maxlog = 1 _id = Symbol(s)
     return nothing
 end

@@ -1,10 +1,10 @@
 # ENTSOE.jl
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://langestefan.github.io/ENTSOE.jl/stable/)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://langestefan.github.io/ENTSOE.jl/dev/)
-[![Build Status](https://github.com/langestefan/ENTSOE.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/langestefan/ENTSOE.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![Documentation](https://github.com/langestefan/ENTSOE.jl/actions/workflows/Documentation.yml/badge.svg?branch=main)](https://github.com/langestefan/ENTSOE.jl/actions/workflows/Documentation.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/langestefan/ENTSOE.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/langestefan/ENTSOE.jl)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://europeanpowersystems.github.io/ENTSOE.jl/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://europeanpowersystems.github.io/ENTSOE.jl/dev/)
+[![Build Status](https://github.com/EuropeanPowerSystems/ENTSOE.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/EuropeanPowerSystems/ENTSOE.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Documentation](https://github.com/EuropeanPowerSystems/ENTSOE.jl/actions/workflows/Documentation.yml/badge.svg?branch=main)](https://github.com/EuropeanPowerSystems/ENTSOE.jl/actions/workflows/Documentation.yml?query=branch%3Amain)
+[![Coverage](https://codecov.io/gh/EuropeanPowerSystems/ENTSOE.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/EuropeanPowerSystems/ENTSOE.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![tested with JET.jl](https://img.shields.io/badge/%F0%9F%9B%A9%EF%B8%8F_tested_with-JET.jl-233f9a)](https://github.com/aviatesk/JET.jl)
 
@@ -17,7 +17,7 @@ balancing, and master data for Europe.
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/langestefan/ENTSOE.jl")
+Pkg.add(url = "https://github.com/EuropeanPowerSystems/ENTSOE.jl")
 ```
 
 You'll also need an API token. Register at
@@ -30,8 +30,7 @@ e-mail the listed support address requesting access. Set
 ```julia
 using ENTSOE
 using Dates
-using Statistics: mean       # `mean` lives in stdlib but isn't auto-loaded
-using DataFrames             # only needed for the last line — see "Tables.jl interface"
+using DataFrames             # optional — see "Tables.jl interface"
 
 client = ENTSOEClient(ENV["ENTSOE_API_TOKEN"])
 
@@ -48,7 +47,6 @@ prices[1:3]
 
 prices.value          # Vector{Float64}, all 24 prices
 prices.time           # Vector{DateTime}
-mean(prices.value)
 DataFrame(prices)     # works directly — every wrapper is Tables.jl-compatible
 ```
 
@@ -294,9 +292,9 @@ exception by `check_response`:
 ## Documentation
 
 The full guide — including the
-[2025 EU price heat-map tutorial](https://langestefan.github.io/ENTSOE.jl/dev/tutorial_eu_map)
+[2025 EU price heat-map tutorial](https://europeanpowersystems.github.io/ENTSOE.jl/dev/tutorial_eu_map)
 and a per-tag interactive REST playground — lives at
-[langestefan.github.io/ENTSOE.jl](https://langestefan.github.io/ENTSOE.jl).
+[europeanpowersystems.github.io/ENTSOE.jl](https://europeanpowersystems.github.io/ENTSOE.jl).
 Build it locally with:
 
 ```bash

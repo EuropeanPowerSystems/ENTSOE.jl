@@ -92,7 +92,7 @@ makedocs(;
     sitename = "ENTSOE.jl",
     authors = "langestefan",
     format = MarkdownVitepress(;
-        repo = "github.com/langestefan/ENTSOE.jl",
+        repo = "github.com/EuropeanPowerSystems/ENTSOE.jl",
         devbranch = "main",
         devurl = "dev",
         build_vitepress = true,
@@ -102,7 +102,7 @@ makedocs(;
 )
 
 DocumenterVitepress.deploydocs(;
-    repo = "github.com/langestefan/ENTSOE.jl",
+    repo = "github.com/EuropeanPowerSystems/ENTSOE.jl",
     devbranch = "main",
     push_preview = true,
 )

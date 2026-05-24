@@ -2,7 +2,7 @@
 
 This section is the interactive browser for the OpenAPI spec bundled with
 [`ENTSOE.jl`](../index.md). The spec is committed at
-[`spec/openapi.json`](https://github.com/langestefan/ENTSOE.jl/blob/main/spec/openapi.json)
+[`spec/openapi.json`](https://github.com/EuropeanPowerSystems/ENTSOE.jl/blob/main/spec/openapi.json)
 and rendered with
 [`vitepress-openapi`](https://github.com/enzonotario/vitepress-openapi).
 
