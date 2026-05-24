@@ -115,6 +115,72 @@ const JOBS = Any[
             DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
         ),
     ),
+    # SO-GL reserve-capacity family. ENTSO-E publishes these patchily,
+    # so most cassettes will record as Acknowledgement(999) — that
+    # still proves the wire shape and acknowledgement handling.
+    (
+        "balancing_1854_criteria_application_DE_LU.yml",
+        () -> results_of_criteria_application_process(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_1872_fcr_total_capacity_DE_LU.yml",
+        () -> fcr_total_capacity(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_1872_shares_of_fcr_capacity_DE_LU.yml",
+        () -> shares_of_fcr_capacity(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_1883_frr_rr_capacity_outlook_DE_LU.yml",
+        () -> frr_rr_capacity_outlook(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_1884_frr_rr_actual_capacity_DE_LU.yml",
+        () -> frr_and_rr_actual_capacity(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_1892_outlook_of_reserve_capacities_on_rr_DE_LU.yml",
+        () -> outlook_of_reserve_capacities_on_rr(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_1893_rr_actual_capacity_DE_LU.yml",
+        () -> rr_actual_capacity(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_1901_sharing_of_rr_and_frr_DE_AT.yml",
+        () -> sharing_of_rr_and_frr(
+            client, EIC.DE_LU, EIC.AT,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
+    (
+        "balancing_1902_sharing_of_fcr_between_sas_DE_LU.yml",
+        () -> sharing_of_fcr_between_sas(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
 ]
 
 for (cassette, fn) in JOBS

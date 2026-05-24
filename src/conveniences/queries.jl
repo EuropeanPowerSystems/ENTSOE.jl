@@ -1321,6 +1321,244 @@ function imbalance_prices(
 end
 
 """
+    results_of_criteria_application_process(client, area, period_start, period_end[, format];
+                                            process_type="A47") -> StructVector | String
+
+Results of the criteria-application process (Balancing 18.5.4 SO GL,
+`documentType=A45`). `StructVector{(time, value)}` of TSO-quality
+measurements. `process_type` default `"A47"` (mFRR).
+"""
+function results_of_criteria_application_process(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A47",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing1854_results_of_the_criteria_application_process_measurements_so_gl(
+            apis.balancing, "A45", String(process_type), String(area),
+            _to_period(period_start), _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
+    fcr_total_capacity(client, area, period_start, period_end[, format])
+      -> StructVector | String
+
+FCR total capacity (Balancing 18.7.2 SO GL, `documentType=A26`,
+`businessType=A25`). Per area, in MW.
+"""
+function fcr_total_capacity(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing1872_fcr_total_capacity_so_gl(
+            apis.balancing;
+            document_type = "A26", business_type = "A25",
+            area_domain = String(area),
+            period_start = _to_period(period_start),
+            period_end = _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
+    shares_of_fcr_capacity(client, area, period_start, period_end[, format])
+      -> StructVector | String
+
+Shares of FCR capacity (Balancing 18.7.2 SO GL, `documentType=A26`,
+`businessType=C23`). Per area, in MW.
+"""
+function shares_of_fcr_capacity(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing1872_shares_of_fcr_capacity_so_gl(
+            apis.balancing;
+            document_type = "A26", business_type = "C23",
+            area_domain = String(area),
+            period_start = _to_period(period_start),
+            period_end = _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
+    frr_rr_capacity_outlook(client, area, period_start, period_end[, format];
+                            process_type="A56") -> StructVector | String
+
+FRR/RR capacity outlook (Balancing 18.8.3/18.9.2 SO GL,
+`documentType=A26`, `businessType=C76`). `process_type` default
+`"A56"` (FRR); pass `"A46"` for RR.
+"""
+function frr_rr_capacity_outlook(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A56",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing18831892_frr_rr_capacity_outlook_so_gl(
+            apis.balancing, "A26", String(process_type), "C76", String(area),
+            _to_period(period_start), _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
+    frr_and_rr_actual_capacity(client, area, period_start, period_end[, format];
+                               process_type="A56", business_type="C77")
+      -> StructVector | String
+
+FRR & RR actual capacity (Balancing 18.8.4/18.9.3 SO GL,
+`documentType=A26`). `process_type` default `"A56"` (FRR);
+`business_type` default `"C77"` (Min).
+"""
+function frr_and_rr_actual_capacity(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A56",
+        business_type::AbstractString = "C77",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing18841893_frr_and_rr_actual_capacity_so_gl(
+            apis.balancing, "A26", String(process_type), String(business_type),
+            String(area), _to_period(period_start), _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
+    outlook_of_reserve_capacities_on_rr(client, area, period_start, period_end[, format])
+      -> StructVector | String
+
+Outlook of reserve capacities on RR (Balancing 18.9.2 SO GL,
+`documentType=A26`, `processType=A46`, `businessType=C76`).
+"""
+function outlook_of_reserve_capacities_on_rr(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing1892_outlook_of_reserve_capacities_on_rr_so_gl(
+            apis.balancing;
+            document_type = "A26", process_type = "A46", business_type = "C76",
+            area_domain = String(area),
+            period_start = _to_period(period_start),
+            period_end = _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
+    rr_actual_capacity(client, area, period_start, period_end[, format])
+      -> StructVector | String
+
+RR actual capacity (Balancing 18.9.3 SO GL, `documentType=A26`,
+`processType=A46`, `businessType=C77`).
+"""
+function rr_actual_capacity(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing1893_rr_actual_capacity_so_gl(
+            apis.balancing;
+            document_type = "A26", process_type = "A46", business_type = "C77",
+            area_domain = String(area),
+            period_start = _to_period(period_start),
+            period_end = _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
+    sharing_of_rr_and_frr(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
+                          process_type="A56") -> StructVector | String
+
+Sharing of RR and FRR between connected areas (Balancing 19.0.1 SO GL,
+`documentType=A26`, `businessType=C22`). `process_type` default
+`"A56"` (FRR); pass `"A46"` for RR.
+"""
+function sharing_of_rr_and_frr(
+        client::Client,
+        acquiring_domain::AbstractString, connecting_domain::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        process_type::AbstractString = "A56",
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing1901_sharing_of_rr_and_frr_so_gl(
+            apis.balancing;
+            document_type = "A26", process_type = String(process_type),
+            business_type = "C22",
+            acquiring_domain = String(acquiring_domain),
+            connecting_domain = String(connecting_domain),
+            period_start = _to_period(period_start),
+            period_end = _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    )
+end
+
+"""
+    sharing_of_fcr_between_sas(client, area, period_start, period_end[, format])
+      -> StructVector | String
+
+Sharing of FCR between scheduling areas (Balancing 19.0.2 SO GL,
+`documentType=A26`, `processType=A52`, `businessType=C22`).
+"""
+function sharing_of_fcr_between_sas(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing1902_sharing_of_fcr_between_sas_so_gl(
+            apis.balancing;
+            document_type = "A26", process_type = "A52", business_type = "C22",
+            area_domain = String(area),
+            period_start = _to_period(period_start),
+            period_end = _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (area,),
+    )
+end
+
+"""
     exchanged_reserve_capacity(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
                                process_type="A46") -> StructVector | String
 

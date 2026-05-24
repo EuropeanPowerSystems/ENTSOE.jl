@@ -638,6 +638,47 @@ let BR = _load_brokenrecord()
             @test :value in propertynames(rows)
         end
 
+        # Balancing SO-GL reserve-capacity family. ENTSO-E publishes
+        # these patchily — most return Acknowledgement(999), a couple
+        # reject the canonical doctype/processType combo as 400. Either
+        # outcome proves the wrapper surfaces a typed error cleanly.
+        @testset "SO-GL reserve-capacity wrappers (Balancing 18/19.x)" begin
+            cases = [
+                (:results_of_criteria_application_process, EIC.DE_LU,
+                    "balancing_1854_criteria_application_DE_LU.yml"),
+                (:fcr_total_capacity, EIC.DE_LU,
+                    "balancing_1872_fcr_total_capacity_DE_LU.yml"),
+                (:shares_of_fcr_capacity, EIC.DE_LU,
+                    "balancing_1872_shares_of_fcr_capacity_DE_LU.yml"),
+                (:frr_rr_capacity_outlook, EIC.DE_LU,
+                    "balancing_1883_frr_rr_capacity_outlook_DE_LU.yml"),
+                (:frr_and_rr_actual_capacity, EIC.DE_LU,
+                    "balancing_1884_frr_rr_actual_capacity_DE_LU.yml"),
+                (:outlook_of_reserve_capacities_on_rr, EIC.DE_LU,
+                    "balancing_1892_outlook_of_reserve_capacities_on_rr_DE_LU.yml"),
+                (:rr_actual_capacity, EIC.DE_LU,
+                    "balancing_1893_rr_actual_capacity_DE_LU.yml"),
+                (:sharing_of_fcr_between_sas, EIC.DE_LU,
+                    "balancing_1902_sharing_of_fcr_between_sas_DE_LU.yml"),
+            ]
+            for (fname, area, cassette) in cases
+                fn = getfield(ENTSOE, fname)
+                err = nothing
+                try
+                    Base.invokelatest(
+                        BR.playback,
+                        () -> fn(client, area,
+                            DateTime("2024-09-01T22:00"),
+                            DateTime("2024-09-02T22:00")),
+                        cassette,
+                    )
+                catch e
+                    err = e
+                end
+                @test err isa ENTSOEAcknowledgement || err isa ClientError
+            end
+        end
+
         @testset "exchanged_reserve_capacity (Balancing 19.0.3 SO GL)" begin
             err = nothing
             try
