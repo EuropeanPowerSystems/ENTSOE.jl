@@ -1321,6 +1321,30 @@ function imbalance_prices(
 end
 
 """
+    financial_expenses_and_income_for_balancing(client, control_area, period_start, period_end[, format])
+      -> StructVector | String
+
+Financial expenses and income for balancing (Balancing 17.1.I,
+`documentType=A87`). Monetary flows aggregated per control area;
+`StructVector{(time, value)}` in EUR.
+"""
+function financial_expenses_and_income_for_balancing(
+        client::Client, control_area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        () -> balancing171_i_financial_expenses_and_income_for_balancing(
+            apis.balancing, "A87", String(control_area),
+            _to_period(period_start), _to_period(period_end),
+        ),
+        format, parse_timeseries;
+        validate = validate, eics = (control_area,),
+    )
+end
+
+"""
     prices_of_activated_balancing_energy(client, control_area, period_start, period_end[, format];
                                          process_type="A16",
                                          business_type=nothing,

@@ -101,6 +101,13 @@ const JOBS = Any[
             DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
         ),
     ),
+    (
+        "balancing_171i_financial_expenses_DE_LU.yml",
+        () -> financial_expenses_and_income_for_balancing(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        ),
+    ),
 ]
 
 for (cassette, fn) in JOBS
