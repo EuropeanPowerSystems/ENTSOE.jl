@@ -200,6 +200,7 @@ year_ahead_load_forecast
 installed_capacity_per_production_type
 generation_forecast_day_ahead
 wind_solar_forecast
+intraday_wind_solar_forecast
 actual_generation_per_production_type
 water_reservoirs_and_hydro_storage_plants
 ```

@@ -596,6 +596,22 @@ let BR = _load_brokenrecord()
             )
         end
 
+        @testset "intraday_wind_solar_forecast (Generation 14.1.D, process A40)" begin
+            rows = Base.invokelatest(
+                BR.playback,
+                () -> intraday_wind_solar_forecast(
+                    client, EIC.NL,
+                    DateTime("2024-09-01T22:00"),
+                    DateTime("2024-09-02T22:00"),
+                ),
+                "generation_141d_intraday_wind_solar_forecast_NL.yml",
+            )
+            @test !isempty(rows)
+            @test :psr_type in propertynames(rows)
+            # Solar (B16) is always present in NL intraday forecasts.
+            @test any(r.psr_type == "B16" for r in rows)
+        end
+
         @testset "intraday_prices (Market 12.1.D, contract A07)" begin
             # ENTSO-E publishes A07 intraday prices patchily — DE_LU
             # 2024-09-01 hits an `<Acknowledgement reason=999>`. Verify

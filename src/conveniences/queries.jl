@@ -536,6 +536,40 @@ function wind_solar_forecast(
 end
 
 """
+    intraday_wind_solar_forecast(client, area, period_start, period_end[, format];
+                                 psr_type=nothing) -> StructVector | String
+
+Intraday wind & solar generation forecast (Generation 14.1.D,
+`documentType=A69`, `processType=A40`). Same endpoint as
+[`wind_solar_forecast`](@ref) but with the intraday process type — gives
+the latest published forecast as auctions clear through the day, rather
+than the day-ahead snapshot.
+
+Returns a `StructVector{(time, psr_type, value)}` in MW. Pass
+`psr_type="B16"` (Solar), `"B18"` (Wind Offshore), or `"B19"` (Wind
+Onshore) to filter server-side. Mirrors entsoe-py's
+`query_intraday_wind_and_solar_forecast`.
+"""
+function intraday_wind_solar_forecast(
+        client::Client, area::AbstractString,
+        period_start, period_end, format::ResponseFormat = Parsed();
+        validate::Bool = false,
+        psr_type::Union{Nothing, AbstractString} = nothing,
+    )
+    apis = entsoe_apis(client)
+    return _query(
+        format, parse_timeseries_per_psr;
+        validate = validate, eics = (area,),
+    ) do
+        generation141_d_generation_forecasts_for_wind_and_solar(
+            apis.generation, "A69", "A40", String(area),
+            _to_period(period_start), _to_period(period_end);
+            psr_type = psr_type === nothing ? nothing : String(psr_type),
+        )
+    end
+end
+
+"""
     actual_generation_per_production_type(client, area, start, stop[, format];
                                           psr_type=nothing) -> StructVector | String
 
