@@ -1115,12 +1115,17 @@ function generation_forecast_day_ahead(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(format, parse_timeseries; validate = validate, eics = (area,)) do
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,),
+    ) do s, e
         generation141_c_generation_forecast_day_ahead(
             apis.generation, "A71", "A01", String(area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -1143,15 +1148,17 @@ function wind_solar_forecast(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         psr_type::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries_per_psr;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         generation141_d_generation_forecasts_for_wind_and_solar(
             apis.generation, "A69", "A01", String(area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             psr_type = psr_type === nothing ? nothing : String(psr_type),
         )
     end
@@ -1177,15 +1184,17 @@ function intraday_wind_solar_forecast(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         psr_type::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries_per_psr;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         generation141_d_generation_forecasts_for_wind_and_solar(
             apis.generation, "A69", "A40", String(area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             psr_type = psr_type === nothing ? nothing : String(psr_type),
         )
     end
@@ -1207,15 +1216,17 @@ function actual_generation_per_production_type(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         psr_type::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries_per_psr;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         generation161_b_c_actual_generation_per_production_type(
             apis.generation, "A75", "A16", String(area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             psr_type = psr_type === nothing ? nothing : String(psr_type),
         )
     end
@@ -1241,15 +1252,17 @@ function actual_generation_per_generation_unit(
         validate::Bool = false,
         psr_type::Union{Nothing, AbstractString} = nothing,
         registered_resource::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries_per_unit;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         generation161_a_actual_generation_per_generation_unit(
             apis.generation, "A73", "A16", String(area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             psr_type = psr_type === nothing ? nothing : String(psr_type),
             registered_resource = registered_resource === nothing ?
                 nothing : String(registered_resource),
