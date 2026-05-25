@@ -926,14 +926,18 @@ end
 function _load_query(
         client::Client, process::AbstractString, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool,
+        validate::Bool, window::Period,
         api_fn::Function,
     )
     apis = entsoe_apis(client)
-    return _query(format, parse_timeseries; validate = validate, eics = (area,)) do
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,)
+    ) do s, e
         api_fn(
             apis.load, "A65", String(process), String(area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -948,10 +952,10 @@ for the XML body.
 """
 actual_total_load(
     client::Client, area, start, stop, format::ResponseFormat = Parsed();
-    validate = false,
+    validate = false, window::Period = Year(1),
 ) = _load_query(
     client, "A16", area, start, stop, format;
-    validate = validate, api_fn = load61_a_actual_total_load,
+    validate = validate, window = window, api_fn = load61_a_actual_total_load,
 )
 
 """
@@ -961,10 +965,10 @@ Day-ahead total load forecast (Load 6.1.B, `processType=A01`).
 """
 day_ahead_load_forecast(
     client::Client, area, start, stop, format::ResponseFormat = Parsed();
-    validate = false,
+    validate = false, window::Period = Year(1),
 ) = _load_query(
     client, "A01", area, start, stop, format;
-    validate = validate, api_fn = load61_b_day_ahead_total_load_forecast,
+    validate = validate, window = window, api_fn = load61_b_day_ahead_total_load_forecast,
 )
 
 """
@@ -974,10 +978,10 @@ Week-ahead total load forecast (Load 6.1.C, `processType=A31`).
 """
 week_ahead_load_forecast(
     client::Client, area, start, stop, format::ResponseFormat = Parsed();
-    validate = false,
+    validate = false, window::Period = Year(1),
 ) = _load_query(
     client, "A31", area, start, stop, format;
-    validate = validate, api_fn = load61_c_week_ahead_total_load_forecast,
+    validate = validate, window = window, api_fn = load61_c_week_ahead_total_load_forecast,
 )
 
 """
@@ -987,10 +991,10 @@ Month-ahead total load forecast (Load 6.1.D, `processType=A32`).
 """
 month_ahead_load_forecast(
     client::Client, area, start, stop, format::ResponseFormat = Parsed();
-    validate = false,
+    validate = false, window::Period = Year(1),
 ) = _load_query(
     client, "A32", area, start, stop, format;
-    validate = validate, api_fn = load61_d_month_ahead_total_load_forecast,
+    validate = validate, window = window, api_fn = load61_d_month_ahead_total_load_forecast,
 )
 
 """
@@ -1000,10 +1004,10 @@ Year-ahead total load forecast (Load 6.1.E, `processType=A33`).
 """
 year_ahead_load_forecast(
     client::Client, area, start, stop, format::ResponseFormat = Parsed();
-    validate = false,
+    validate = false, window::Period = Year(1),
 ) = _load_query(
     client, "A33", area, start, stop, format;
-    validate = validate, api_fn = load61_e_year_ahead_total_load_forecast,
+    validate = validate, window = window, api_fn = load61_e_year_ahead_total_load_forecast,
 )
 
 """
@@ -1022,12 +1026,17 @@ function year_ahead_forecast_margin(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(format, parse_timeseries; validate = validate, eics = (area,)) do
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,)
+    ) do s, e
         load81_year_ahead_forecast_margin(
             apis.load, "A70", "A33", String(area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
