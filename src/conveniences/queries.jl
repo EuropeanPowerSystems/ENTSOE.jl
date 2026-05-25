@@ -29,7 +29,7 @@
 # These wrappers live entirely outside `src/api/`, so re-running
 # `gen/regenerate.jl` against a refreshed spec leaves them untouched.
 
-using Dates: Dates, DateTime, Date
+using Dates: Dates, DateTime, Date, Period, Year
 using TimeZones: TimeZones, ZonedDateTime, astimezone, @tz_str
 
 """
@@ -178,16 +178,15 @@ end
 # for `Parsed()`, every zip member is parsed individually and the
 # StructVectors `vcat`-ed; for `Raw()`, members are concatenated with a
 # `<!-- next zip member -->` sentinel.
-function _query(api_call::Function, ::Parsed, parser::F; kw...) where {F <: Function}
-    # `check_ack = false` because binary zip bytes break the XML parser
-    # `check_acknowledgement` uses; we re-run the check per-member.
-    xml = _query_xml(api_call; check_ack = false, kw...)
+# Parse one response body (zip-aware) into rows. Raises ENTSOEAcknowledgement
+# if the body — or any zip member — is an acknowledgement document.
+function _parse_one(xml::AbstractString, parser::F) where {F <: Function}
     if _looks_like_zip(xml)
         members = unzip_response(Vector{UInt8}(codeunits(xml)))
         isempty(members) && return parser("")
         parts = map(members) do (_name, bytes)
             inner = String(copy(bytes))
-            check_acknowledgement(inner)   # raises if a member is an Ack doc
+            check_acknowledgement(inner)
             parser(inner)
         end
         return reduce(vcat, parts)
@@ -196,11 +195,32 @@ function _query(api_call::Function, ::Parsed, parser::F; kw...) where {F <: Func
     return parser(xml)
 end
 
-# `LocalTime` dispatch: parse normally, then convert the `time` column
-# (if present) from UTC DateTime to ZonedDateTime in the target tz.
+# Raw escape hatch for one response body (zip-aware). Raises on acknowledgement.
+function _raw_one(xml::AbstractString)
+    if _looks_like_zip(xml)
+        members = unzip_response(Vector{UInt8}(codeunits(xml)))
+        return join(
+            (String(copy(b)) for (_n, b) in members),
+            "\n<!-- next zip member -->\n",
+        )
+    end
+    check_acknowledgement(xml)
+    return xml
+end
+
+function _query(api_call::Function, ::Parsed, parser::F; kw...) where {F <: Function}
+    xml = _query_xml(api_call; check_ack = false, kw...)
+    return _parse_one(xml, parser)
+end
+
 function _query(api_call::Function, fmt::LocalTime, parser::F; kw...) where {F <: Function}
     rows = _query(api_call, Parsed(), parser; kw...)
     return _to_local_time(rows, fmt.tz)
+end
+
+function _query(api_call::Function, ::Raw, ::F; kw...) where {F <: Function}
+    xml = _query_xml(api_call; check_ack = false, kw...)
+    return _raw_one(xml)
 end
 
 # Convert the `time` column of a StructVector from naive UTC DateTime
@@ -215,17 +235,63 @@ function _to_local_time(rows, tz::TimeZones.TimeZone)
     return StructArrays.StructArray(NamedTuple(cols))
 end
 
-function _query(api_call::Function, ::Raw, ::F; kw...) where {F <: Function}
-    xml = _query_xml(api_call; check_ack = false, kw...)
-    if _looks_like_zip(xml)
-        members = unzip_response(Vector{UInt8}(codeunits(xml)))
-        return join(
-            (String(copy(b)) for (_n, b) in members),
-            "\n<!-- next zip member -->\n"
-        )
+"""
+    _split_query(api_call, format, parser;
+                 period_start, period_end, window, validate=false, eics=())
+
+Split `[period_start, period_end)` into `window`-sized chunks, call
+`api_call(s::Int64, e::Int64)` per chunk (period bounds as `yyyymmddHHMM`),
+and concatenate. A chunk that comes back as an acknowledgement ("no matching
+data") is skipped; if every chunk is empty the acknowledgement is re-raised.
+`Parsed`/`LocalTime` results are `vcat`-ed; `Raw` bodies are joined with a
+`<!-- next window -->` sentinel.
+"""
+function _split_query(
+        api_call::Function, format::ResponseFormat, parser::F;
+        period_start, period_end, window::Period,
+        validate::Bool = false, eics = (),
+    ) where {F <: Function}
+    if validate
+        for code in eics
+            validate_eic(code; type = :BZN)
+        end
     end
-    check_acknowledgement(xml)
-    return xml
+    chunks = split_period(period_start, period_end; window = window)
+    isempty(chunks) &&
+        throw(ArgumentError("empty period: period_start == period_end"))
+
+    fetch_xml(s, e) = _query_xml(
+        () -> api_call(_to_period(s), _to_period(e)); check_ack = false,
+    )
+
+    if format isa Raw
+        parts = String[]
+        last_ack = nothing
+        for (s, e) in chunks
+            try
+                push!(parts, _raw_one(fetch_xml(s, e)))
+            catch err
+                err isa ENTSOEAcknowledgement || rethrow()
+                last_ack = err
+            end
+        end
+        isempty(parts) && throw(last_ack)
+        return join(parts, "\n<!-- next window -->\n")
+    end
+
+    rows_parts = Any[]
+    last_ack = nothing
+    for (s, e) in chunks
+        try
+            push!(rows_parts, _parse_one(fetch_xml(s, e), parser))
+        catch err
+            err isa ENTSOEAcknowledgement || rethrow()
+            last_ack = err
+        end
+    end
+    isempty(rows_parts) && throw(last_ack)
+    rows = reduce(vcat, rows_parts)
+    return format isa LocalTime ? _to_local_time(rows, format.tz) : rows
 end
 
 # ---------------------------------------------------------------------------

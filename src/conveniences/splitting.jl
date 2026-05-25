@@ -8,6 +8,13 @@
 # results.
 
 using Dates: Dates, DateTime, Date, Year, Period
+using TimeZones: ZonedDateTime, astimezone, TimeZone
+const _SPLIT_UTC = TimeZone("UTC")
+
+# A zoned timestamp is normalised to its UTC wall-clock DateTime, matching
+# `entsoe_period(::ZonedDateTime)`. Must precede the AbstractDateTime branch:
+# `DateTime(zdt)` alone would drop the offset without shifting to UTC.
+_to_datetime(z::ZonedDateTime) = DateTime(astimezone(z, _SPLIT_UTC))
 
 # Internal: invert `_to_period`. Accept anything `_to_period` accepts
 # and produce a `DateTime`. Used by `query_split` to chunk the period

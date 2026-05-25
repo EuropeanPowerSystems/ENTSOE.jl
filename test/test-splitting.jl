@@ -1,6 +1,7 @@
 using ENTSOE
 using Test
 using Dates: DateTime, Date, Year, Day, Month
+using TimeZones: ZonedDateTime
 
 @testset "split_period basics" begin
     chunks = ENTSOE.split_period(
@@ -87,4 +88,76 @@ end
         DateTime("2024-01-01"), DateTime("2024-03-01");
         window = Month(1),
     )
+end
+
+using ENTSOE: _split_query, Parsed, Raw, LocalTime
+using TimeZones: TimeZones, TimeZone
+
+# A non-acknowledgement XML whose parser yields one labelled row per chunk.
+const _OK_XML = "<root/>"
+# An acknowledgement XML — check_acknowledgement turns this into a throw.
+const _ACK_XML = """
+<Acknowledgement_MarketDocument><Reason><code>999</code>
+<text>No matching data found</text></Reason></Acknowledgement_MarketDocument>
+"""
+
+# Fake generated-fn: returns (xml, resp). `which` decides per-chunk content.
+_fake(which) = (s, e) -> (which(s, e), nothing)
+
+@testset "_split_query — Parsed concatenates chunk rows" begin
+    seen = Int64[]
+    rows = _split_query(
+        _fake((s, e) -> (push!(seen, s); "<p>$(s)</p>")),
+        Parsed(), xml -> [(period = xml,)];
+        period_start = DateTime("2022-01-01"),
+        period_end = DateTime("2025-01-01"),
+        window = Year(1),
+    )
+    @test length(seen) == 3                       # three yearly chunks fetched
+    @test length(rows) == 3                       # three rows concatenated
+    @test seen[1] == 202201010000                 # first chunk start as Int64 period
+end
+
+@testset "_split_query — skips acknowledged chunks" begin
+    rows = _split_query(
+        _fake((s, e) -> s == 202201010000 ? "<p>ok</p>" : _ACK_XML),
+        Parsed(), xml -> [(v = 1,)];
+        period_start = DateTime("2022-01-01"),
+        period_end = DateTime("2024-01-01"),
+        window = Year(1),
+    )
+    @test length(rows) == 1                        # second (acked) chunk skipped
+end
+
+@testset "_split_query — all-empty range re-raises ENTSOEAcknowledgement" begin
+    @test_throws ENTSOEAcknowledgement _split_query(
+        _fake((s, e) -> _ACK_XML),
+        Parsed(), xml -> [(v = 1,)];
+        period_start = DateTime("2022-01-01"),
+        period_end = DateTime("2024-01-01"),
+        window = Year(1),
+    )
+end
+
+@testset "_split_query — Raw joins windows with a sentinel" begin
+    raw = _split_query(
+        _fake((s, e) -> "<p>$(s)</p>"),
+        Raw(), identity;
+        period_start = DateTime("2022-01-01"),
+        period_end = DateTime("2024-01-01"),
+        window = Year(1),
+    )
+    @test occursin("<!-- next window -->", raw)
+    @test occursin("202201010000", raw)
+    @test occursin("202301010000", raw)
+end
+
+@testset "_to_datetime — ZonedDateTime converts to UTC" begin
+    cest = TimeZone(
+        "Europe/Amsterdam",
+        TimeZones.Class(:STANDARD) | TimeZones.Class(:LEGACY) |
+            TimeZones.Class(:FIXED),
+    )
+    z = ZonedDateTime(DateTime("2024-09-02T00:00"), cest)   # 22:00 UTC prior day
+    @test ENTSOE._to_datetime(z) == DateTime("2024-09-01T22:00")
 end
