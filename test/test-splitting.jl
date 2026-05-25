@@ -60,11 +60,15 @@ const _ACK_XML = """
 # Fake generated-fn: returns (xml, resp). `which` decides per-chunk content.
 _fake(which) = (s, e) -> (which(s, e), nothing)
 
+# Real parsers return a `StructArray`; the Parsed-path fakes mirror that so the
+# `_split_query(::Parsed)` return-type assertion (a `StructArray`) holds.
+_sv(row) = ENTSOE.StructArrays.StructArray([row])
+
 @testset "_split_query — Parsed concatenates chunk rows" begin
     seen = Int64[]
     rows = _split_query(
         _fake((s, e) -> (push!(seen, s); "<p>$(s)</p>")),
-        Parsed(), xml -> [(period = xml,)];
+        Parsed(), xml -> _sv((period = xml,));
         period_start = DateTime("2022-01-01"),
         period_end = DateTime("2025-01-01"),
         window = Year(1),
@@ -77,7 +81,7 @@ end
 @testset "_split_query — skips acknowledged chunks" begin
     rows = _split_query(
         _fake((s, e) -> s == 202201010000 ? "<p>ok</p>" : _ACK_XML),
-        Parsed(), xml -> [(v = 1,)];
+        Parsed(), xml -> _sv((v = 1,));
         period_start = DateTime("2022-01-01"),
         period_end = DateTime("2024-01-01"),
         window = Year(1),
@@ -88,7 +92,7 @@ end
 @testset "_split_query — all-empty range re-raises ENTSOEAcknowledgement" begin
     @test_throws ENTSOEAcknowledgement _split_query(
         _fake((s, e) -> _ACK_XML),
-        Parsed(), xml -> [(v = 1,)];
+        Parsed(), xml -> _sv((v = 1,));
         period_start = DateTime("2022-01-01"),
         period_end = DateTime("2024-01-01"),
         window = Year(1),

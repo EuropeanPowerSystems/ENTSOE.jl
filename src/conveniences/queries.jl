@@ -235,6 +235,51 @@ function _to_local_time(rows, tz::TimeZones.TimeZone)
     return StructArrays.StructArray(NamedTuple(cols))
 end
 
+# Iterate the windows of `[period_start, period_end)`, fetch each chunk's XML,
+# apply `per_chunk` (`_parse_one`/`_raw_one`), and collect the results. A chunk
+# that comes back as an acknowledgement ("no matching data") is skipped; if
+# every chunk is empty the acknowledgement is re-raised. The accumulator is
+# typed from `per_chunk`'s inferred return so callers stay type-stable.
+# Raw per-chunk processor — ignores the parser (kept as a positional so the
+# `(xml, parser)` calling convention is uniform with `_parse_one`, which lets
+# `promote_op` infer concretely instead of widening to `Any`).
+_raw_chunk(xml::AbstractString, _parser) = _raw_one(xml)
+
+function _collect_windows(
+        api_call::Function, per_chunk::G, parser::F;
+        period_start, period_end, window::Period,
+        validate::Bool, eics,
+    ) where {G <: Function, F <: Function}
+    if validate
+        for code in eics
+            validate_eic(code; type = :BZN)
+        end
+    end
+    chunks = split_period(period_start, period_end; window = window)
+    isempty(chunks) &&
+        throw(ArgumentError("empty period: period_start == period_end"))
+
+    # `per_chunk` and `parser` are passed by value (not captured in a closure)
+    # so `promote_op` can infer the per-chunk result type — a closure capturing
+    # `parser` defeats inference and widens the accumulator to `Any`,
+    # regressing every wrapper's return type.
+    parts = Base.promote_op(per_chunk, String, F)[]
+    last_ack = nothing
+    for (s, e) in chunks
+        xml = _query_xml(
+            () -> api_call(_to_period(s), _to_period(e)); check_ack = false,
+        )
+        try
+            push!(parts, per_chunk(xml, parser))
+        catch err
+            err isa ENTSOEAcknowledgement || rethrow()
+            last_ack = err
+        end
+    end
+    isempty(parts) && throw(last_ack)
+    return parts
+end
+
 """
     _split_query(api_call, format, parser;
                  period_start, period_end, window, validate=false, eics=())
@@ -245,53 +290,51 @@ and concatenate. A chunk that comes back as an acknowledgement ("no matching
 data") is skipped; if every chunk is empty the acknowledgement is re-raised.
 `Parsed`/`LocalTime` results are `vcat`-ed; `Raw` bodies are joined with a
 `<!-- next window -->` sentinel.
+
+Like [`_query`](@ref), this dispatches on the [`ResponseFormat`](@ref) subtype
+— one method each for `Parsed`, `Raw`, and `LocalTime` — so each variant has a
+concrete inferred return type rather than a flag-branching `Union`/`Any`.
 """
 function _split_query(
-        api_call::Function, format::ResponseFormat, parser::F;
+        api_call::Function, ::Parsed, parser::F;
         period_start, period_end, window::Period,
         validate::Bool = false, eics = (),
     ) where {F <: Function}
-    if validate
-        for code in eics
-            validate_eic(code; type = :BZN)
-        end
-    end
-    chunks = split_period(period_start, period_end; window = window)
-    isempty(chunks) &&
-        throw(ArgumentError("empty period: period_start == period_end"))
-
-    fetch_xml(s, e) = _query_xml(
-        () -> api_call(_to_period(s), _to_period(e)); check_ack = false,
+    parts = _collect_windows(
+        api_call, _parse_one, parser;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = eics,
     )
+    # `vcat`-ing the abstract `StructArray` eltype infers to `Any`; the result
+    # is always a `StructArray`, so assert it to keep the same concrete inferred
+    # return type as the single-request `_query(::Parsed, …)` path.
+    return reduce(vcat, parts)::StructArrays.StructArray
+end
 
-    if format isa Raw
-        parts = String[]
-        last_ack = nothing
-        for (s, e) in chunks
-            try
-                push!(parts, _raw_one(fetch_xml(s, e)))
-            catch err
-                err isa ENTSOEAcknowledgement || rethrow()
-                last_ack = err
-            end
-        end
-        isempty(parts) && throw(last_ack)
-        return join(parts, "\n<!-- next window -->\n")
-    end
+function _split_query(
+        api_call::Function, fmt::LocalTime, parser::F;
+        period_start, period_end, window::Period,
+        validate::Bool = false, eics = (),
+    ) where {F <: Function}
+    rows = _split_query(
+        api_call, Parsed(), parser;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = eics,
+    )
+    return _to_local_time(rows, fmt.tz)
+end
 
-    rows_parts = Any[]
-    last_ack = nothing
-    for (s, e) in chunks
-        try
-            push!(rows_parts, _parse_one(fetch_xml(s, e), parser))
-        catch err
-            err isa ENTSOEAcknowledgement || rethrow()
-            last_ack = err
-        end
-    end
-    isempty(rows_parts) && throw(last_ack)
-    rows = reduce(vcat, rows_parts)
-    return format isa LocalTime ? _to_local_time(rows, format.tz) : rows
+function _split_query(
+        api_call::Function, ::Raw, parser::F;
+        period_start, period_end, window::Period,
+        validate::Bool = false, eics = (),
+    ) where {F <: Function}
+    parts = _collect_windows(
+        api_call, _raw_chunk, parser;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = eics,
+    )
+    return join(parts, "\n<!-- next window -->\n")
 end
 
 # ---------------------------------------------------------------------------
