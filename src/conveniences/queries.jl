@@ -329,13 +329,17 @@ prices_xml = day_ahead_prices(client, EIC.NL,
 function day_ahead_prices(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Bool = false, window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(format, parse_timeseries; validate = validate, eics = (area,)) do
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,)
+    ) do s, e
         market121_d_energy_prices(
             apis.market, "A44",
-            _to_period(period_start), _to_period(period_end),
+            s, e,
             String(area), String(area),
         )
     end
@@ -362,12 +366,17 @@ function intraday_prices(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         sequence::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(format, parse_timeseries; validate = validate, eics = (area,)) do
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,)
+    ) do s, e
         market121_d_energy_prices(
             apis.market, "A44",
-            _to_period(period_start), _to_period(period_end),
+            s, e,
             String(area), String(area);
             contract_market_agreement_type = "A07",
             classification_sequence_attribute_instance_component_position =
@@ -395,18 +404,35 @@ function total_nominated_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Bool = false, window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    # `period_end === nothing` asks ENTSO-E for the single publication
+    # snapshot at `period_start` — there's no range to split, so issue one
+    # request through the non-splitting path.
+    if period_end === nothing
+        return _query(
+            format, parse_timeseries;
+            validate = validate, eics = (in_area, out_area),
+        ) do
+            market121_b_total_nominated_capacity(
+                apis.market, "A26", "B08",
+                String(out_area), String(in_area),
+                _to_period(period_start);
+                period_end = nothing,
+            )
+        end
+    end
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market121_b_total_nominated_capacity(
             apis.market, "A26", "B08",
             String(out_area), String(in_area),
-            _to_period(period_start);
-            period_end = period_end === nothing ? nothing : _to_period(period_end),
+            s;
+            period_end = e,
         )
     end
 end
@@ -431,17 +457,19 @@ function congestion_income(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A01",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market121_e_implicit_and_flow_based_allocations_congestion_income(
             apis.market, "A25", "B10",
             String(contract_market_agreement_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -472,6 +500,7 @@ function intraday_offered_capacity(
         validate::Bool = false,
         implicit::Bool = true,
         id_type::AbstractString = "IDCT",
+        window::Period = Year(1),
     )
     if !implicit
         return explicit_allocations_offered_transfer_capacity(
@@ -479,6 +508,7 @@ function intraday_offered_capacity(
             validate = validate,
             auction_type = "A02",
             contract_market_agreement_type = "A07",
+            window = window,
         )
     end
     if id_type == "IDCT"
@@ -487,6 +517,7 @@ function intraday_offered_capacity(
             validate = validate,
             auction_type = "A08",
             contract_market_agreement_type = "A07",
+            window = window,
         )
     end
     sequence = if id_type == "IDA1"
@@ -509,6 +540,7 @@ function intraday_offered_capacity(
         auction_type = "A01",
         contract_market_agreement_type = "A07",
         sequence = sequence,
+        window = window,
     )
 end
 
@@ -537,17 +569,19 @@ function explicit_allocations_offered_transfer_capacity(
         auction_category::Union{Nothing, AbstractString} = nothing,
         sequence::Union{Nothing, Integer} = nothing,
         update_date_and_or_time::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market111_a_explicit_allocations_offered_transfer_capacity(
             apis.market, "A31",
             String(auction_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             auction_category = auction_category === nothing ? nothing : String(auction_category),
             update_date_and_or_time = update_date_and_or_time === nothing ?
                 nothing : Int(update_date_and_or_time),
@@ -571,16 +605,18 @@ function flow_based_allocations(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A44",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market111_b_flow_based_allocations(
             apis.market, "B09", String(process_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -601,16 +637,18 @@ function flow_based_allocations_archives(
         validate::Bool = false,
         process_type::AbstractString = "A32",
         storage_type::AbstractString = "archive",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market111_b_flow_based_allocations_archives(
             apis.market, "B09", String(process_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
             String(storage_type),
         )
     end
@@ -634,16 +672,18 @@ function continuous_allocations_offered_transfer_capacity(
         auction_type::AbstractString = "A08",
         contract_market_agreement_type::AbstractString = "A07",
         update_date_and_or_time::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market111_continuous_allocations_offered_transfer_capacity(
             apis.market, "A31", String(auction_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
             String(contract_market_agreement_type);
             update_date_and_or_time = update_date_and_or_time === nothing ?
                 nothing : Int(update_date_and_or_time),
@@ -672,17 +712,19 @@ function implicit_allocations_offered_transfer_capacity(
         contract_market_agreement_type::AbstractString = "A01",
         sequence::Union{Nothing, Integer} = nothing,
         update_date_and_or_time::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market111_implicit_allocations_offered_transfer_capacity(
             apis.market, "A31",
             String(auction_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             update_date_and_or_time = update_date_and_or_time === nothing ?
                 nothing : Int(update_date_and_or_time),
             classification_sequence_attribute_instance_component_position =
@@ -707,17 +749,19 @@ function explicit_allocations_auction_revenue(
         validate::Bool = false,
         business_type::AbstractString = "B07",
         contract_market_agreement_type::AbstractString = "A01",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market121_a_explicit_allocations_auction_revenue(
             apis.market, "A25",
             String(business_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -742,17 +786,19 @@ function explicit_allocations_use_of_transfer_capacity(
         contract_market_agreement_type::AbstractString = "A07",
         auction_category::Union{Nothing, AbstractString} = nothing,
         sequence::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market121_a_explicit_allocations_use_of_the_transfer_capacity(
             apis.market, "A25",
             String(business_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             auction_category = auction_category === nothing ? nothing : String(auction_category),
             classification_sequence_attribute_instance_component_position =
                 sequence === nothing ? nothing : Int(sequence),
@@ -778,17 +824,19 @@ function total_capacity_already_allocated(
         business_type::AbstractString = "A29",
         contract_market_agreement_type::AbstractString = "A01",
         auction_category::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market121_c_total_capacity_already_allocated(
             apis.market, "A26",
             String(business_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             auction_category = auction_category === nothing ? nothing : String(auction_category),
         )
     end
@@ -814,17 +862,19 @@ function transfer_capacities_with_third_countries(
         contract_market_agreement_type::AbstractString = "A07",
         auction_category::Union{Nothing, AbstractString} = nothing,
         sequence::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         market121_h_transfer_capacities_allocated_with_third_countries121_h_explicit(
             apis.market, "A94",
             String(auction_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             auction_category = auction_category === nothing ? nothing : String(auction_category),
             classification_sequence_attribute_instance_component_position =
                 sequence === nothing ? nothing : Int(sequence),
@@ -851,17 +901,19 @@ function implicit_auction_net_positions(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A07",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         market121_e_implicit_auction_net_positions(
             apis.market, "A25", "B09",
             String(contract_market_agreement_type),
             String(area), String(area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
