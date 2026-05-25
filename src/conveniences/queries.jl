@@ -1773,15 +1773,17 @@ function unavailability_of_generation_units(
         registered_resource::Union{Nothing, AbstractString} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_unavailability;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         outages151_a_b_unavailability_of_generation_units(
             apis.outages, "A80", String(area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
             doc_status = withdrawn ? "A13" :
                 (doc_status === nothing ? nothing : String(doc_status)),
@@ -1821,15 +1823,17 @@ function unavailability_of_production_units(
         registered_resource::Union{Nothing, AbstractString} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_unavailability;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         outages151_c_d_unavailability_of_production_units(
             apis.outages, "A77", String(area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
             doc_status = withdrawn ? "A13" :
                 (doc_status === nothing ? nothing : String(doc_status)),
@@ -1869,16 +1873,18 @@ function unavailability_of_transmission_infrastructure(
         period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_unavailability;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         outages101_a_b_unavailability_of_transmission_infrastructure(
             apis.outages, "A78",
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
             doc_status = withdrawn ? "A13" :
                 (doc_status === nothing ? nothing : String(doc_status)),
@@ -1916,17 +1922,19 @@ function outages_fall_backs(
         withdrawn::Bool = false,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_unavailability;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (bidding_zone,),
-    ) do
+    ) do s, e
         outages_fall_backs_ifs_in72_mfrr311_afrr310(
             apis.outages, "A53",
             String(process_type), String(business_type),
             String(bidding_zone),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             doc_status = withdrawn ? "A13" :
                 (doc_status === nothing ? nothing : String(doc_status)),
             m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
@@ -1960,15 +1968,17 @@ function unavailability_of_transmission_infrastructure_available_capacity(
         period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_unavailability;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (control_area,),
-    ) do
+    ) do s, e
         outages101_a_b_unavailability_of_transmission_infrastructure_available_capacity(
             apis.outages, "A78", String(control_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
             asset_registered_resource_m_r_i_d = asset_registered_resource_m_r_i_d === nothing ?
                 nothing : String(asset_registered_resource_m_r_i_d),
@@ -2009,15 +2019,17 @@ function unavailability_of_transmission_infrastructure_net_position_impact(
         period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_unavailability;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (ptdf_domain,),
-    ) do
+    ) do s, e
         outages101_a_b_unavailability_of_transmission_infrastructure_net_position_impact(
             apis.outages, "A78", String(ptdf_domain),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
             asset_registered_resource_m_r_i_d = asset_registered_resource_m_r_i_d === nothing ?
                 nothing : String(asset_registered_resource_m_r_i_d),
@@ -2061,15 +2073,17 @@ function unavailability_of_offshore_grid(
         period_end_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_unavailability;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (bidding_zone,),
-    ) do
+    ) do s, e
         outages101_c_unavailability_of_offshore_grid_infrastructure(
             apis.outages, "A79", String(bidding_zone),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             doc_status = withdrawn ? "A13" :
                 (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
@@ -2147,15 +2161,17 @@ function aggregated_unavailability_of_consumption_units(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         business_type::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_unavailability;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         outages71_a_b_aggregated_unavailability_of_consumption_units(
             apis.outages, "A76", String(area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
         )
     end
