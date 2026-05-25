@@ -74,16 +74,15 @@ fig
 ```
 
 A single weekly reading produces a sparse curve. In practice you'd
-chain `query_split` to pull a *year* of weekly samples — the
-seasonality of hydro state (drawdown through summer, refill in
-autumn/winter rains) becomes the headline:
+pull a *year* of weekly samples — the seasonality of hydro state
+(drawdown through summer, refill in autumn/winter rains) becomes the
+headline. Just hand the wrapper the full range; it splits the period
+into ENTSO-E's one-year windows automatically:
 
 ```julia
-weekly = query_split(
-    water_reservoirs_and_hydro_storage_plants,
+weekly = water_reservoirs_and_hydro_storage_plants(
     client, EIC.AT,
-    DateTime("2023-01-01"), DateTime("2024-01-01");
-    window = Year(1),
+    DateTime("2023-01-01"), DateTime("2024-01-01"),
 )
 ```
 
@@ -115,6 +114,7 @@ fig2
 - [`actual_generation_per_production_type`](@ref) with
   `psr_type = "B10"` or `"B12"` for the actual hourly hydro output —
   pair it with this reservoir state to study **drawdown rate**.
-- [`query_split`](@ref) for chunking the year-long fetch into the
-  one-year windows ENTSO-E permits, with `window = Year(1)` or
-  `window = Month(1)` for finer-grained pagination.
+- Multi-year fetches just work — the wrapper splits the range into
+  the one-year windows ENTSO-E permits. Override the `window` keyword
+  (`window = Month(1)`) for finer-grained chunking, or use
+  [`split_period`](@ref) if you want the window boundaries directly.

@@ -4,12 +4,12 @@ CurrentModule = ENTSOE
 
 # Tutorial: five years of NL day-ahead prices
 
-ENTSO-E caps most time-series endpoints at **one year per request**
-— hand a multi-year window to [`day_ahead_prices`](@ref) directly and
-the platform silently truncates. The package's
-[`query_split`](@ref) helper chunks the period, calls the wrapper
-once per chunk, skips empty windows automatically, and concatenates
-the results.
+ENTSO-E caps most time-series endpoints at **one year per request**.
+You don't have to think about that limit: every time-series wrapper
+**splits long ranges automatically**. Hand a multi-year window to
+[`day_ahead_prices`](@ref) directly and the wrapper chunks the period
+internally, calls the endpoint once per chunk, skips empty windows,
+and concatenates the results into a single `StructVector`.
 
 This tutorial walks **2020 through 2024** of Dutch day-ahead prices
 — five yearly cassettes pre-recorded under
@@ -33,16 +33,15 @@ nothing # hide
 
 ## One call, five chunks
 
-`query_split` handles all the period-arithmetic:
+Just call the wrapper over the whole range — the period-arithmetic
+happens inside it:
 
 ```@example multiyear
 prices = BR.playback("tut_prices_NL_2020_2024.yml") do
-    query_split(
-        day_ahead_prices,
+    day_ahead_prices(
         client, EIC.NL,
         DateTime("2019-12-31T23:00"),
-        DateTime("2024-12-31T23:00");
-        window = Year(1),
+        DateTime("2024-12-31T23:00"),
     )
 end
 length(prices), prices[1], prices[end]
@@ -50,7 +49,10 @@ length(prices), prices[1], prices[end]
 
 Internally, the single call expanded into five
 `day_ahead_prices(...)` — one per yearly window — and `vcat`'d the
-resulting `StructVector`s. Each chunk is hourly (8 760-ish points),
+resulting `StructVector`s. The chunk size comes from a `window`
+keyword whose default is `Year(1)` for this endpoint; pass
+`window = Month(1)` (or anything coarser/finer) to override it, e.g.
+to stay under a rate limit. Each chunk is hourly (8 760-ish points),
 so the whole window lands at ~44 k rows. BrokenRecord captured all
 five HTTP responses in one cassette during recording; the playback
 above replays them in the same order.
@@ -145,15 +147,20 @@ fig2
 
 ## Where to next
 
-- The same `query_split` pattern works for any wrapper whose first
-  positional args end in `(start, stop)` — e.g.
+- Automatic splitting works for every time-series wrapper — e.g.
   [`actual_total_load`](@ref), [`cross_border_physical_flows`](@ref),
-  forecasts, generation per type. Pass `window = Day(1)` for
-  endpoints with daily caps (a few balancing series).
-- Empty chunks (`ENTSOEAcknowledgement` reason 999) are caught
-  inside `query_split` and skipped — so a 5-year request that
-  spans some incomplete months still returns whatever is available.
+  forecasts, generation per type. Each carries its own `window`
+  default (`Year(1)` for most; `Day(1)` for the balancing-bid /
+  activated-energy family, which ENTSO-E caps at one day). Override
+  it with the `window` keyword when you want finer chunks.
+- Empty chunks (`ENTSOEAcknowledgement` reason 999) are skipped
+  automatically — so a 5-year request that spans some incomplete
+  months still returns whatever is available. Only if **every**
+  window is empty does the acknowledgement propagate.
 - The [response-format dispatch](julia_reference.md#Parsed-vs.-raw-—-the-`ResponseFormat`-dispatch)
-  works through `query_split` too: pass `Raw()` as a trailing
-  positional arg if you want each chunk's XML body, then aggregate
-  yourself.
+  works across the split too: pass `Raw()` as a trailing positional
+  arg and the per-window XML bodies come back concatenated with a
+  `<!-- next window -->` sentinel between them.
+- Want the chunk boundaries themselves? [`split_period`](@ref) is the
+  exposed arithmetic primitive — give it `(start, stop; window)` and
+  it returns the `Vector{Tuple{DateTime,DateTime}}` the wrappers use.

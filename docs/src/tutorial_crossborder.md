@@ -157,6 +157,6 @@ fig2
   `transmission111_a_explicit_allocations` (no convenience wrapper
   yet — call via `entsoe_apis(client).transmission`).
 - For multi-zone scans, write a loop over EIC pairs and aggregate
-  the results — `query_split` (see the
-  [multi-year tutorial](tutorial_multiyear.md)) helps if your window
-  exceeds the per-call period limit.
+  the results. Ranges longer than ENTSO-E's per-call period limit
+  are split into windows automatically — see the
+  [multi-year tutorial](tutorial_multiyear.md).
