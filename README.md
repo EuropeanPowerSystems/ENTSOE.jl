@@ -111,15 +111,21 @@ extended set. Pass `validate = true` to any wrapper to assert the zone.
 
 ## Long periods, "no data", reliability
 
+Long date ranges are split automatically — most endpoints cap a single
+request at one year (some at one day), and each wrapper knows its own
+limit, so a multi-year call just works:
+
 ```julia
-# Most endpoints reject requests longer than a year — split automatically:
-query_split(day_ahead_prices, client, EIC.NL,
-    DateTime("2020-01-01"), DateTime("2025-01-01"); window = Year(1))
+day_ahead_prices(client, EIC.NL,
+    DateTime("2020-01-01"), DateTime("2025-01-01"))   # split + concatenated for you
 ```
 
+Override the chunk size with the `window` keyword (e.g. `window = Month(1)`)
+to stay under rate limits.
+
 "No data" comes back as HTTP 200 with an `<Acknowledgement_MarketDocument>`;
-wrappers re-raise it as `ENTSOEAcknowledgement` (which `query_split`
-catches per chunk). HTTP errors map to typed exceptions
+wrappers re-raise it as `ENTSOEAcknowledgement` (skipped per chunk when
+splitting). HTTP errors map to typed exceptions
 (`AuthError`, `RateLimitError`, `ClientError`, `ServerError`,
 `NetworkError`, `TimeoutError`). Wrap any call in retry / rate-limit /
 timeout with `with_defaults(...) do ... end`.
