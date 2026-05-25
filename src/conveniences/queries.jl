@@ -29,7 +29,7 @@
 # These wrappers live entirely outside `src/api/`, so re-running
 # `gen/regenerate.jl` against a refreshed spec leaves them untouched.
 
-using Dates: Dates, DateTime, Date, Period, Year
+using Dates: Dates, DateTime, Date, Period, Year, Day
 using TimeZones: TimeZones, ZonedDateTime, astimezone, @tz_str
 
 """
@@ -2188,16 +2188,17 @@ in MWh of stored energy. Returns `StructVector{(time, value)}`.
 function water_reservoirs_and_hydro_storage_plants(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Bool = false, window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         generation161_d_water_reservoirs_and_hydro_storage_plants(
             apis.generation, "A72", "A16", String(area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -2219,15 +2220,17 @@ function current_balancing_state(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         business_type::AbstractString = "B33",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         balancing123_a_current_balancing_state_gl_eb(
             apis.balancing, "A86", String(business_type), String(area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -2250,17 +2253,20 @@ function imbalance_prices(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         psr_type::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing171_g_imbalance_prices(
-            apis.balancing, "A85", String(area),
-            _to_period(period_start), _to_period(period_end);
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
-        ),
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    )
+    ) do s, e
+        balancing171_g_imbalance_prices(
+            apis.balancing, "A85", String(area),
+            s, e;
+            psr_type = psr_type === nothing ? nothing : String(psr_type),
+        )
+    end
 end
 
 """
@@ -2278,17 +2284,20 @@ function cross_border_marginal_prices_for_afrr(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         standard_market_product::AbstractString = "A01",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing_if_afrr316_cross_border_marginal_prices_cbmps_for_afrr_central_selection_cs(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (control_area,),
+    ) do s, e
+        balancing_if_afrr316_cross_border_marginal_prices_cbmps_for_afrr_central_selection_cs(
             apis.balancing, "A84", "A67", "A96",
             String(standard_market_product), String(control_area),
-            _to_period(period_start), _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (control_area,),
-    )
+            s, e,
+        )
+    end
 end
 
 """
@@ -2307,17 +2316,20 @@ function netted_and_exchanged_volumes(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A63",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing_ifs310316317_netted_and_exchanged_volumes(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    ) do s, e
+        balancing_ifs310316317_netted_and_exchanged_volumes(
             apis.balancing, "B17", String(process_type),
             String(acquiring_domain), String(connecting_domain),
-            _to_period(period_start), _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (acquiring_domain, connecting_domain),
-    )
+            s, e,
+        )
+    end
 end
 
 """
@@ -2335,17 +2347,20 @@ function netted_and_exchanged_volumes_per_border(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A60",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing_ifs310316317_netted_and_exchanged_volumes_per_border(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    ) do s, e
+        balancing_ifs310316317_netted_and_exchanged_volumes_per_border(
             apis.balancing, "A30", String(process_type),
             String(acquiring_domain), String(connecting_domain),
-            _to_period(period_start), _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (acquiring_domain, connecting_domain),
-    )
+            s, e,
+        )
+    end
 end
 
 """
@@ -2367,20 +2382,23 @@ function balancing_border_capacity_limitations(
         business_type::AbstractString = "A26",
         process_type::AbstractString = "A47",
         registered_resource::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing_ifs4344_balancing_border_capacity_limitations(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (in_area, out_area),
+    ) do s, e
+        balancing_ifs4344_balancing_border_capacity_limitations(
             apis.balancing, "A31",
             String(business_type), String(process_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             registered_resource = registered_resource === nothing ?
                 nothing : String(registered_resource),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (in_area, out_area),
-    )
+        )
+    end
 end
 
 """
@@ -2401,20 +2419,23 @@ function permanent_allocation_limitations_to_HVDC(
         process_type::AbstractString = "A63",
         business_type::AbstractString = "B06",
         registered_resource::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing_ifs45_permanent_allocation_limitations_to_cross_border_capacity_on_hvdc_lines(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (in_area, out_area),
+    ) do s, e
+        balancing_ifs45_permanent_allocation_limitations_to_cross_border_capacity_on_hvdc_lines(
             apis.balancing, "A99",
             String(process_type), String(business_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             registered_resource = registered_resource === nothing ?
                 nothing : String(registered_resource),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (in_area, out_area),
-    )
+        )
+    end
 end
 
 """
@@ -2431,18 +2452,21 @@ function elastic_demands(
         validate::Bool = false,
         process_type::AbstractString = "A47",
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing_ifs_afrr34_mfrr34_elastic_demands(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (acquiring_domain,),
+    ) do s, e
+        balancing_ifs_afrr34_mfrr34_elastic_demands(
             apis.balancing, "A37", "B75", String(process_type),
             String(acquiring_domain),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             offset = offset === nothing ? nothing : Int(offset),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (acquiring_domain,),
-    )
+        )
+    end
 end
 
 """
@@ -2464,18 +2488,21 @@ function changes_to_bid_availability(
         process_type::AbstractString = "A47",
         business_type::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing_ifs_mfrr99_afrr9698_changes_to_bid_availability(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (domain,),
+    ) do s, e
+        balancing_ifs_mfrr99_afrr9698_changes_to_bid_availability(
             apis.balancing, "B45", String(process_type), String(domain),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
             offset = offset === nothing ? nothing : Int(offset),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (domain,),
-    )
+        )
+    end
 end
 
 """
@@ -2496,19 +2523,22 @@ function changes_to_bid_availability_archives(
         storage_type::AbstractString = "archive",
         business_type::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing_ifs_mfrr99_afrr9698_changes_to_bid_availability_archives(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (domain,),
+    ) do s, e
+        balancing_ifs_mfrr99_afrr9698_changes_to_bid_availability_archives(
             apis.balancing, "B45", String(process_type), String(domain),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
             String(storage_type);
             business_type = business_type === nothing ? nothing : String(business_type),
             offset = offset === nothing ? nothing : Int(offset),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (domain,),
-    )
+        )
+    end
 end
 
 """
@@ -2537,23 +2567,26 @@ function balancing_energy_bids(
         standard_market_product::Union{Nothing, AbstractString} = nothing,
         original_market_product::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Day(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing123_b_c_balancing_energy_bids(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (connecting_domain,),
+    ) do s, e
+        balancing123_b_c_balancing_energy_bids(
             apis.balancing, "A37", "B74", String(process_type),
             String(connecting_domain),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             offset = offset === nothing ? nothing : Int(offset),
             standard_market_product = standard_market_product === nothing ?
                 nothing : String(standard_market_product),
             original_market_product = original_market_product === nothing ?
                 nothing : String(original_market_product),
             direction = direction === nothing ? nothing : String(direction),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (connecting_domain,),
-    )
+        )
+    end
 end
 
 """
@@ -2574,19 +2607,22 @@ function balancing_energy_bids_archives(
         process_type::AbstractString = "A47",
         storage_type::AbstractString = "archive",
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Day(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing123_b_c_balancing_energy_bids_archives(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (connecting_domain,),
+    ) do s, e
+        balancing123_b_c_balancing_energy_bids_archives(
             apis.balancing, "A37", "B74", String(process_type),
             String(connecting_domain),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
             String(storage_type);
             offset = offset === nothing ? nothing : Int(offset),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (connecting_domain,),
-    )
+        )
+    end
 end
 
 """
@@ -2606,19 +2642,22 @@ function allocation_and_use_of_cross_zonal_balancing_capacity(
         validate::Bool = false,
         process_type::AbstractString = "A46",
         type_market_agreement_type::Union{Nothing, AbstractString} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing123_h_i_allocation_and_use_of_cross_zonal_balancing_capacity(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    ) do s, e
+        balancing123_h_i_allocation_and_use_of_cross_zonal_balancing_capacity(
             apis.balancing, "A38", String(process_type),
             String(connecting_domain), String(acquiring_domain),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             type_market_agreement_type = type_market_agreement_type === nothing ?
                 nothing : String(type_market_agreement_type),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (acquiring_domain, connecting_domain),
-    )
+        )
+    end
 end
 
 """
@@ -2634,16 +2673,19 @@ function results_of_criteria_application_process(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A47",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing1854_results_of_the_criteria_application_process_measurements_so_gl(
-            apis.balancing, "A45", String(process_type), String(area),
-            _to_period(period_start), _to_period(period_end),
-        ),
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    )
+    ) do s, e
+        balancing1854_results_of_the_criteria_application_process_measurements_so_gl(
+            apis.balancing, "A45", String(process_type), String(area),
+            s, e,
+        )
+    end
 end
 
 """
@@ -2657,19 +2699,22 @@ function fcr_total_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing1872_fcr_total_capacity_so_gl(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,),
+    ) do s, e
+        balancing1872_fcr_total_capacity_so_gl(
             apis.balancing;
             document_type = "A26", business_type = "A25",
             area_domain = String(area),
-            period_start = _to_period(period_start),
-            period_end = _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (area,),
-    )
+            period_start = s,
+            period_end = e,
+        )
+    end
 end
 
 """
@@ -2683,19 +2728,22 @@ function shares_of_fcr_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing1872_shares_of_fcr_capacity_so_gl(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,),
+    ) do s, e
+        balancing1872_shares_of_fcr_capacity_so_gl(
             apis.balancing;
             document_type = "A26", business_type = "C23",
             area_domain = String(area),
-            period_start = _to_period(period_start),
-            period_end = _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (area,),
-    )
+            period_start = s,
+            period_end = e,
+        )
+    end
 end
 
 """
@@ -2711,16 +2759,19 @@ function frr_rr_capacity_outlook(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A56",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing18831892_frr_rr_capacity_outlook_so_gl(
-            apis.balancing, "A26", String(process_type), "C76", String(area),
-            _to_period(period_start), _to_period(period_end),
-        ),
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    )
+    ) do s, e
+        balancing18831892_frr_rr_capacity_outlook_so_gl(
+            apis.balancing, "A26", String(process_type), "C76", String(area),
+            s, e,
+        )
+    end
 end
 
 """
@@ -2738,16 +2789,19 @@ function frr_and_rr_actual_capacity(
         validate::Bool = false,
         process_type::AbstractString = "A56",
         business_type::AbstractString = "C77",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing18841893_frr_and_rr_actual_capacity_so_gl(
-            apis.balancing, "A26", String(process_type), String(business_type),
-            String(area), _to_period(period_start), _to_period(period_end),
-        ),
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    )
+    ) do s, e
+        balancing18841893_frr_and_rr_actual_capacity_so_gl(
+            apis.balancing, "A26", String(process_type), String(business_type),
+            String(area), s, e,
+        )
+    end
 end
 
 """
@@ -2761,19 +2815,22 @@ function outlook_of_reserve_capacities_on_rr(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing1892_outlook_of_reserve_capacities_on_rr_so_gl(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,),
+    ) do s, e
+        balancing1892_outlook_of_reserve_capacities_on_rr_so_gl(
             apis.balancing;
             document_type = "A26", process_type = "A46", business_type = "C76",
             area_domain = String(area),
-            period_start = _to_period(period_start),
-            period_end = _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (area,),
-    )
+            period_start = s,
+            period_end = e,
+        )
+    end
 end
 
 """
@@ -2787,19 +2844,22 @@ function rr_actual_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing1893_rr_actual_capacity_so_gl(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,),
+    ) do s, e
+        balancing1893_rr_actual_capacity_so_gl(
             apis.balancing;
             document_type = "A26", process_type = "A46", business_type = "C77",
             area_domain = String(area),
-            period_start = _to_period(period_start),
-            period_end = _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (area,),
-    )
+            period_start = s,
+            period_end = e,
+        )
+    end
 end
 
 """
@@ -2816,21 +2876,24 @@ function sharing_of_rr_and_frr(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A56",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing1901_sharing_of_rr_and_frr_so_gl(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    ) do s, e
+        balancing1901_sharing_of_rr_and_frr_so_gl(
             apis.balancing;
             document_type = "A26", process_type = String(process_type),
             business_type = "C22",
             acquiring_domain = String(acquiring_domain),
             connecting_domain = String(connecting_domain),
-            period_start = _to_period(period_start),
-            period_end = _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (acquiring_domain, connecting_domain),
-    )
+            period_start = s,
+            period_end = e,
+        )
+    end
 end
 
 """
@@ -2844,19 +2907,22 @@ function sharing_of_fcr_between_sas(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing1902_sharing_of_fcr_between_sas_so_gl(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,),
+    ) do s, e
+        balancing1902_sharing_of_fcr_between_sas_so_gl(
             apis.balancing;
             document_type = "A26", process_type = "A52", business_type = "C22",
             area_domain = String(area),
-            period_start = _to_period(period_start),
-            period_end = _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (area,),
-    )
+            period_start = s,
+            period_end = e,
+        )
+    end
 end
 
 """
@@ -2876,22 +2942,25 @@ function exchanged_reserve_capacity(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A46",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing1903_exchanged_reserve_capacity_so_gl(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (acquiring_domain, connecting_domain),
+    ) do s, e
+        balancing1903_exchanged_reserve_capacity_so_gl(
             apis.balancing;
             document_type = "A26",
             process_type = String(process_type),
             business_type = "C21",
             acquiring_domain = String(acquiring_domain),
             connecting_domain = String(connecting_domain),
-            period_start = _to_period(period_start),
-            period_end = _to_period(period_end),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (acquiring_domain, connecting_domain),
-    )
+            period_start = s,
+            period_end = e,
+        )
+    end
 end
 
 """
@@ -2922,20 +2991,23 @@ function volumes_and_prices_of_contracted_reserves(
         process_type::Union{Nothing, AbstractString} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing171_b_c_volumes_and_prices_of_contracted_reserves(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (control_area,),
+    ) do s, e
+        balancing171_b_c_volumes_and_prices_of_contracted_reserves(
             apis.balancing, "A81", "B95",
             String(type_market_agreement_type), String(control_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             process_type = process_type === nothing ? nothing : String(process_type),
             psr_type = psr_type === nothing ? nothing : String(psr_type),
             offset = offset === nothing ? nothing : Int(offset),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (control_area,),
-    )
+        )
+    end
 end
 
 """
@@ -2950,16 +3022,19 @@ function financial_expenses_and_income_for_balancing(
         client::Client, control_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing171_i_financial_expenses_and_income_for_balancing(
-            apis.balancing, "A87", String(control_area),
-            _to_period(period_start), _to_period(period_end),
-        ),
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (control_area,),
-    )
+    ) do s, e
+        balancing171_i_financial_expenses_and_income_for_balancing(
+            apis.balancing, "A87", String(control_area),
+            s, e,
+        )
+    end
 end
 
 """
@@ -2989,22 +3064,25 @@ function prices_of_activated_balancing_energy(
         psr_type::Union{Nothing, AbstractString} = nothing,
         standard_market_product::Union{Nothing, AbstractString} = nothing,
         original_market_product::Union{Nothing, AbstractString} = nothing,
+        window::Period = Day(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing171_f_prices_of_activated_balancing_energy(
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (control_area,),
+    ) do s, e
+        balancing171_f_prices_of_activated_balancing_energy(
             apis.balancing, "A84", String(process_type), String(control_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
             psr_type = psr_type === nothing ? nothing : String(psr_type),
             standard_market_product = standard_market_product === nothing ?
                 nothing : String(standard_market_product),
             original_market_product = original_market_product === nothing ?
                 nothing : String(original_market_product),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (control_area,),
-    )
+        )
+    end
 end
 
 """
@@ -3023,17 +3101,20 @@ function total_imbalance_volumes(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         business_type::AbstractString = "A19",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing171_h_total_imbalance_volumes(
-            apis.balancing, "A86", String(area),
-            _to_period(period_start), _to_period(period_end);
-            business_type = String(business_type),
-        ),
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    )
+    ) do s, e
+        balancing171_h_total_imbalance_volumes(
+            apis.balancing, "A86", String(area),
+            s, e;
+            business_type = String(business_type),
+        )
+    end
 end
 
 """
@@ -3057,19 +3138,37 @@ function procured_balancing_capacity(
         process_type::AbstractString = "A51",
         type_market_agreement_type::AbstractString = "A01",
         offset::Union{Nothing, Integer} = nothing,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
-        () -> balancing123_f_procured_balancing_capacity_gl_eb(
+    # `period_end === nothing` requests the single publication snapshot at
+    # `period_start` — there's no range to split, so issue one request.
+    if period_end === nothing
+        return _query(
+            () -> balancing123_f_procured_balancing_capacity_gl_eb(
+                apis.balancing, "A15", String(process_type), String(area),
+                _to_period(period_start);
+                period_end = nothing,
+                type_market_agreement_type = String(type_market_agreement_type),
+                offset = offset === nothing ? nothing : Int(offset),
+            ),
+            format, parse_timeseries;
+            validate = validate, eics = (area,),
+        )
+    end
+    return _split_query(
+        format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
+        validate = validate, eics = (area,),
+    ) do s, e
+        balancing123_f_procured_balancing_capacity_gl_eb(
             apis.balancing, "A15", String(process_type), String(area),
-            _to_period(period_start);
-            period_end = period_end === nothing ? nothing : _to_period(period_end),
+            s;
+            period_end = e,
             type_market_agreement_type = String(type_market_agreement_type),
             offset = offset === nothing ? nothing : Int(offset),
-        ),
-        format, parse_timeseries;
-        validate = validate, eics = (area,),
-    )
+        )
+    end
 end
 
 """
@@ -3087,15 +3186,17 @@ function aggregated_balancing_energy_bids(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         process_type::AbstractString = "A51",
+        window::Period = Day(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         balancing123_e_aggregated_balancing_energy_bids_gl_eb(
             apis.balancing, "A24", String(process_type), String(area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
