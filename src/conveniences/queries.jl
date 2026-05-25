@@ -1290,16 +1290,18 @@ function cross_border_physical_flows(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         transmission121_g_cross_border_physical_flows(
             apis.transmission, "A11",
             String(out_area), String(in_area),  # generated layer takes (out, in) — see api/apis/api_TransmissionApi.jl
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -1332,6 +1334,7 @@ function cross_border_physical_flows_all(
         neighbours::AbstractVector{<:AbstractString} = get(
             NEIGHBOURS, String(area), String[],
         ),
+        window::Period = Year(1),
     )
     if isempty(neighbours)
         throw(
@@ -1350,7 +1353,7 @@ function cross_border_physical_flows_all(
         try
             rows = cross_border_physical_flows(
                 client, in_area, out_area, period_start, period_end, format;
-                validate = validate,
+                validate = validate, window = window,
             )
             if format isa Raw
                 push!(raw_parts, rows)
@@ -1400,16 +1403,18 @@ function commercial_schedules(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A01",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         transmission121_f_commercial_schedules(
             apis.transmission, "A09",
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             contract_market_agreement_type = String(contract_market_agreement_type),
         )
     end
@@ -1432,11 +1437,13 @@ function scheduled_exchanges(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false, dayahead::Bool = false,
+        window::Period = Year(1),
     )
     return commercial_schedules(
         client, in_area, out_area, period_start, period_end, format;
         validate = validate,
         contract_market_agreement_type = dayahead ? "A01" : "A05",
+        window = window,
     )
 end
 
@@ -1459,16 +1466,18 @@ function commercial_schedules_net_positions(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A01",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         transmission121_f_commercial_schedules_net_positions(
             apis.transmission, "A09",
             String(area), String(area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             contract_market_agreement_type = String(contract_market_agreement_type),
         )
     end
@@ -1493,17 +1502,19 @@ function forecasted_transfer_capacities(
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
         contract_market_agreement_type::AbstractString = "A01",
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         transmission111_a_forecasted_transfer_capacities(
             apis.transmission, "A61",
             String(contract_market_agreement_type),
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -1518,10 +1529,10 @@ entsoe-py's `query_net_transfer_capacity_dayahead`.
 """
 net_transfer_capacity_day_ahead(
     client::Client, in_area, out_area, start, stop, format::ResponseFormat = Parsed();
-    validate = false,
+    validate = false, window::Period = Year(1),
 ) = forecasted_transfer_capacities(
     client, in_area, out_area, start, stop, format;
-    validate = validate, contract_market_agreement_type = "A01",
+    validate = validate, contract_market_agreement_type = "A01", window = window,
 )
 
 """
@@ -1532,10 +1543,10 @@ Week-ahead forecasted net transfer capacity (`contract_marketagreement_type=A02`
 """
 net_transfer_capacity_week_ahead(
     client::Client, in_area, out_area, start, stop, format::ResponseFormat = Parsed();
-    validate = false,
+    validate = false, window::Period = Year(1),
 ) = forecasted_transfer_capacities(
     client, in_area, out_area, start, stop, format;
-    validate = validate, contract_market_agreement_type = "A02",
+    validate = validate, contract_market_agreement_type = "A02", window = window,
 )
 
 """
@@ -1546,10 +1557,10 @@ Month-ahead forecasted net transfer capacity (`contract_marketagreement_type=A03
 """
 net_transfer_capacity_month_ahead(
     client::Client, in_area, out_area, start, stop, format::ResponseFormat = Parsed();
-    validate = false,
+    validate = false, window::Period = Year(1),
 ) = forecasted_transfer_capacities(
     client, in_area, out_area, start, stop, format;
-    validate = validate, contract_market_agreement_type = "A03",
+    validate = validate, contract_market_agreement_type = "A03", window = window,
 )
 
 """
@@ -1560,10 +1571,10 @@ Year-ahead forecasted net transfer capacity (`contract_marketagreement_type=A04`
 """
 net_transfer_capacity_year_ahead(
     client::Client, in_area, out_area, start, stop, format::ResponseFormat = Parsed();
-    validate = false,
+    validate = false, window::Period = Year(1),
 ) = forecasted_transfer_capacities(
     client, in_area, out_area, start, stop, format;
-    validate = validate, contract_market_agreement_type = "A04",
+    validate = validate, contract_market_agreement_type = "A04", window = window,
 )
 
 """
@@ -1584,16 +1595,18 @@ function expansion_and_dismantling_project(
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
         withdrawn::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         transmission91_expansion_and_dismantling_project(
             apis.transmission, "A90",
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end);
+            s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
             doc_status = withdrawn ? "A13" :
                 (doc_status === nothing ? nothing : String(doc_status)),
@@ -1613,16 +1626,18 @@ function redispatching_internal(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         transmission131_a_redispatching_internal(
             apis.transmission, "A63", "A85",
             String(area), String(area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -1641,16 +1656,18 @@ function redispatching_cross_border(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         transmission131_a_redispatching_cross_border(
             apis.transmission, "A63", "A46",
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -1673,16 +1690,18 @@ function costs_of_congestion_management(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (area,),
-    ) do
+    ) do s, e
         transmission131_c_costs_of_congestion_management(
             apis.transmission, "A92",
             String(area), String(area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
@@ -1700,16 +1719,18 @@ function countertrading(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
+        window::Period = Year(1),
     )
     apis = entsoe_apis(client)
-    return _query(
+    return _split_query(
         format, parse_timeseries;
+        period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (in_area, out_area),
-    ) do
+    ) do s, e
         transmission131_b_countertrading(
             apis.transmission, "A91",
             String(out_area), String(in_area),
-            _to_period(period_start), _to_period(period_end),
+            s, e,
         )
     end
 end
