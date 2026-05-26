@@ -4,8 +4,8 @@ CurrentModule = ENTSOE
 
 # Tutorial: forecast vs. realised load
 
-How well did the day-ahead load forecast track reality for the
-Netherlands during the week of **2024-09-02 → 2024-09-09**?
+How well did the day-ahead load forecast track reality for Belgium
+during the week of **2024-01-15 → 2024-01-22**?
 This tutorial pulls two parallel series:
 
 - [`actual_total_load`](@ref) — Load 6.1.A, `processType=A16`
@@ -39,11 +39,11 @@ arguments, same `(time, value)` `StructVector` return — so we can
 hit them back-to-back. Realised load first:
 
 ```@example loadtut
-actual = BR.playback("tut_load_actual_NL_week.yml") do
+actual = BR.playback("tut_load_actual_BE_week.yml") do
     actual_total_load(
-        client, EIC.NL,
-        DateTime("2024-09-01T22:00"),
-        DateTime("2024-09-08T22:00"))
+        client, EIC.BE,
+        DateTime("2024-01-14T23:00"),
+        DateTime("2024-01-21T23:00"))
 end
 length(actual), actual[1], actual[end]
 ```
@@ -51,11 +51,11 @@ length(actual), actual[1], actual[end]
 …and the day-ahead forecast for the same window:
 
 ```@example loadtut
-forecast = BR.playback("tut_load_forecast_NL_week.yml") do
+forecast = BR.playback("tut_load_forecast_BE_week.yml") do
     day_ahead_load_forecast(
-        client, EIC.NL,
-        DateTime("2024-09-01T22:00"),
-        DateTime("2024-09-08T22:00"))
+        client, EIC.BE,
+        DateTime("2024-01-14T23:00"),
+        DateTime("2024-01-21T23:00"))
 end
 length(forecast), forecast[1]
 ```
@@ -88,7 +88,7 @@ fig = Figure(size = (900, 520))
 
 ax1 = Axis(fig[1, 1];
     ylabel = "GW",
-    title  = "NL load — actual vs. day-ahead forecast (week 2024-09-02)",
+    title  = "BE load — actual vs. day-ahead forecast (week 2024-01-15)",
 )
 xs = 1:length(actual.value)
 lines!(ax1, xs, actual.value ./ 1_000;
@@ -130,7 +130,7 @@ fig2 = Figure(size = (720, 320))
 ax = Axis(fig2[1, 1];
     xlabel = "Forecast − actual (MW)",
     ylabel = "count",
-    title  = "Error distribution — week of 2024-09-02",
+    title  = "Error distribution — week of 2024-01-15",
 )
 hist!(ax, err; bins = 40, color = (:steelblue, 0.7), strokewidth = 0.5,
     strokecolor = :white)

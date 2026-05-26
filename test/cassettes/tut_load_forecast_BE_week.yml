@@ -1,11 +1,11 @@
 responses:
   - headers:
-      - Date: "Thu, 07 May 2026 23:10:16 GMT"
+      - Date: "Tue, 26 May 2026 20:18:47 GMT"
       - Content-Type: "text/xml"
       - Transfer-Encoding: "chunked"
       - Connection: "keep-alive"
       - Content-Disposition: |-
-          inline; filename="Day-ahead Total Load Forecast_202409012200-202409082200.xml"
+          inline; filename="Day-ahead Total Load Forecast_202401142300-202401212300.xml"
       - X-Content-Type-Options: "nosniff"
       - X-XSS-Protection: "0"
       - vary: "accept-encoding"
@@ -14,7 +14,7 @@ responses:
     body: |-
       <?xml version="1.0" encoding="utf-8"?>
       <GL_MarketDocument xmlns="urn:iec62325.351:tc57wg16:451-6:generationloaddocument:3:0">
-        <mRID>dc36825cab62435fb47d978837764390</mRID>
+        <mRID>3276cfdcdfc64d9eb14b1d3a8f4af996</mRID>
         <revisionNumber>1</revisionNumber>
         <type>A65</type>
         <process.processType>A01</process.processType>
@@ -22,2711 +22,2711 @@ responses:
         <sender_MarketParticipant.marketRole.type>A32</sender_MarketParticipant.marketRole.type>
         <receiver_MarketParticipant.mRID codingScheme="A01">10X1001A1001A450</receiver_MarketParticipant.mRID>
         <receiver_MarketParticipant.marketRole.type>A33</receiver_MarketParticipant.marketRole.type>
-        <createdDateTime>2026-05-07T23:10:16Z</createdDateTime>
+        <createdDateTime>2026-05-26T20:18:47Z</createdDateTime>
         <time_Period.timeInterval>
-          <start>2024-09-01T22:00Z</start>
-          <end>2024-09-08T22:00Z</end>
+          <start>2024-01-14T23:00Z</start>
+          <end>2024-01-21T23:00Z</end>
         </time_Period.timeInterval>
           <TimeSeries>
             <mRID>1</mRID>
             <businessType>A04</businessType>
             <objectAggregation>A01</objectAggregation>
-            <outBiddingZone_Domain.mRID codingScheme="A01">10YNL----------L</outBiddingZone_Domain.mRID>
+            <outBiddingZone_Domain.mRID codingScheme="A01">10YBE----------2</outBiddingZone_Domain.mRID>
             <quantity_Measure_Unit.name>MAW</quantity_Measure_Unit.name>
             <curveType>A03</curveType>
               <Period>
                 <timeInterval>
-                  <start>2024-09-01T22:00Z</start>
-                  <end>2024-09-08T22:00Z</end>
+                  <start>2024-01-14T23:00Z</start>
+                  <end>2024-01-21T23:00Z</end>
                 </timeInterval>
                 <resolution>PT15M</resolution>
                   <Point>
                     <position>1</position>
-                    <quantity>11120.58</quantity>
+                    <quantity>9317.99</quantity>
                   </Point>
                   <Point>
                     <position>2</position>
-                    <quantity>11057.6</quantity>
+                    <quantity>9211.25</quantity>
                   </Point>
                   <Point>
                     <position>3</position>
-                    <quantity>10951.84</quantity>
+                    <quantity>9124.12</quantity>
                   </Point>
                   <Point>
                     <position>4</position>
-                    <quantity>10848.39</quantity>
+                    <quantity>9012.66</quantity>
                   </Point>
                   <Point>
                     <position>5</position>
-                    <quantity>10728.42</quantity>
+                    <quantity>8959.72</quantity>
                   </Point>
                   <Point>
                     <position>6</position>
-                    <quantity>10639.85</quantity>
+                    <quantity>8912.37</quantity>
                   </Point>
                   <Point>
                     <position>7</position>
-                    <quantity>10548.25</quantity>
+                    <quantity>8864.06</quantity>
                   </Point>
                   <Point>
                     <position>8</position>
-                    <quantity>10421.89</quantity>
+                    <quantity>8767.38</quantity>
                   </Point>
                   <Point>
                     <position>9</position>
-                    <quantity>10343.2</quantity>
+                    <quantity>8720.72</quantity>
                   </Point>
                   <Point>
                     <position>10</position>
-                    <quantity>10280.7</quantity>
+                    <quantity>8594.62</quantity>
                   </Point>
                   <Point>
                     <position>11</position>
-                    <quantity>10265.11</quantity>
+                    <quantity>8580.11</quantity>
                   </Point>
                   <Point>
                     <position>12</position>
-                    <quantity>10254.08</quantity>
+                    <quantity>8516.83</quantity>
                   </Point>
                   <Point>
                     <position>13</position>
-                    <quantity>10247.72</quantity>
+                    <quantity>8660.03</quantity>
                   </Point>
                   <Point>
                     <position>14</position>
-                    <quantity>10233.02</quantity>
+                    <quantity>8529.15</quantity>
                   </Point>
                   <Point>
                     <position>15</position>
-                    <quantity>10188.35</quantity>
+                    <quantity>8442.9</quantity>
                   </Point>
                   <Point>
                     <position>16</position>
-                    <quantity>10146.71</quantity>
+                    <quantity>8494.79</quantity>
                   </Point>
                   <Point>
                     <position>17</position>
-                    <quantity>10162.29</quantity>
+                    <quantity>8560.51</quantity>
                   </Point>
                   <Point>
                     <position>18</position>
-                    <quantity>10184.38</quantity>
+                    <quantity>8715.98</quantity>
                   </Point>
                   <Point>
                     <position>19</position>
-                    <quantity>10226.01</quantity>
+                    <quantity>8733.98</quantity>
                   </Point>
                   <Point>
                     <position>20</position>
-                    <quantity>10253.55</quantity>
+                    <quantity>8781.33</quantity>
                   </Point>
                   <Point>
                     <position>21</position>
-                    <quantity>10297.22</quantity>
+                    <quantity>8962.26</quantity>
                   </Point>
                   <Point>
                     <position>22</position>
-                    <quantity>10392.68</quantity>
+                    <quantity>9166.17</quantity>
                   </Point>
                   <Point>
                     <position>23</position>
-                    <quantity>10464.56</quantity>
+                    <quantity>9214.14</quantity>
                   </Point>
                   <Point>
                     <position>24</position>
-                    <quantity>10569.17</quantity>
+                    <quantity>9474.77</quantity>
                   </Point>
                   <Point>
                     <position>25</position>
-                    <quantity>10705.1</quantity>
+                    <quantity>9913.11</quantity>
                   </Point>
                   <Point>
                     <position>26</position>
-                    <quantity>10797.04</quantity>
+                    <quantity>10145.17</quantity>
                   </Point>
                   <Point>
                     <position>27</position>
-                    <quantity>10810.85</quantity>
+                    <quantity>10248.34</quantity>
                   </Point>
                   <Point>
                     <position>28</position>
-                    <quantity>10912.31</quantity>
+                    <quantity>10591.94</quantity>
                   </Point>
                   <Point>
                     <position>29</position>
-                    <quantity>11069.82</quantity>
+                    <quantity>10870.22</quantity>
                   </Point>
                   <Point>
                     <position>30</position>
-                    <quantity>11205.44</quantity>
+                    <quantity>11079.06</quantity>
                   </Point>
                   <Point>
                     <position>31</position>
-                    <quantity>11227.86</quantity>
+                    <quantity>11304.56</quantity>
                   </Point>
                   <Point>
                     <position>32</position>
-                    <quantity>11211.8</quantity>
+                    <quantity>11559.92</quantity>
                   </Point>
                   <Point>
                     <position>33</position>
-                    <quantity>11155.49</quantity>
+                    <quantity>11656.25</quantity>
                   </Point>
                   <Point>
                     <position>34</position>
-                    <quantity>11005.88</quantity>
+                    <quantity>11926.17</quantity>
                   </Point>
                   <Point>
                     <position>35</position>
-                    <quantity>10885.16</quantity>
+                    <quantity>12074.92</quantity>
                   </Point>
                   <Point>
                     <position>36</position>
-                    <quantity>10794.4</quantity>
+                    <quantity>12145.79</quantity>
                   </Point>
                   <Point>
                     <position>37</position>
-                    <quantity>10607.09</quantity>
+                    <quantity>12204.57</quantity>
                   </Point>
                   <Point>
                     <position>38</position>
-                    <quantity>10333.76</quantity>
+                    <quantity>12302.85</quantity>
                   </Point>
                   <Point>
                     <position>39</position>
-                    <quantity>10151.82</quantity>
+                    <quantity>12380.26</quantity>
                   </Point>
                   <Point>
                     <position>40</position>
-                    <quantity>9967.12</quantity>
+                    <quantity>12341.59</quantity>
                   </Point>
                   <Point>
                     <position>41</position>
-                    <quantity>9723.06</quantity>
+                    <quantity>12381.23</quantity>
                   </Point>
                   <Point>
                     <position>42</position>
-                    <quantity>9421.04</quantity>
+                    <quantity>12333.82</quantity>
                   </Point>
                   <Point>
                     <position>43</position>
-                    <quantity>9221.75</quantity>
+                    <quantity>12313.39</quantity>
                   </Point>
                   <Point>
                     <position>44</position>
-                    <quantity>9058.96</quantity>
+                    <quantity>12321.11</quantity>
                   </Point>
                   <Point>
                     <position>45</position>
-                    <quantity>9014.41</quantity>
+                    <quantity>12395.73</quantity>
                   </Point>
                   <Point>
                     <position>46</position>
-                    <quantity>8758.42</quantity>
+                    <quantity>12372.69</quantity>
                   </Point>
                   <Point>
                     <position>47</position>
-                    <quantity>8669.91</quantity>
+                    <quantity>12369.75</quantity>
                   </Point>
                   <Point>
                     <position>48</position>
-                    <quantity>8675.39</quantity>
+                    <quantity>12354.68</quantity>
                   </Point>
                   <Point>
                     <position>49</position>
-                    <quantity>8583.39</quantity>
+                    <quantity>12352.52</quantity>
                   </Point>
                   <Point>
                     <position>50</position>
-                    <quantity>8364.63</quantity>
+                    <quantity>12219.08</quantity>
                   </Point>
                   <Point>
                     <position>51</position>
-                    <quantity>8281.64</quantity>
+                    <quantity>12282.94</quantity>
                   </Point>
                   <Point>
                     <position>52</position>
-                    <quantity>8255.35</quantity>
+                    <quantity>12251.08</quantity>
                   </Point>
                   <Point>
                     <position>53</position>
-                    <quantity>8242.11</quantity>
+                    <quantity>12278.36</quantity>
                   </Point>
                   <Point>
                     <position>54</position>
-                    <quantity>8339.45</quantity>
+                    <quantity>12257.49</quantity>
                   </Point>
                   <Point>
                     <position>55</position>
-                    <quantity>8324.91</quantity>
+                    <quantity>12127.95</quantity>
                   </Point>
                   <Point>
                     <position>56</position>
-                    <quantity>8301.18</quantity>
+                    <quantity>12083.72</quantity>
                   </Point>
                   <Point>
                     <position>57</position>
-                    <quantity>8256.63</quantity>
+                    <quantity>11991.12</quantity>
                   </Point>
                   <Point>
                     <position>58</position>
-                    <quantity>8392.96</quantity>
+                    <quantity>11990.5</quantity>
                   </Point>
                   <Point>
                     <position>59</position>
-                    <quantity>8372.56</quantity>
+                    <quantity>12051.46</quantity>
                   </Point>
                   <Point>
                     <position>60</position>
-                    <quantity>8395.27</quantity>
+                    <quantity>11978.78</quantity>
                   </Point>
                   <Point>
                     <position>61</position>
-                    <quantity>8542.61</quantity>
+                    <quantity>11913.92</quantity>
                   </Point>
                   <Point>
                     <position>62</position>
-                    <quantity>8687.29</quantity>
+                    <quantity>11831.43</quantity>
                   </Point>
                   <Point>
                     <position>63</position>
-                    <quantity>8776.9</quantity>
+                    <quantity>11884.34</quantity>
                   </Point>
                   <Point>
                     <position>64</position>
-                    <quantity>8960.59</quantity>
+                    <quantity>11860.79</quantity>
                   </Point>
                   <Point>
                     <position>65</position>
-                    <quantity>9040.77</quantity>
+                    <quantity>11764.52</quantity>
                   </Point>
                   <Point>
                     <position>66</position>
-                    <quantity>9280.48</quantity>
+                    <quantity>11819.34</quantity>
                   </Point>
                   <Point>
                     <position>67</position>
-                    <quantity>9458.89</quantity>
+                    <quantity>11993.74</quantity>
                   </Point>
                   <Point>
                     <position>68</position>
-                    <quantity>9640.42</quantity>
+                    <quantity>12205.28</quantity>
                   </Point>
                   <Point>
                     <position>69</position>
-                    <quantity>9750.35</quantity>
+                    <quantity>12273.64</quantity>
                   </Point>
                   <Point>
                     <position>70</position>
-                    <quantity>10171.69</quantity>
+                    <quantity>12282.98</quantity>
                   </Point>
                   <Point>
                     <position>71</position>
-                    <quantity>10592.27</quantity>
+                    <quantity>12423.04</quantity>
                   </Point>
                   <Point>
                     <position>72</position>
-                    <quantity>10910.54</quantity>
+                    <quantity>12504.33</quantity>
                   </Point>
                   <Point>
                     <position>73</position>
-                    <quantity>11127.96</quantity>
+                    <quantity>12473.36</quantity>
                   </Point>
                   <Point>
                     <position>74</position>
-                    <quantity>11236.13</quantity>
+                    <quantity>12467.17</quantity>
                   </Point>
                   <Point>
                     <position>75</position>
-                    <quantity>11461.88</quantity>
+                    <quantity>12334.23</quantity>
                   </Point>
                   <Point>
                     <position>76</position>
-                    <quantity>11720.42</quantity>
+                    <quantity>12250.45</quantity>
                   </Point>
                   <Point>
                     <position>77</position>
-                    <quantity>11960.56</quantity>
+                    <quantity>12129.95</quantity>
                   </Point>
                   <Point>
                     <position>78</position>
-                    <quantity>12268.76</quantity>
+                    <quantity>11907.92</quantity>
                   </Point>
                   <Point>
                     <position>79</position>
-                    <quantity>12531.47</quantity>
+                    <quantity>11832.13</quantity>
                   </Point>
                   <Point>
                     <position>80</position>
-                    <quantity>12761.39</quantity>
+                    <quantity>11665.62</quantity>
                   </Point>
                   <Point>
                     <position>81</position>
-                    <quantity>12923.68</quantity>
+                    <quantity>11587.53</quantity>
                   </Point>
                   <Point>
                     <position>82</position>
-                    <quantity>13024.49</quantity>
+                    <quantity>11343.81</quantity>
                   </Point>
                   <Point>
                     <position>83</position>
-                    <quantity>13175.81</quantity>
+                    <quantity>11284.8</quantity>
                   </Point>
                   <Point>
                     <position>84</position>
-                    <quantity>13217.85</quantity>
+                    <quantity>11083.77</quantity>
                   </Point>
                   <Point>
                     <position>85</position>
-                    <quantity>13187.59</quantity>
+                    <quantity>10892.76</quantity>
                   </Point>
                   <Point>
                     <position>86</position>
-                    <quantity>13176.18</quantity>
+                    <quantity>10678.1</quantity>
                   </Point>
                   <Point>
                     <position>87</position>
-                    <quantity>13134.8</quantity>
+                    <quantity>10637.14</quantity>
                   </Point>
                   <Point>
                     <position>88</position>
-                    <quantity>13008.07</quantity>
+                    <quantity>10524.18</quantity>
                   </Point>
                   <Point>
                     <position>89</position>
-                    <quantity>12839.65</quantity>
+                    <quantity>10431.76</quantity>
                   </Point>
                   <Point>
                     <position>90</position>
-                    <quantity>12717.62</quantity>
+                    <quantity>10525.37</quantity>
                   </Point>
                   <Point>
                     <position>91</position>
-                    <quantity>12548.15</quantity>
+                    <quantity>10532.02</quantity>
                   </Point>
                   <Point>
                     <position>92</position>
-                    <quantity>12334.01</quantity>
+                    <quantity>10522.2</quantity>
                   </Point>
                   <Point>
                     <position>93</position>
-                    <quantity>12118.89</quantity>
+                    <quantity>10471.52</quantity>
                   </Point>
                   <Point>
                     <position>94</position>
-                    <quantity>12012.84</quantity>
+                    <quantity>10365.95</quantity>
                   </Point>
                   <Point>
                     <position>95</position>
-                    <quantity>11825.99</quantity>
+                    <quantity>10226.15</quantity>
                   </Point>
                   <Point>
                     <position>96</position>
-                    <quantity>11663.96</quantity>
+                    <quantity>9974.51</quantity>
                   </Point>
                   <Point>
                     <position>97</position>
-                    <quantity>11475.36</quantity>
+                    <quantity>10037.6</quantity>
                   </Point>
                   <Point>
                     <position>98</position>
-                    <quantity>11393.08</quantity>
+                    <quantity>9865.92</quantity>
                   </Point>
                   <Point>
                     <position>99</position>
-                    <quantity>11222.42</quantity>
+                    <quantity>9738.03</quantity>
                   </Point>
                   <Point>
                     <position>100</position>
-                    <quantity>11034.47</quantity>
+                    <quantity>9593.79</quantity>
                   </Point>
                   <Point>
                     <position>101</position>
-                    <quantity>10892.44</quantity>
+                    <quantity>9547.75</quantity>
                   </Point>
                   <Point>
                     <position>102</position>
-                    <quantity>10754.46</quantity>
+                    <quantity>9433.71</quantity>
                   </Point>
                   <Point>
                     <position>103</position>
-                    <quantity>10627.09</quantity>
+                    <quantity>9320.1</quantity>
                   </Point>
                   <Point>
                     <position>104</position>
-                    <quantity>10519.86</quantity>
+                    <quantity>9219.39</quantity>
                   </Point>
                   <Point>
                     <position>105</position>
-                    <quantity>10440.58</quantity>
+                    <quantity>9212.42</quantity>
                   </Point>
                   <Point>
                     <position>106</position>
-                    <quantity>10392.79</quantity>
+                    <quantity>9109.75</quantity>
                   </Point>
                   <Point>
                     <position>107</position>
-                    <quantity>10336.72</quantity>
+                    <quantity>9082.81</quantity>
                   </Point>
                   <Point>
                     <position>108</position>
-                    <quantity>10270.42</quantity>
+                    <quantity>9047.81</quantity>
                   </Point>
                   <Point>
                     <position>109</position>
-                    <quantity>10196.48</quantity>
+                    <quantity>9077.63</quantity>
                   </Point>
                   <Point>
                     <position>110</position>
-                    <quantity>10144.02</quantity>
+                    <quantity>9043.5</quantity>
                   </Point>
                   <Point>
                     <position>111</position>
-                    <quantity>10131.63</quantity>
+                    <quantity>9009.35</quantity>
                   </Point>
                   <Point>
                     <position>112</position>
-                    <quantity>10123.3</quantity>
+                    <quantity>9017.22</quantity>
                   </Point>
                   <Point>
                     <position>113</position>
-                    <quantity>10165.05</quantity>
+                    <quantity>9015.28</quantity>
                   </Point>
                   <Point>
                     <position>114</position>
-                    <quantity>10204.6</quantity>
+                    <quantity>9046.94</quantity>
                   </Point>
                   <Point>
                     <position>115</position>
-                    <quantity>10215.71</quantity>
+                    <quantity>9065.72</quantity>
                   </Point>
                   <Point>
                     <position>116</position>
-                    <quantity>10235.18</quantity>
+                    <quantity>9109.89</quantity>
                   </Point>
                   <Point>
                     <position>117</position>
-                    <quantity>10318.61</quantity>
+                    <quantity>9317.48</quantity>
                   </Point>
                   <Point>
                     <position>118</position>
-                    <quantity>10402.78</quantity>
+                    <quantity>9446.4</quantity>
                   </Point>
                   <Point>
                     <position>119</position>
-                    <quantity>10500.47</quantity>
+                    <quantity>9520.71</quantity>
                   </Point>
                   <Point>
                     <position>120</position>
-                    <quantity>10588.27</quantity>
+                    <quantity>9673.55</quantity>
                   </Point>
                   <Point>
                     <position>121</position>
-                    <quantity>10671.93</quantity>
+                    <quantity>10171.34</quantity>
                   </Point>
                   <Point>
                     <position>122</position>
-                    <quantity>10747.2</quantity>
+                    <quantity>10410.25</quantity>
                   </Point>
                   <Point>
                     <position>123</position>
-                    <quantity>10846.74</quantity>
+                    <quantity>10638.85</quantity>
                   </Point>
                   <Point>
                     <position>124</position>
-                    <quantity>10960.1</quantity>
+                    <quantity>10892.19</quantity>
                   </Point>
                   <Point>
                     <position>125</position>
-                    <quantity>11101.77</quantity>
+                    <quantity>11191.78</quantity>
                   </Point>
                   <Point>
                     <position>126</position>
-                    <quantity>11215.95</quantity>
+                    <quantity>11423.03</quantity>
                   </Point>
                   <Point>
                     <position>127</position>
-                    <quantity>11253.04</quantity>
+                    <quantity>11663.68</quantity>
                   </Point>
                   <Point>
                     <position>128</position>
-                    <quantity>11257.33</quantity>
+                    <quantity>11851.43</quantity>
                   </Point>
                   <Point>
                     <position>129</position>
-                    <quantity>11174.73</quantity>
+                    <quantity>11920.76</quantity>
                   </Point>
                   <Point>
                     <position>130</position>
-                    <quantity>10998.1</quantity>
+                    <quantity>12053.34</quantity>
                   </Point>
                   <Point>
                     <position>131</position>
-                    <quantity>10799.88</quantity>
+                    <quantity>12167.73</quantity>
                   </Point>
                   <Point>
                     <position>132</position>
-                    <quantity>10608.16</quantity>
+                    <quantity>12223.8</quantity>
                   </Point>
                   <Point>
                     <position>133</position>
-                    <quantity>10419.31</quantity>
+                    <quantity>12348.14</quantity>
                   </Point>
                   <Point>
                     <position>134</position>
-                    <quantity>10203.95</quantity>
+                    <quantity>12433.3</quantity>
                   </Point>
                   <Point>
                     <position>135</position>
-                    <quantity>9877.48</quantity>
+                    <quantity>12524.53</quantity>
                   </Point>
                   <Point>
                     <position>136</position>
-                    <quantity>9636.24</quantity>
+                    <quantity>12525.05</quantity>
                   </Point>
                   <Point>
                     <position>137</position>
-                    <quantity>9384</quantity>
+                    <quantity>12495.65</quantity>
                   </Point>
                   <Point>
                     <position>138</position>
-                    <quantity>9113.52</quantity>
+                    <quantity>12510.88</quantity>
                   </Point>
                   <Point>
                     <position>139</position>
-                    <quantity>8820.07</quantity>
+                    <quantity>12535.37</quantity>
                   </Point>
                   <Point>
                     <position>140</position>
-                    <quantity>8582.42</quantity>
+                    <quantity>12531.79</quantity>
                   </Point>
                   <Point>
                     <position>141</position>
-                    <quantity>8446.57</quantity>
+                    <quantity>12487.16</quantity>
                   </Point>
                   <Point>
                     <position>142</position>
-                    <quantity>8241.28</quantity>
+                    <quantity>12513.33</quantity>
                   </Point>
                   <Point>
                     <position>143</position>
-                    <quantity>7965.25</quantity>
+                    <quantity>12553.18</quantity>
                   </Point>
                   <Point>
                     <position>144</position>
-                    <quantity>7835.1</quantity>
+                    <quantity>12612.38</quantity>
                   </Point>
                   <Point>
                     <position>145</position>
-                    <quantity>7867.3</quantity>
+                    <quantity>12425.2</quantity>
                   </Point>
                   <Point>
                     <position>146</position>
-                    <quantity>7857.67</quantity>
+                    <quantity>12323.85</quantity>
                   </Point>
                   <Point>
                     <position>147</position>
-                    <quantity>7476.4</quantity>
+                    <quantity>12302.42</quantity>
                   </Point>
                   <Point>
                     <position>148</position>
-                    <quantity>7432.75</quantity>
+                    <quantity>12283.33</quantity>
                   </Point>
                   <Point>
                     <position>149</position>
-                    <quantity>7419.51</quantity>
+                    <quantity>12248.28</quantity>
                   </Point>
                   <Point>
                     <position>150</position>
-                    <quantity>7379.78</quantity>
+                    <quantity>12196.42</quantity>
                   </Point>
                   <Point>
                     <position>151</position>
-                    <quantity>7368.11</quantity>
+                    <quantity>12158.85</quantity>
                   </Point>
                   <Point>
                     <position>152</position>
-                    <quantity>7451.73</quantity>
+                    <quantity>12087.89</quantity>
                   </Point>
                   <Point>
                     <position>153</position>
-                    <quantity>7568.8</quantity>
+                    <quantity>11941.15</quantity>
                   </Point>
                   <Point>
                     <position>154</position>
-                    <quantity>7679.11</quantity>
+                    <quantity>11910.26</quantity>
                   </Point>
                   <Point>
                     <position>155</position>
-                    <quantity>7914.61</quantity>
+                    <quantity>11860.87</quantity>
                   </Point>
                   <Point>
                     <position>156</position>
-                    <quantity>8062.92</quantity>
+                    <quantity>11868.64</quantity>
                   </Point>
                   <Point>
                     <position>157</position>
-                    <quantity>8304.02</quantity>
+                    <quantity>11906.31</quantity>
                   </Point>
                   <Point>
                     <position>158</position>
-                    <quantity>8615.9</quantity>
+                    <quantity>11831</quantity>
                   </Point>
                   <Point>
                     <position>159</position>
-                    <quantity>8834.53</quantity>
+                    <quantity>11821.43</quantity>
                   </Point>
                   <Point>
                     <position>160</position>
-                    <quantity>9077.82</quantity>
+                    <quantity>11796.41</quantity>
                   </Point>
                   <Point>
                     <position>161</position>
-                    <quantity>9446.3</quantity>
+                    <quantity>11726.05</quantity>
                   </Point>
                   <Point>
                     <position>162</position>
-                    <quantity>9803.7</quantity>
+                    <quantity>11745.77</quantity>
                   </Point>
                   <Point>
                     <position>163</position>
-                    <quantity>10065.38</quantity>
+                    <quantity>11819.26</quantity>
                   </Point>
                   <Point>
                     <position>164</position>
-                    <quantity>10455.47</quantity>
+                    <quantity>11977.93</quantity>
                   </Point>
                   <Point>
                     <position>165</position>
-                    <quantity>10746.72</quantity>
+                    <quantity>12034.41</quantity>
                   </Point>
                   <Point>
                     <position>166</position>
-                    <quantity>11056.73</quantity>
+                    <quantity>12176.97</quantity>
                   </Point>
                   <Point>
                     <position>167</position>
-                    <quantity>11481.06</quantity>
+                    <quantity>12279.54</quantity>
                   </Point>
                   <Point>
                     <position>168</position>
-                    <quantity>11856.57</quantity>
+                    <quantity>12333.29</quantity>
                   </Point>
                   <Point>
                     <position>169</position>
-                    <quantity>12101.88</quantity>
+                    <quantity>12511.21</quantity>
                   </Point>
                   <Point>
                     <position>170</position>
-                    <quantity>12075.81</quantity>
+                    <quantity>12451.86</quantity>
                   </Point>
                   <Point>
                     <position>171</position>
-                    <quantity>12192.28</quantity>
+                    <quantity>12373.21</quantity>
                   </Point>
                   <Point>
                     <position>172</position>
-                    <quantity>12380.12</quantity>
+                    <quantity>12292.1</quantity>
                   </Point>
                   <Point>
                     <position>173</position>
-                    <quantity>12497.77</quantity>
+                    <quantity>12218.21</quantity>
                   </Point>
                   <Point>
                     <position>174</position>
-                    <quantity>12632.04</quantity>
+                    <quantity>12071.04</quantity>
                   </Point>
                   <Point>
                     <position>175</position>
-                    <quantity>12688.53</quantity>
+                    <quantity>11944.13</quantity>
                   </Point>
                   <Point>
                     <position>176</position>
-                    <quantity>12824.63</quantity>
+                    <quantity>11802.08</quantity>
                   </Point>
                   <Point>
                     <position>177</position>
-                    <quantity>12923.37</quantity>
+                    <quantity>11733.48</quantity>
                   </Point>
                   <Point>
                     <position>178</position>
-                    <quantity>12933.14</quantity>
+                    <quantity>11592.81</quantity>
                   </Point>
                   <Point>
                     <position>179</position>
-                    <quantity>12976.67</quantity>
+                    <quantity>11471.5</quantity>
                   </Point>
                   <Point>
                     <position>180</position>
-                    <quantity>13008.55</quantity>
+                    <quantity>11331.36</quantity>
                   </Point>
                   <Point>
                     <position>181</position>
-                    <quantity>13025.38</quantity>
+                    <quantity>11160.04</quantity>
                   </Point>
                   <Point>
                     <position>182</position>
-                    <quantity>12994.16</quantity>
+                    <quantity>11033.42</quantity>
                   </Point>
                   <Point>
                     <position>183</position>
-                    <quantity>12904.6</quantity>
+                    <quantity>10875.09</quantity>
                   </Point>
                   <Point>
                     <position>184</position>
-                    <quantity>12767.56</quantity>
+                    <quantity>10771.05</quantity>
                   </Point>
                   <Point>
                     <position>185</position>
-                    <quantity>12615.74</quantity>
+                    <quantity>10770.62</quantity>
                   </Point>
                   <Point>
                     <position>186</position>
-                    <quantity>12472.27</quantity>
+                    <quantity>10785.47</quantity>
                   </Point>
                   <Point>
                     <position>187</position>
-                    <quantity>12316.84</quantity>
+                    <quantity>10786.96</quantity>
                   </Point>
                   <Point>
                     <position>188</position>
-                    <quantity>12079.4</quantity>
+                    <quantity>10702.69</quantity>
                   </Point>
                   <Point>
                     <position>189</position>
-                    <quantity>11778.61</quantity>
+                    <quantity>10738.04</quantity>
                   </Point>
                   <Point>
                     <position>190</position>
-                    <quantity>11609.68</quantity>
+                    <quantity>10630.83</quantity>
                   </Point>
                   <Point>
                     <position>191</position>
-                    <quantity>11495.1</quantity>
+                    <quantity>10496.76</quantity>
                   </Point>
                   <Point>
                     <position>192</position>
-                    <quantity>11361.19</quantity>
+                    <quantity>10320.43</quantity>
                   </Point>
                   <Point>
                     <position>193</position>
-                    <quantity>11146.01</quantity>
+                    <quantity>10479.84</quantity>
                   </Point>
                   <Point>
                     <position>194</position>
-                    <quantity>11051.46</quantity>
+                    <quantity>10321.43</quantity>
                   </Point>
                   <Point>
                     <position>195</position>
-                    <quantity>11014.26</quantity>
+                    <quantity>10182.69</quantity>
                   </Point>
                   <Point>
                     <position>196</position>
-                    <quantity>10976.4</quantity>
+                    <quantity>10028.42</quantity>
                   </Point>
                   <Point>
                     <position>197</position>
-                    <quantity>10871.63</quantity>
+                    <quantity>9947.3</quantity>
                   </Point>
                   <Point>
                     <position>198</position>
-                    <quantity>10739.73</quantity>
+                    <quantity>9827.14</quantity>
                   </Point>
                   <Point>
                     <position>199</position>
-                    <quantity>10654.96</quantity>
+                    <quantity>9707.21</quantity>
                   </Point>
                   <Point>
                     <position>200</position>
-                    <quantity>10626.12</quantity>
+                    <quantity>9602.96</quantity>
                   </Point>
                   <Point>
                     <position>201</position>
-                    <quantity>10560.39</quantity>
+                    <quantity>9574.28</quantity>
                   </Point>
                   <Point>
                     <position>202</position>
-                    <quantity>10472.69</quantity>
+                    <quantity>9469.38</quantity>
                   </Point>
                   <Point>
                     <position>203</position>
-                    <quantity>10417.18</quantity>
+                    <quantity>9440.16</quantity>
                   </Point>
                   <Point>
                     <position>204</position>
-                    <quantity>10418.03</quantity>
+                    <quantity>9404.07</quantity>
                   </Point>
                   <Point>
                     <position>205</position>
-                    <quantity>10492.7</quantity>
+                    <quantity>9369.95</quantity>
                   </Point>
                   <Point>
                     <position>206</position>
-                    <quantity>10476.35</quantity>
+                    <quantity>9333</quantity>
                   </Point>
                   <Point>
                     <position>207</position>
-                    <quantity>10424.48</quantity>
+                    <quantity>9297.12</quantity>
                   </Point>
                   <Point>
                     <position>208</position>
-                    <quantity>10369.39</quantity>
+                    <quantity>9306.95</quantity>
                   </Point>
                   <Point>
                     <position>209</position>
-                    <quantity>10392.23</quantity>
+                    <quantity>9358.19</quantity>
                   </Point>
                   <Point>
                     <position>210</position>
-                    <quantity>10431.8</quantity>
+                    <quantity>9390.18</quantity>
                   </Point>
                   <Point>
                     <position>211</position>
-                    <quantity>10408.92</quantity>
+                    <quantity>9410.11</quantity>
                   </Point>
                   <Point>
                     <position>212</position>
-                    <quantity>10382.14</quantity>
+                    <quantity>9457.53</quantity>
                   </Point>
                   <Point>
                     <position>213</position>
-                    <quantity>10438.61</quantity>
+                    <quantity>9681.45</quantity>
                   </Point>
                   <Point>
                     <position>214</position>
-                    <quantity>10571.6</quantity>
+                    <quantity>9817.09</quantity>
                   </Point>
                   <Point>
                     <position>215</position>
-                    <quantity>10670.87</quantity>
+                    <quantity>9893.36</quantity>
                   </Point>
                   <Point>
                     <position>216</position>
-                    <quantity>10754.93</quantity>
+                    <quantity>10049.53</quantity>
                   </Point>
                   <Point>
                     <position>217</position>
-                    <quantity>10914.28</quantity>
+                    <quantity>10592.58</quantity>
                   </Point>
                   <Point>
                     <position>218</position>
-                    <quantity>11007.69</quantity>
+                    <quantity>10839.96</quantity>
                   </Point>
                   <Point>
                     <position>219</position>
-                    <quantity>11100.84</quantity>
+                    <quantity>11076.13</quantity>
                   </Point>
                   <Point>
                     <position>220</position>
-                    <quantity>11217.56</quantity>
+                    <quantity>11338.31</quantity>
                   </Point>
                   <Point>
                     <position>221</position>
-                    <quantity>11332.47</quantity>
+                    <quantity>11658.58</quantity>
                   </Point>
                   <Point>
                     <position>222</position>
-                    <quantity>11400.91</quantity>
+                    <quantity>11899.13</quantity>
                   </Point>
                   <Point>
                     <position>223</position>
-                    <quantity>11416.95</quantity>
+                    <quantity>12149.68</quantity>
                   </Point>
                   <Point>
                     <position>224</position>
-                    <quantity>11378.38</quantity>
+                    <quantity>12346.11</quantity>
                   </Point>
                   <Point>
                     <position>225</position>
-                    <quantity>11166.36</quantity>
+                    <quantity>12395.42</quantity>
                   </Point>
                   <Point>
                     <position>226</position>
-                    <quantity>10752.38</quantity>
+                    <quantity>12537.43</quantity>
                   </Point>
                   <Point>
                     <position>227</position>
-                    <quantity>10591.2</quantity>
+                    <quantity>12659.98</quantity>
                   </Point>
                   <Point>
                     <position>228</position>
-                    <quantity>10387.98</quantity>
+                    <quantity>12717.38</quantity>
                   </Point>
                   <Point>
                     <position>229</position>
-                    <quantity>10210.6</quantity>
+                    <quantity>12694.87</quantity>
                   </Point>
                   <Point>
                     <position>230</position>
-                    <quantity>9871.92</quantity>
+                    <quantity>12782.42</quantity>
                   </Point>
                   <Point>
                     <position>231</position>
-                    <quantity>9562.61</quantity>
+                    <quantity>12878.59</quantity>
                   </Point>
                   <Point>
                     <position>232</position>
-                    <quantity>9102.24</quantity>
+                    <quantity>12878.47</quantity>
                   </Point>
                   <Point>
                     <position>233</position>
-                    <quantity>8992.26</quantity>
+                    <quantity>12763.08</quantity>
                   </Point>
                   <Point>
                     <position>234</position>
-                    <quantity>8867.75</quantity>
+                    <quantity>12781.91</quantity>
                   </Point>
                   <Point>
                     <position>235</position>
-                    <quantity>8659.73</quantity>
+                    <quantity>12808.45</quantity>
                   </Point>
                   <Point>
                     <position>236</position>
-                    <quantity>8414.1</quantity>
+                    <quantity>12805.76</quantity>
                   </Point>
                   <Point>
                     <position>237</position>
-                    <quantity>8191.39</quantity>
+                    <quantity>12668.43</quantity>
                   </Point>
                   <Point>
                     <position>238</position>
-                    <quantity>7921.28</quantity>
+                    <quantity>12699.5</quantity>
                   </Point>
                   <Point>
                     <position>239</position>
-                    <quantity>7710.2</quantity>
+                    <quantity>12741.04</quantity>
                   </Point>
                   <Point>
                     <position>240</position>
-                    <quantity>7542.13</quantity>
+                    <quantity>12801.62</quantity>
                   </Point>
                   <Point>
                     <position>241</position>
-                    <quantity>7385.36</quantity>
+                    <quantity>12584.02</quantity>
                   </Point>
                   <Point>
                     <position>242</position>
-                    <quantity>7196.34</quantity>
+                    <quantity>12481.15</quantity>
                   </Point>
                   <Point>
                     <position>243</position>
-                    <quantity>7062.9</quantity>
+                    <quantity>12457.68</quantity>
                   </Point>
                   <Point>
                     <position>244</position>
-                    <quantity>6926.95</quantity>
+                    <quantity>12439.59</quantity>
                   </Point>
                   <Point>
                     <position>245</position>
-                    <quantity>6914.09</quantity>
+                    <quantity>12575.73</quantity>
                   </Point>
                   <Point>
                     <position>246</position>
-                    <quantity>6914.87</quantity>
+                    <quantity>12522.08</quantity>
                   </Point>
                   <Point>
                     <position>247</position>
-                    <quantity>6840.11</quantity>
+                    <quantity>12483.78</quantity>
                   </Point>
                   <Point>
                     <position>248</position>
-                    <quantity>6781.56</quantity>
+                    <quantity>12409.56</quantity>
                   </Point>
                   <Point>
                     <position>249</position>
-                    <quantity>6816.69</quantity>
+                    <quantity>12399.37</quantity>
                   </Point>
                   <Point>
                     <position>250</position>
-                    <quantity>6813.94</quantity>
+                    <quantity>12367.34</quantity>
                   </Point>
                   <Point>
                     <position>251</position>
-                    <quantity>6734.55</quantity>
+                    <quantity>12316.57</quantity>
                   </Point>
                   <Point>
                     <position>252</position>
-                    <quantity>6760.58</quantity>
+                    <quantity>12324.38</quantity>
                   </Point>
                   <Point>
                     <position>253</position>
-                    <quantity>6861.11</quantity>
+                    <quantity>12338.96</quantity>
                   </Point>
                   <Point>
                     <position>254</position>
-                    <quantity>6975.02</quantity>
+                    <quantity>12259.45</quantity>
                   </Point>
                   <Point>
                     <position>255</position>
-                    <quantity>7276.16</quantity>
+                    <quantity>12248.17</quantity>
                   </Point>
                   <Point>
                     <position>256</position>
-                    <quantity>7654.39</quantity>
+                    <quantity>12218.61</quantity>
                   </Point>
                   <Point>
                     <position>257</position>
-                    <quantity>7486.45</quantity>
+                    <quantity>12169.8</quantity>
                   </Point>
                   <Point>
                     <position>258</position>
-                    <quantity>7862.32</quantity>
+                    <quantity>12188.91</quantity>
                   </Point>
                   <Point>
                     <position>259</position>
-                    <quantity>8158.56</quantity>
+                    <quantity>12266.68</quantity>
                   </Point>
                   <Point>
                     <position>260</position>
-                    <quantity>8455.67</quantity>
+                    <quantity>12432.82</quantity>
                   </Point>
                   <Point>
                     <position>261</position>
-                    <quantity>8972.25</quantity>
+                    <quantity>12518.9</quantity>
                   </Point>
                   <Point>
                     <position>262</position>
-                    <quantity>9617.41</quantity>
+                    <quantity>12669.53</quantity>
                   </Point>
                   <Point>
                     <position>263</position>
-                    <quantity>10071.94</quantity>
+                    <quantity>12774.6</quantity>
                   </Point>
                   <Point>
                     <position>264</position>
-                    <quantity>10368.61</quantity>
+                    <quantity>12831.1</quantity>
                   </Point>
                   <Point>
                     <position>265</position>
-                    <quantity>10737.68</quantity>
+                    <quantity>12913.89</quantity>
                   </Point>
                   <Point>
                     <position>266</position>
-                    <quantity>11094.31</quantity>
+                    <quantity>12853.24</quantity>
                   </Point>
                   <Point>
                     <position>267</position>
-                    <quantity>11340.86</quantity>
+                    <quantity>12772.18</quantity>
                   </Point>
                   <Point>
                     <position>268</position>
-                    <quantity>11712.32</quantity>
+                    <quantity>12687.08</quantity>
                   </Point>
                   <Point>
                     <position>269</position>
-                    <quantity>11998.71</quantity>
+                    <quantity>12600.71</quantity>
                   </Point>
                   <Point>
                     <position>270</position>
-                    <quantity>12301.73</quantity>
+                    <quantity>12448.99</quantity>
                   </Point>
                   <Point>
                     <position>271</position>
-                    <quantity>12590.67</quantity>
+                    <quantity>12320.32</quantity>
                   </Point>
                   <Point>
                     <position>272</position>
-                    <quantity>12800.19</quantity>
+                    <quantity>12172.18</quantity>
                   </Point>
                   <Point>
                     <position>273</position>
-                    <quantity>12936.19</quantity>
+                    <quantity>12014.74</quantity>
                   </Point>
                   <Point>
                     <position>274</position>
-                    <quantity>13049.12</quantity>
+                    <quantity>11870.62</quantity>
                   </Point>
                   <Point>
                     <position>275</position>
-                    <quantity>13180.33</quantity>
+                    <quantity>11749.92</quantity>
                   </Point>
                   <Point>
                     <position>276</position>
-                    <quantity>13272.03</quantity>
+                    <quantity>11605.2</quantity>
                   </Point>
                   <Point>
                     <position>277</position>
-                    <quantity>13293.77</quantity>
+                    <quantity>11471.16</quantity>
                   </Point>
                   <Point>
                     <position>278</position>
-                    <quantity>13316.22</quantity>
+                    <quantity>11341.74</quantity>
                   </Point>
                   <Point>
                     <position>279</position>
-                    <quantity>13266.48</quantity>
+                    <quantity>11177.93</quantity>
                   </Point>
                   <Point>
                     <position>280</position>
-                    <quantity>13127.55</quantity>
+                    <quantity>11072.45</quantity>
                   </Point>
                   <Point>
                     <position>281</position>
-                    <quantity>12959.2</quantity>
+                    <quantity>11059.1</quantity>
                   </Point>
                   <Point>
                     <position>282</position>
-                    <quantity>12806.97</quantity>
+                    <quantity>11076.43</quantity>
                   </Point>
                   <Point>
                     <position>283</position>
-                    <quantity>12694.03</quantity>
+                    <quantity>11079</quantity>
                   </Point>
                   <Point>
                     <position>284</position>
-                    <quantity>12456.05</quantity>
+                    <quantity>10990.9</quantity>
                   </Point>
                   <Point>
                     <position>285</position>
-                    <quantity>12214.08</quantity>
+                    <quantity>10938.07</quantity>
                   </Point>
                   <Point>
                     <position>286</position>
-                    <quantity>12078.11</quantity>
+                    <quantity>10830.31</quantity>
                   </Point>
                   <Point>
                     <position>287</position>
-                    <quantity>11927.58</quantity>
+                    <quantity>10689.39</quantity>
                   </Point>
                   <Point>
                     <position>288</position>
-                    <quantity>11753.35</quantity>
+                    <quantity>10506.49</quantity>
                   </Point>
                   <Point>
                     <position>289</position>
-                    <quantity>11509.21</quantity>
+                    <quantity>10613.59</quantity>
                   </Point>
                   <Point>
                     <position>290</position>
-                    <quantity>11407.2</quantity>
+                    <quantity>10460.51</quantity>
                   </Point>
                   <Point>
                     <position>291</position>
-                    <quantity>11260.77</quantity>
+                    <quantity>10339.51</quantity>
                   </Point>
                   <Point>
                     <position>292</position>
-                    <quantity>11066.53</quantity>
+                    <quantity>10181.51</quantity>
                   </Point>
                   <Point>
                     <position>293</position>
-                    <quantity>10733.58</quantity>
+                    <quantity>10180.39</quantity>
                   </Point>
                   <Point>
                     <position>294</position>
-                    <quantity>10551.47</quantity>
+                    <quantity>10067.87</quantity>
                   </Point>
                   <Point>
                     <position>295</position>
-                    <quantity>10459.73</quantity>
+                    <quantity>9952.82</quantity>
                   </Point>
                   <Point>
                     <position>296</position>
-                    <quantity>10387.82</quantity>
+                    <quantity>9858.06</quantity>
                   </Point>
                   <Point>
                     <position>297</position>
-                    <quantity>10342.07</quantity>
+                    <quantity>9772.76</quantity>
                   </Point>
                   <Point>
                     <position>298</position>
-                    <quantity>10291.58</quantity>
+                    <quantity>9651.19</quantity>
                   </Point>
                   <Point>
                     <position>299</position>
-                    <quantity>10214.61</quantity>
+                    <quantity>9621.33</quantity>
                   </Point>
                   <Point>
                     <position>300</position>
-                    <quantity>10183.07</quantity>
+                    <quantity>9587.76</quantity>
                   </Point>
                   <Point>
                     <position>301</position>
-                    <quantity>10162.82</quantity>
+                    <quantity>9558.68</quantity>
                   </Point>
                   <Point>
                     <position>302</position>
-                    <quantity>10159.11</quantity>
+                    <quantity>9527.91</quantity>
                   </Point>
                   <Point>
                     <position>303</position>
-                    <quantity>10134.93</quantity>
+                    <quantity>9489.79</quantity>
                   </Point>
                   <Point>
                     <position>304</position>
-                    <quantity>10134.2</quantity>
+                    <quantity>9502.76</quantity>
                   </Point>
                   <Point>
                     <position>305</position>
-                    <quantity>10137.34</quantity>
+                    <quantity>9476.31</quantity>
                   </Point>
                   <Point>
                     <position>306</position>
-                    <quantity>10129.22</quantity>
+                    <quantity>9502.66</quantity>
                   </Point>
                   <Point>
                     <position>307</position>
-                    <quantity>10124.64</quantity>
+                    <quantity>9531.91</quantity>
                   </Point>
                   <Point>
                     <position>308</position>
-                    <quantity>10096.68</quantity>
+                    <quantity>9571.62</quantity>
                   </Point>
                   <Point>
                     <position>309</position>
-                    <quantity>10119.92</quantity>
+                    <quantity>9749.97</quantity>
                   </Point>
                   <Point>
                     <position>310</position>
-                    <quantity>10177.16</quantity>
+                    <quantity>9879.56</quantity>
                   </Point>
                   <Point>
                     <position>311</position>
-                    <quantity>10245.14</quantity>
+                    <quantity>9971.96</quantity>
                   </Point>
                   <Point>
                     <position>312</position>
-                    <quantity>10358.9</quantity>
+                    <quantity>10133.06</quantity>
                   </Point>
                   <Point>
                     <position>313</position>
-                    <quantity>10477.81</quantity>
+                    <quantity>10554.96</quantity>
                   </Point>
                   <Point>
                     <position>314</position>
-                    <quantity>10570.68</quantity>
+                    <quantity>10820.51</quantity>
                   </Point>
                   <Point>
                     <position>315</position>
-                    <quantity>10654.18</quantity>
+                    <quantity>11048.79</quantity>
                   </Point>
                   <Point>
                     <position>316</position>
-                    <quantity>10753.98</quantity>
+                    <quantity>11315.84</quantity>
                   </Point>
                   <Point>
                     <position>317</position>
-                    <quantity>10916.04</quantity>
+                    <quantity>11544.11</quantity>
                   </Point>
                   <Point>
                     <position>318</position>
-                    <quantity>11087.81</quantity>
+                    <quantity>11784.98</quantity>
                   </Point>
                   <Point>
                     <position>319</position>
-                    <quantity>11157.67</quantity>
+                    <quantity>12028.46</quantity>
                   </Point>
                   <Point>
                     <position>320</position>
-                    <quantity>11238.06</quantity>
+                    <quantity>12235.59</quantity>
                   </Point>
                   <Point>
                     <position>321</position>
-                    <quantity>11186.55</quantity>
+                    <quantity>12281.99</quantity>
                   </Point>
                   <Point>
                     <position>322</position>
-                    <quantity>11117.68</quantity>
+                    <quantity>12416.05</quantity>
                   </Point>
                   <Point>
                     <position>323</position>
-                    <quantity>11054.32</quantity>
+                    <quantity>12540.48</quantity>
                   </Point>
                   <Point>
                     <position>324</position>
-                    <quantity>10908.92</quantity>
+                    <quantity>12610.92</quantity>
                   </Point>
                   <Point>
                     <position>325</position>
-                    <quantity>10668.59</quantity>
+                    <quantity>12702.12</quantity>
                   </Point>
                   <Point>
                     <position>326</position>
-                    <quantity>10328.85</quantity>
+                    <quantity>12776.95</quantity>
                   </Point>
                   <Point>
                     <position>327</position>
-                    <quantity>10058.98</quantity>
+                    <quantity>12868.44</quantity>
                   </Point>
                   <Point>
                     <position>328</position>
-                    <quantity>9700.7</quantity>
+                    <quantity>12868.7</quantity>
                   </Point>
                   <Point>
                     <position>329</position>
-                    <quantity>9455.5</quantity>
+                    <quantity>12729.92</quantity>
                   </Point>
                   <Point>
                     <position>330</position>
-                    <quantity>9315.32</quantity>
+                    <quantity>12738.28</quantity>
                   </Point>
                   <Point>
                     <position>331</position>
-                    <quantity>9133</quantity>
+                    <quantity>12752.19</quantity>
                   </Point>
                   <Point>
                     <position>332</position>
-                    <quantity>8872.11</quantity>
+                    <quantity>12754.92</quantity>
                   </Point>
                   <Point>
                     <position>333</position>
-                    <quantity>8804.98</quantity>
+                    <quantity>12647.45</quantity>
                   </Point>
                   <Point>
                     <position>334</position>
-                    <quantity>8656.81</quantity>
+                    <quantity>12681.75</quantity>
                   </Point>
                   <Point>
                     <position>335</position>
-                    <quantity>8686.64</quantity>
+                    <quantity>12726.14</quantity>
                   </Point>
                   <Point>
                     <position>336</position>
-                    <quantity>8560.52</quantity>
+                    <quantity>12775.13</quantity>
                   </Point>
                   <Point>
                     <position>337</position>
-                    <quantity>8407.4</quantity>
+                    <quantity>12519.81</quantity>
                   </Point>
                   <Point>
                     <position>338</position>
-                    <quantity>8296.83</quantity>
+                    <quantity>12418.52</quantity>
                   </Point>
                   <Point>
                     <position>339</position>
-                    <quantity>8246.08</quantity>
+                    <quantity>12395.99</quantity>
                   </Point>
                   <Point>
                     <position>340</position>
-                    <quantity>8146.4</quantity>
+                    <quantity>12383.74</quantity>
                   </Point>
                   <Point>
                     <position>341</position>
-                    <quantity>8200.73</quantity>
+                    <quantity>12420.31</quantity>
                   </Point>
                   <Point>
                     <position>342</position>
-                    <quantity>8319.32</quantity>
+                    <quantity>12364.66</quantity>
                   </Point>
                   <Point>
                     <position>343</position>
-                    <quantity>8385.88</quantity>
+                    <quantity>12313.73</quantity>
                   </Point>
                   <Point>
                     <position>344</position>
-                    <quantity>8376.72</quantity>
+                    <quantity>12251.49</quantity>
                   </Point>
                   <Point>
                     <position>345</position>
-                    <quantity>8657.97</quantity>
+                    <quantity>12267.63</quantity>
                   </Point>
                   <Point>
                     <position>346</position>
-                    <quantity>8712.97</quantity>
+                    <quantity>12225.42</quantity>
                   </Point>
                   <Point>
                     <position>347</position>
-                    <quantity>8699.3</quantity>
+                    <quantity>12173.22</quantity>
                   </Point>
                   <Point>
                     <position>348</position>
-                    <quantity>8897.54</quantity>
+                    <quantity>12178.26</quantity>
                   </Point>
                   <Point>
                     <position>349</position>
-                    <quantity>8995.32</quantity>
+                    <quantity>12233.34</quantity>
                   </Point>
                   <Point>
                     <position>350</position>
-                    <quantity>9152.92</quantity>
+                    <quantity>12150.75</quantity>
                   </Point>
                   <Point>
                     <position>351</position>
-                    <quantity>9330.22</quantity>
+                    <quantity>12131.49</quantity>
                   </Point>
                   <Point>
                     <position>352</position>
-                    <quantity>9466.42</quantity>
+                    <quantity>12102.48</quantity>
                   </Point>
                   <Point>
                     <position>353</position>
-                    <quantity>9506.02</quantity>
+                    <quantity>12081.03</quantity>
                   </Point>
                   <Point>
                     <position>354</position>
-                    <quantity>9932.16</quantity>
+                    <quantity>12097.76</quantity>
                   </Point>
                   <Point>
                     <position>355</position>
-                    <quantity>10194.73</quantity>
+                    <quantity>12167.02</quantity>
                   </Point>
                   <Point>
                     <position>356</position>
-                    <quantity>10537.12</quantity>
+                    <quantity>12309.68</quantity>
                   </Point>
                   <Point>
                     <position>357</position>
-                    <quantity>10736.6</quantity>
+                    <quantity>12417.69</quantity>
                   </Point>
                   <Point>
                     <position>358</position>
-                    <quantity>11095.79</quantity>
+                    <quantity>12591.67</quantity>
                   </Point>
                   <Point>
                     <position>359</position>
-                    <quantity>11348.8</quantity>
+                    <quantity>12714.51</quantity>
                   </Point>
                   <Point>
                     <position>360</position>
-                    <quantity>11650.86</quantity>
+                    <quantity>12777.46</quantity>
                   </Point>
                   <Point>
                     <position>361</position>
-                    <quantity>11760.42</quantity>
+                    <quantity>12792.56</quantity>
                   </Point>
                   <Point>
                     <position>362</position>
-                    <quantity>11845.96</quantity>
+                    <quantity>12733.75</quantity>
                   </Point>
                   <Point>
                     <position>363</position>
-                    <quantity>11958.63</quantity>
+                    <quantity>12657.59</quantity>
                   </Point>
                   <Point>
                     <position>364</position>
-                    <quantity>12066.58</quantity>
+                    <quantity>12582.8</quantity>
                   </Point>
                   <Point>
                     <position>365</position>
-                    <quantity>12094.63</quantity>
+                    <quantity>12506.52</quantity>
                   </Point>
                   <Point>
                     <position>366</position>
-                    <quantity>12318.68</quantity>
+                    <quantity>12355.69</quantity>
                   </Point>
                   <Point>
                     <position>367</position>
-                    <quantity>12525.23</quantity>
+                    <quantity>12214.83</quantity>
                   </Point>
                   <Point>
                     <position>368</position>
-                    <quantity>12667.92</quantity>
+                    <quantity>12068.42</quantity>
                   </Point>
                   <Point>
                     <position>369</position>
-                    <quantity>12808.76</quantity>
+                    <quantity>11971.52</quantity>
                   </Point>
                   <Point>
                     <position>370</position>
-                    <quantity>12907.23</quantity>
+                    <quantity>11830.63</quantity>
                   </Point>
                   <Point>
                     <position>371</position>
-                    <quantity>12995.83</quantity>
+                    <quantity>11710.57</quantity>
                   </Point>
                   <Point>
                     <position>372</position>
-                    <quantity>13045.12</quantity>
+                    <quantity>11568.94</quantity>
                   </Point>
                   <Point>
                     <position>373</position>
-                    <quantity>13031.46</quantity>
+                    <quantity>11445.42</quantity>
                   </Point>
                   <Point>
                     <position>374</position>
-                    <quantity>13018.18</quantity>
+                    <quantity>11308.75</quantity>
                   </Point>
                   <Point>
                     <position>375</position>
-                    <quantity>12951.53</quantity>
+                    <quantity>11154.54</quantity>
                   </Point>
                   <Point>
                     <position>376</position>
-                    <quantity>12844.28</quantity>
+                    <quantity>11050.44</quantity>
                   </Point>
                   <Point>
                     <position>377</position>
-                    <quantity>12786.03</quantity>
+                    <quantity>11062.24</quantity>
                   </Point>
                   <Point>
                     <position>378</position>
-                    <quantity>12727.3</quantity>
+                    <quantity>11079.41</quantity>
                   </Point>
                   <Point>
                     <position>379</position>
-                    <quantity>12609.55</quantity>
+                    <quantity>11079.93</quantity>
                   </Point>
                   <Point>
                     <position>380</position>
-                    <quantity>12482.95</quantity>
+                    <quantity>11005.07</quantity>
                   </Point>
                   <Point>
                     <position>381</position>
-                    <quantity>12333.33</quantity>
+                    <quantity>11003.19</quantity>
                   </Point>
                   <Point>
                     <position>382</position>
-                    <quantity>12240</quantity>
+                    <quantity>10903.83</quantity>
                   </Point>
                   <Point>
                     <position>383</position>
-                    <quantity>12097.74</quantity>
+                    <quantity>10775.6</quantity>
                   </Point>
                   <Point>
                     <position>384</position>
-                    <quantity>11944.03</quantity>
+                    <quantity>10583.34</quantity>
                   </Point>
                   <Point>
                     <position>385</position>
-                    <quantity>11843.04</quantity>
+                    <quantity>10548.14</quantity>
                   </Point>
                   <Point>
                     <position>386</position>
-                    <quantity>11776.81</quantity>
+                    <quantity>10401.83</quantity>
                   </Point>
                   <Point>
                     <position>387</position>
-                    <quantity>11650.91</quantity>
+                    <quantity>10273.78</quantity>
                   </Point>
                   <Point>
                     <position>388</position>
-                    <quantity>11522.76</quantity>
+                    <quantity>10116.2</quantity>
                   </Point>
                   <Point>
                     <position>389</position>
-                    <quantity>11350.18</quantity>
+                    <quantity>10107.29</quantity>
                   </Point>
                   <Point>
                     <position>390</position>
-                    <quantity>11271.84</quantity>
+                    <quantity>9989.83</quantity>
                   </Point>
                   <Point>
                     <position>391</position>
-                    <quantity>11195.79</quantity>
+                    <quantity>9890.63</quantity>
                   </Point>
                   <Point>
                     <position>392</position>
-                    <quantity>11130.89</quantity>
+                    <quantity>9787.68</quantity>
                   </Point>
                   <Point>
                     <position>393</position>
-                    <quantity>11087.69</quantity>
+                    <quantity>9753.46</quantity>
                   </Point>
                   <Point>
                     <position>394</position>
-                    <quantity>11036.83</quantity>
+                    <quantity>9662.65</quantity>
                   </Point>
                   <Point>
                     <position>395</position>
-                    <quantity>10944.79</quantity>
+                    <quantity>9616.92</quantity>
                   </Point>
                   <Point>
                     <position>396</position>
-                    <quantity>10887.74</quantity>
+                    <quantity>9575.47</quantity>
                   </Point>
                   <Point>
                     <position>397</position>
-                    <quantity>10812.67</quantity>
+                    <quantity>9584.87</quantity>
                   </Point>
                   <Point>
                     <position>398</position>
-                    <quantity>10790.09</quantity>
+                    <quantity>9550.81</quantity>
                   </Point>
                   <Point>
                     <position>399</position>
-                    <quantity>10784.53</quantity>
+                    <quantity>9502.96</quantity>
                   </Point>
                   <Point>
                     <position>400</position>
-                    <quantity>10773.87</quantity>
+                    <quantity>9516.93</quantity>
                   </Point>
                   <Point>
                     <position>401</position>
-                    <quantity>10761.57</quantity>
+                    <quantity>9480.32</quantity>
                   </Point>
                   <Point>
                     <position>402</position>
-                    <quantity>10784.25</quantity>
+                    <quantity>9501.82</quantity>
                   </Point>
                   <Point>
                     <position>403</position>
-                    <quantity>10761.65</quantity>
+                    <quantity>9533.44</quantity>
                   </Point>
                   <Point>
                     <position>404</position>
-                    <quantity>10738.42</quantity>
+                    <quantity>9576.87</quantity>
                   </Point>
                   <Point>
                     <position>405</position>
-                    <quantity>10818.47</quantity>
+                    <quantity>9644.06</quantity>
                   </Point>
                   <Point>
                     <position>406</position>
-                    <quantity>10906.66</quantity>
+                    <quantity>9767.57</quantity>
                   </Point>
                   <Point>
                     <position>407</position>
-                    <quantity>11014.25</quantity>
+                    <quantity>9876.2</quantity>
                   </Point>
                   <Point>
                     <position>408</position>
-                    <quantity>11097.93</quantity>
+                    <quantity>10031.83</quantity>
                   </Point>
                   <Point>
                     <position>409</position>
-                    <quantity>11218.38</quantity>
+                    <quantity>10434.9</quantity>
                   </Point>
                   <Point>
                     <position>410</position>
-                    <quantity>11401.56</quantity>
+                    <quantity>10687.78</quantity>
                   </Point>
                   <Point>
                     <position>411</position>
-                    <quantity>11499.15</quantity>
+                    <quantity>10913.38</quantity>
                   </Point>
                   <Point>
                     <position>412</position>
-                    <quantity>11591.29</quantity>
+                    <quantity>11184.99</quantity>
                   </Point>
                   <Point>
                     <position>413</position>
-                    <quantity>11641.45</quantity>
+                    <quantity>11500.97</quantity>
                   </Point>
                   <Point>
                     <position>414</position>
-                    <quantity>11759.53</quantity>
+                    <quantity>11728.97</quantity>
                   </Point>
                   <Point>
                     <position>415</position>
-                    <quantity>11806.2</quantity>
+                    <quantity>11974.26</quantity>
                   </Point>
                   <Point>
                     <position>416</position>
-                    <quantity>11839.62</quantity>
+                    <quantity>12177.02</quantity>
                   </Point>
                   <Point>
                     <position>417</position>
-                    <quantity>11732.18</quantity>
+                    <quantity>12264.61</quantity>
                   </Point>
                   <Point>
                     <position>418</position>
-                    <quantity>11660.93</quantity>
+                    <quantity>12402.14</quantity>
                   </Point>
                   <Point>
                     <position>419</position>
-                    <quantity>11609.05</quantity>
+                    <quantity>12529.55</quantity>
                   </Point>
                   <Point>
                     <position>420</position>
-                    <quantity>11497.48</quantity>
+                    <quantity>12592.35</quantity>
                   </Point>
                   <Point>
                     <position>421</position>
-                    <quantity>11283.9</quantity>
+                    <quantity>12702.48</quantity>
                   </Point>
                   <Point>
                     <position>422</position>
-                    <quantity>10959.35</quantity>
+                    <quantity>12774.98</quantity>
                   </Point>
                   <Point>
                     <position>423</position>
-                    <quantity>10670.76</quantity>
+                    <quantity>12860.63</quantity>
                   </Point>
                   <Point>
                     <position>424</position>
-                    <quantity>10475.02</quantity>
+                    <quantity>12864.53</quantity>
                   </Point>
                   <Point>
                     <position>425</position>
-                    <quantity>10392.27</quantity>
+                    <quantity>12722.71</quantity>
                   </Point>
                   <Point>
                     <position>426</position>
-                    <quantity>10312.31</quantity>
+                    <quantity>12728.12</quantity>
                   </Point>
                   <Point>
                     <position>427</position>
-                    <quantity>10024.99</quantity>
+                    <quantity>12742.07</quantity>
                   </Point>
                   <Point>
                     <position>428</position>
-                    <quantity>9799.31</quantity>
+                    <quantity>12735.89</quantity>
                   </Point>
                   <Point>
                     <position>429</position>
-                    <quantity>9611.11</quantity>
+                    <quantity>12612.04</quantity>
                   </Point>
                   <Point>
                     <position>430</position>
-                    <quantity>9504.53</quantity>
+                    <quantity>12653.92</quantity>
                   </Point>
                   <Point>
                     <position>431</position>
-                    <quantity>9446.82</quantity>
+                    <quantity>12701.36</quantity>
                   </Point>
                   <Point>
                     <position>432</position>
-                    <quantity>9442.76</quantity>
+                    <quantity>12743.93</quantity>
                   </Point>
                   <Point>
                     <position>433</position>
-                    <quantity>9488.29</quantity>
+                    <quantity>12455.49</quantity>
                   </Point>
                   <Point>
                     <position>434</position>
-                    <quantity>9432.17</quantity>
+                    <quantity>12357.85</quantity>
                   </Point>
                   <Point>
                     <position>435</position>
-                    <quantity>9381.34</quantity>
+                    <quantity>12338.33</quantity>
                   </Point>
                   <Point>
                     <position>436</position>
-                    <quantity>9303.44</quantity>
+                    <quantity>12332.77</quantity>
                   </Point>
                   <Point>
                     <position>437</position>
-                    <quantity>9268.77</quantity>
+                    <quantity>12290.16</quantity>
                   </Point>
                   <Point>
                     <position>438</position>
-                    <quantity>9302.1</quantity>
+                    <quantity>12238.51</quantity>
                   </Point>
                   <Point>
                     <position>439</position>
-                    <quantity>9158.77</quantity>
+                    <quantity>12191.17</quantity>
                   </Point>
                   <Point>
                     <position>440</position>
-                    <quantity>8961.71</quantity>
+                    <quantity>12130.47</quantity>
                   </Point>
                   <Point>
                     <position>441</position>
-                    <quantity>8745.11</quantity>
+                    <quantity>12051.95</quantity>
                   </Point>
                   <Point>
                     <position>442</position>
-                    <quantity>8570.88</quantity>
+                    <quantity>12016.34</quantity>
                   </Point>
                   <Point>
                     <position>443</position>
-                    <quantity>8483.41</quantity>
+                    <quantity>11971.96</quantity>
                   </Point>
                   <Point>
                     <position>444</position>
-                    <quantity>8437.66</quantity>
+                    <quantity>11969.17</quantity>
                   </Point>
                   <Point>
                     <position>445</position>
-                    <quantity>8365.42</quantity>
+                    <quantity>12029.49</quantity>
                   </Point>
                   <Point>
                     <position>446</position>
-                    <quantity>8175.01</quantity>
+                    <quantity>11953.06</quantity>
                   </Point>
                   <Point>
                     <position>447</position>
-                    <quantity>8054.21</quantity>
+                    <quantity>11927.49</quantity>
                   </Point>
                   <Point>
                     <position>448</position>
-                    <quantity>8038.49</quantity>
+                    <quantity>11894.5</quantity>
                   </Point>
                   <Point>
                     <position>449</position>
-                    <quantity>8100.94</quantity>
+                    <quantity>11949.3</quantity>
                   </Point>
                   <Point>
                     <position>450</position>
-                    <quantity>8146.66</quantity>
+                    <quantity>11957.8</quantity>
                   </Point>
                   <Point>
                     <position>451</position>
-                    <quantity>8311.02</quantity>
+                    <quantity>12014.53</quantity>
                   </Point>
                   <Point>
                     <position>452</position>
-                    <quantity>8483.23</quantity>
+                    <quantity>12145.06</quantity>
                   </Point>
                   <Point>
                     <position>453</position>
-                    <quantity>8902.24</quantity>
+                    <quantity>12108.33</quantity>
                   </Point>
                   <Point>
                     <position>454</position>
-                    <quantity>9546.61</quantity>
+                    <quantity>12279.33</quantity>
                   </Point>
                   <Point>
                     <position>455</position>
-                    <quantity>9991.37</quantity>
+                    <quantity>12393.25</quantity>
                   </Point>
                   <Point>
                     <position>456</position>
-                    <quantity>10326.17</quantity>
+                    <quantity>12458.82</quantity>
                   </Point>
                   <Point>
                     <position>457</position>
-                    <quantity>10690.02</quantity>
+                    <quantity>12346.65</quantity>
                   </Point>
                   <Point>
                     <position>458</position>
-                    <quantity>10848.76</quantity>
+                    <quantity>12287.14</quantity>
                   </Point>
                   <Point>
                     <position>459</position>
-                    <quantity>11036.21</quantity>
+                    <quantity>12220.7</quantity>
                   </Point>
                   <Point>
                     <position>460</position>
-                    <quantity>11305.08</quantity>
+                    <quantity>12141.73</quantity>
                   </Point>
                   <Point>
                     <position>461</position>
-                    <quantity>11553.58</quantity>
+                    <quantity>12138.64</quantity>
                   </Point>
                   <Point>
                     <position>462</position>
-                    <quantity>11879.07</quantity>
+                    <quantity>12000.8</quantity>
                   </Point>
                   <Point>
                     <position>463</position>
-                    <quantity>12177.59</quantity>
+                    <quantity>11872.27</quantity>
                   </Point>
                   <Point>
                     <position>464</position>
-                    <quantity>12480.65</quantity>
+                    <quantity>11749.54</quantity>
                   </Point>
                   <Point>
                     <position>465</position>
-                    <quantity>12616.34</quantity>
+                    <quantity>11682.07</quantity>
                   </Point>
                   <Point>
                     <position>466</position>
-                    <quantity>12654.57</quantity>
+                    <quantity>11537.36</quantity>
                   </Point>
                   <Point>
                     <position>467</position>
-                    <quantity>12724.6</quantity>
+                    <quantity>11392.39</quantity>
                   </Point>
                   <Point>
                     <position>468</position>
-                    <quantity>12785.11</quantity>
+                    <quantity>11247.73</quantity>
                   </Point>
                   <Point>
                     <position>469</position>
-                    <quantity>12780.42</quantity>
+                    <quantity>11178.46</quantity>
                   </Point>
                   <Point>
                     <position>470</position>
-                    <quantity>12711.76</quantity>
+                    <quantity>11033</quantity>
                   </Point>
                   <Point>
                     <position>471</position>
-                    <quantity>12577.48</quantity>
+                    <quantity>10893.8</quantity>
                   </Point>
                   <Point>
                     <position>472</position>
-                    <quantity>12415.27</quantity>
+                    <quantity>10791.01</quantity>
                   </Point>
                   <Point>
                     <position>473</position>
-                    <quantity>12273.05</quantity>
+                    <quantity>10809.63</quantity>
                   </Point>
                   <Point>
                     <position>474</position>
-                    <quantity>12187.28</quantity>
+                    <quantity>10821.65</quantity>
                   </Point>
                   <Point>
                     <position>475</position>
-                    <quantity>12031.14</quantity>
+                    <quantity>10839.37</quantity>
                   </Point>
                   <Point>
                     <position>476</position>
-                    <quantity>11878.66</quantity>
+                    <quantity>10743.65</quantity>
                   </Point>
                   <Point>
                     <position>477</position>
-                    <quantity>11763.99</quantity>
+                    <quantity>10833.77</quantity>
                   </Point>
                   <Point>
                     <position>478</position>
-                    <quantity>11659.08</quantity>
+                    <quantity>10746.74</quantity>
                   </Point>
                   <Point>
                     <position>479</position>
-                    <quantity>11542.35</quantity>
+                    <quantity>10621.38</quantity>
                   </Point>
                   <Point>
                     <position>480</position>
-                    <quantity>11398.76</quantity>
+                    <quantity>10431.26</quantity>
                   </Point>
                   <Point>
                     <position>481</position>
-                    <quantity>11251.32</quantity>
+                    <quantity>10278.98</quantity>
                   </Point>
                   <Point>
                     <position>482</position>
-                    <quantity>11187.45</quantity>
+                    <quantity>10139.91</quantity>
                   </Point>
                   <Point>
                     <position>483</position>
-                    <quantity>11033.69</quantity>
+                    <quantity>10032.07</quantity>
                   </Point>
                   <Point>
                     <position>484</position>
-                    <quantity>10824.21</quantity>
+                    <quantity>9886.08</quantity>
                   </Point>
                   <Point>
                     <position>485</position>
-                    <quantity>10548.34</quantity>
+                    <quantity>9929.72</quantity>
                   </Point>
                   <Point>
                     <position>486</position>
-                    <quantity>10411.65</quantity>
+                    <quantity>9725.43</quantity>
                   </Point>
                   <Point>
                     <position>487</position>
-                    <quantity>10336.23</quantity>
+                    <quantity>9638.82</quantity>
                   </Point>
                   <Point>
                     <position>488</position>
-                    <quantity>10233.82</quantity>
+                    <quantity>9516.49</quantity>
                   </Point>
                   <Point>
                     <position>489</position>
-                    <quantity>10109.08</quantity>
+                    <quantity>9598.54</quantity>
                   </Point>
                   <Point>
                     <position>490</position>
-                    <quantity>10003.16</quantity>
+                    <quantity>9499.07</quantity>
                   </Point>
                   <Point>
                     <position>491</position>
-                    <quantity>9904.84</quantity>
+                    <quantity>9491.05</quantity>
                   </Point>
                   <Point>
                     <position>492</position>
-                    <quantity>9814.67</quantity>
+                    <quantity>9433.61</quantity>
                   </Point>
                   <Point>
                     <position>493</position>
-                    <quantity>9782.61</quantity>
+                    <quantity>9458.28</quantity>
                   </Point>
                   <Point>
                     <position>494</position>
-                    <quantity>9792.84</quantity>
+                    <quantity>9308.81</quantity>
                   </Point>
                   <Point>
                     <position>495</position>
-                    <quantity>9794.83</quantity>
+                    <quantity>9298.6</quantity>
                   </Point>
                   <Point>
                     <position>496</position>
-                    <quantity>9773.93</quantity>
+                    <quantity>9259.53</quantity>
                   </Point>
                   <Point>
                     <position>497</position>
-                    <quantity>9723.56</quantity>
+                    <quantity>9298.96</quantity>
                   </Point>
                   <Point>
                     <position>498</position>
-                    <quantity>9711.57</quantity>
+                    <quantity>9292.18</quantity>
                   </Point>
                   <Point>
                     <position>499</position>
-                    <quantity>9692.82</quantity>
+                    <quantity>9224.62</quantity>
                   </Point>
                   <Point>
                     <position>500</position>
-                    <quantity>9695.23</quantity>
+                    <quantity>9224.02</quantity>
                   </Point>
                   <Point>
                     <position>501</position>
-                    <quantity>9707.34</quantity>
+                    <quantity>9090.08</quantity>
                   </Point>
                   <Point>
                     <position>502</position>
-                    <quantity>9733.37</quantity>
+                    <quantity>9140.44</quantity>
                   </Point>
                   <Point>
                     <position>503</position>
-                    <quantity>9760.62</quantity>
+                    <quantity>9217.37</quantity>
                   </Point>
                   <Point>
                     <position>504</position>
-                    <quantity>9787.81</quantity>
+                    <quantity>9240.83</quantity>
                   </Point>
                   <Point>
                     <position>505</position>
-                    <quantity>9855.51</quantity>
+                    <quantity>9183.09</quantity>
                   </Point>
                   <Point>
                     <position>506</position>
-                    <quantity>9895.6</quantity>
+                    <quantity>9311.41</quantity>
                   </Point>
                   <Point>
                     <position>507</position>
-                    <quantity>9876.44</quantity>
+                    <quantity>9393.75</quantity>
                   </Point>
                   <Point>
                     <position>508</position>
-                    <quantity>9944.71</quantity>
+                    <quantity>9394.66</quantity>
                   </Point>
                   <Point>
                     <position>509</position>
-                    <quantity>9919.06</quantity>
+                    <quantity>9544.17</quantity>
                   </Point>
                   <Point>
                     <position>510</position>
-                    <quantity>9847.35</quantity>
+                    <quantity>9720.99</quantity>
                   </Point>
                   <Point>
                     <position>511</position>
-                    <quantity>9808.41</quantity>
+                    <quantity>9828.63</quantity>
                   </Point>
                   <Point>
                     <position>512</position>
-                    <quantity>9746.35</quantity>
+                    <quantity>9884.13</quantity>
                   </Point>
                   <Point>
                     <position>513</position>
-                    <quantity>9664.62</quantity>
+                    <quantity>10048.51</quantity>
                   </Point>
                   <Point>
                     <position>514</position>
-                    <quantity>9540.43</quantity>
+                    <quantity>10216.54</quantity>
                   </Point>
                   <Point>
                     <position>515</position>
-                    <quantity>9405.51</quantity>
+                    <quantity>10338.19</quantity>
                   </Point>
                   <Point>
                     <position>516</position>
-                    <quantity>9280.89</quantity>
+                    <quantity>10441.37</quantity>
                   </Point>
                   <Point>
                     <position>517</position>
-                    <quantity>9165.98</quantity>
+                    <quantity>10622.29</quantity>
                   </Point>
                   <Point>
                     <position>518</position>
-                    <quantity>8925.48</quantity>
+                    <quantity>10736.98</quantity>
                   </Point>
                   <Point>
                     <position>519</position>
-                    <quantity>8741.34</quantity>
+                    <quantity>10835.89</quantity>
                   </Point>
                   <Point>
                     <position>520</position>
-                    <quantity>8576.55</quantity>
+                    <quantity>10921.91</quantity>
                   </Point>
                   <Point>
                     <position>521</position>
-                    <quantity>8451.8</quantity>
+                    <quantity>10873.76</quantity>
                   </Point>
                   <Point>
                     <position>522</position>
-                    <quantity>8072.43</quantity>
+                    <quantity>10989.37</quantity>
                   </Point>
                   <Point>
                     <position>523</position>
-                    <quantity>7908.02</quantity>
+                    <quantity>11077.45</quantity>
                   </Point>
                   <Point>
                     <position>524</position>
-                    <quantity>7720.6</quantity>
+                    <quantity>11093.69</quantity>
                   </Point>
                   <Point>
                     <position>525</position>
-                    <quantity>7634.59</quantity>
+                    <quantity>10950.89</quantity>
                   </Point>
                   <Point>
                     <position>526</position>
-                    <quantity>7302.75</quantity>
+                    <quantity>11062.66</quantity>
                   </Point>
                   <Point>
                     <position>527</position>
-                    <quantity>7104.09</quantity>
+                    <quantity>11121.1</quantity>
                   </Point>
                   <Point>
                     <position>528</position>
-                    <quantity>6919.27</quantity>
+                    <quantity>11114.63</quantity>
                   </Point>
                   <Point>
                     <position>529</position>
-                    <quantity>6855.87</quantity>
+                    <quantity>10955.49</quantity>
                   </Point>
                   <Point>
                     <position>530</position>
-                    <quantity>6701.59</quantity>
+                    <quantity>10917.11</quantity>
                   </Point>
                   <Point>
                     <position>531</position>
-                    <quantity>6651.73</quantity>
+                    <quantity>10908.77</quantity>
                   </Point>
                   <Point>
                     <position>532</position>
-                    <quantity>6576.79</quantity>
+                    <quantity>10892.03</quantity>
                   </Point>
                   <Point>
                     <position>533</position>
-                    <quantity>6570.03</quantity>
+                    <quantity>10847.23</quantity>
                   </Point>
                   <Point>
                     <position>534</position>
-                    <quantity>6462.6</quantity>
+                    <quantity>10781.5</quantity>
                   </Point>
                   <Point>
                     <position>535</position>
-                    <quantity>6394.01</quantity>
+                    <quantity>10811.15</quantity>
                   </Point>
                   <Point>
                     <position>536</position>
-                    <quantity>6328.84</quantity>
+                    <quantity>10788.14</quantity>
                   </Point>
                   <Point>
                     <position>537</position>
-                    <quantity>6229.16</quantity>
+                    <quantity>10729.52</quantity>
                   </Point>
                   <Point>
                     <position>538</position>
-                    <quantity>6029.9</quantity>
+                    <quantity>10678.35</quantity>
                   </Point>
                   <Point>
                     <position>539</position>
-                    <quantity>5955.31</quantity>
+                    <quantity>10643.56</quantity>
                   </Point>
                   <Point>
                     <position>540</position>
-                    <quantity>5985.77</quantity>
+                    <quantity>10608.14</quantity>
                   </Point>
                   <Point>
                     <position>541</position>
-                    <quantity>6084.8</quantity>
+                    <quantity>10639.77</quantity>
                   </Point>
                   <Point>
                     <position>542</position>
-                    <quantity>6285.83</quantity>
+                    <quantity>10615.56</quantity>
                   </Point>
                   <Point>
                     <position>543</position>
-                    <quantity>6429.27</quantity>
+                    <quantity>10598.12</quantity>
                   </Point>
                   <Point>
                     <position>544</position>
-                    <quantity>6457.17</quantity>
+                    <quantity>10555.84</quantity>
                   </Point>
                   <Point>
                     <position>545</position>
-                    <quantity>6600.69</quantity>
+                    <quantity>10614.71</quantity>
                   </Point>
                   <Point>
                     <position>546</position>
-                    <quantity>6762.42</quantity>
+                    <quantity>10606.21</quantity>
                   </Point>
                   <Point>
                     <position>547</position>
-                    <quantity>6982.1</quantity>
+                    <quantity>10690.22</quantity>
                   </Point>
                   <Point>
                     <position>548</position>
-                    <quantity>7389.57</quantity>
+                    <quantity>10818.74</quantity>
                   </Point>
                   <Point>
                     <position>549</position>
-                    <quantity>7891.3</quantity>
+                    <quantity>10966.83</quantity>
                   </Point>
                   <Point>
                     <position>550</position>
-                    <quantity>8536.86</quantity>
+                    <quantity>11054.17</quantity>
                   </Point>
                   <Point>
                     <position>551</position>
-                    <quantity>8926.06</quantity>
+                    <quantity>11131.98</quantity>
                   </Point>
                   <Point>
                     <position>552</position>
-                    <quantity>9244.82</quantity>
+                    <quantity>11228.31</quantity>
                   </Point>
                   <Point>
                     <position>553</position>
-                    <quantity>9496.61</quantity>
+                    <quantity>11294.43</quantity>
                   </Point>
                   <Point>
                     <position>554</position>
-                    <quantity>9854.76</quantity>
+                    <quantity>11239.78</quantity>
                   </Point>
                   <Point>
                     <position>555</position>
-                    <quantity>10301.39</quantity>
+                    <quantity>11209.43</quantity>
                   </Point>
                   <Point>
                     <position>556</position>
-                    <quantity>10681.94</quantity>
+                    <quantity>11125.39</quantity>
                   </Point>
                   <Point>
                     <position>557</position>
-                    <quantity>10911.34</quantity>
+                    <quantity>11134.38</quantity>
                   </Point>
                   <Point>
                     <position>558</position>
-                    <quantity>11098.88</quantity>
+                    <quantity>11004.72</quantity>
                   </Point>
                   <Point>
                     <position>559</position>
-                    <quantity>11338.99</quantity>
+                    <quantity>10900.75</quantity>
                   </Point>
                   <Point>
                     <position>560</position>
-                    <quantity>11602.78</quantity>
+                    <quantity>10790.37</quantity>
                   </Point>
                   <Point>
                     <position>561</position>
-                    <quantity>11783.12</quantity>
+                    <quantity>10616.4</quantity>
                   </Point>
                   <Point>
                     <position>562</position>
-                    <quantity>11870.89</quantity>
+                    <quantity>10569.81</quantity>
                   </Point>
                   <Point>
                     <position>563</position>
-                    <quantity>11924.4</quantity>
+                    <quantity>10443.22</quantity>
                   </Point>
                   <Point>
                     <position>564</position>
-                    <quantity>11969.87</quantity>
+                    <quantity>10311.56</quantity>
                   </Point>
                   <Point>
                     <position>565</position>
-                    <quantity>11929.52</quantity>
+                    <quantity>10163.64</quantity>
                   </Point>
                   <Point>
                     <position>566</position>
-                    <quantity>11902.85</quantity>
+                    <quantity>10091.91</quantity>
                   </Point>
                   <Point>
                     <position>567</position>
-                    <quantity>11788.03</quantity>
+                    <quantity>9985.49</quantity>
                   </Point>
                   <Point>
                     <position>568</position>
-                    <quantity>11695.01</quantity>
+                    <quantity>9925.42</quantity>
                   </Point>
                   <Point>
                     <position>569</position>
-                    <quantity>11642.65</quantity>
+                    <quantity>9932.17</quantity>
                   </Point>
                   <Point>
                     <position>570</position>
-                    <quantity>11525.11</quantity>
+                    <quantity>10000.8</quantity>
                   </Point>
                   <Point>
                     <position>571</position>
-                    <quantity>11426.61</quantity>
+                    <quantity>9985.22</quantity>
                   </Point>
                   <Point>
                     <position>572</position>
-                    <quantity>11311.05</quantity>
+                    <quantity>9923.77</quantity>
                   </Point>
                   <Point>
                     <position>573</position>
-                    <quantity>11189.7</quantity>
+                    <quantity>10147.06</quantity>
                   </Point>
                   <Point>
                     <position>574</position>
-                    <quantity>11046.9</quantity>
+                    <quantity>10021.04</quantity>
                   </Point>
                   <Point>
                     <position>575</position>
-                    <quantity>10930.43</quantity>
+                    <quantity>9918.59</quantity>
                   </Point>
                   <Point>
                     <position>576</position>
-                    <quantity>10753.05</quantity>
+                    <quantity>9733.22</quantity>
                   </Point>
                   <Point>
                     <position>577</position>
-                    <quantity>10577.18</quantity>
+                    <quantity>9960.75</quantity>
                   </Point>
                   <Point>
                     <position>578</position>
-                    <quantity>10487.28</quantity>
+                    <quantity>9776.89</quantity>
                   </Point>
                   <Point>
                     <position>579</position>
-                    <quantity>10361.19</quantity>
+                    <quantity>9653.06</quantity>
                   </Point>
                   <Point>
                     <position>580</position>
-                    <quantity>10229.73</quantity>
+                    <quantity>9527.74</quantity>
                   </Point>
                   <Point>
                     <position>581</position>
-                    <quantity>10183.81</quantity>
+                    <quantity>9567.72</quantity>
                   </Point>
                   <Point>
                     <position>582</position>
-                    <quantity>10178.81</quantity>
+                    <quantity>9417.31</quantity>
                   </Point>
                   <Point>
                     <position>583</position>
-                    <quantity>10100.75</quantity>
+                    <quantity>9253.9</quantity>
                   </Point>
                   <Point>
                     <position>584</position>
-                    <quantity>9974.69</quantity>
+                    <quantity>9165.47</quantity>
                   </Point>
                   <Point>
                     <position>585</position>
-                    <quantity>9881.31</quantity>
+                    <quantity>9112.68</quantity>
                   </Point>
                   <Point>
                     <position>586</position>
-                    <quantity>9808.5</quantity>
+                    <quantity>9044.66</quantity>
                   </Point>
                   <Point>
                     <position>587</position>
-                    <quantity>9697.03</quantity>
+                    <quantity>9018.88</quantity>
                   </Point>
                   <Point>
                     <position>588</position>
-                    <quantity>9681.11</quantity>
+                    <quantity>8955.73</quantity>
                   </Point>
                   <Point>
                     <position>589</position>
-                    <quantity>9583.64</quantity>
+                    <quantity>8981.08</quantity>
                   </Point>
                   <Point>
                     <position>590</position>
-                    <quantity>9581.82</quantity>
+                    <quantity>8930.31</quantity>
                   </Point>
                   <Point>
                     <position>591</position>
-                    <quantity>9492.54</quantity>
+                    <quantity>8878.32</quantity>
                   </Point>
                   <Point>
                     <position>592</position>
-                    <quantity>9477.23</quantity>
+                    <quantity>8843.41</quantity>
                   </Point>
                   <Point>
                     <position>593</position>
-                    <quantity>9382.2</quantity>
+                    <quantity>8877.04</quantity>
                   </Point>
                   <Point>
                     <position>594</position>
-                    <quantity>9361.15</quantity>
+                    <quantity>8850.81</quantity>
                   </Point>
                   <Point>
                     <position>595</position>
-                    <quantity>9297.03</quantity>
+                    <quantity>8802.77</quantity>
                   </Point>
                   <Point>
                     <position>596</position>
-                    <quantity>9215.43</quantity>
+                    <quantity>8790.51</quantity>
                   </Point>
                   <Point>
                     <position>597</position>
-                    <quantity>9184.53</quantity>
+                    <quantity>8812.24</quantity>
                   </Point>
                   <Point>
                     <position>598</position>
-                    <quantity>9170.23</quantity>
+                    <quantity>8816.95</quantity>
                   </Point>
                   <Point>
                     <position>599</position>
-                    <quantity>9158.3</quantity>
+                    <quantity>8814.05</quantity>
                   </Point>
                   <Point>
                     <position>600</position>
-                    <quantity>9111.92</quantity>
+                    <quantity>8869.31</quantity>
                   </Point>
                   <Point>
                     <position>601</position>
-                    <quantity>9113.89</quantity>
+                    <quantity>8928.46</quantity>
                   </Point>
                   <Point>
                     <position>602</position>
-                    <quantity>9083.73</quantity>
+                    <quantity>8989.26</quantity>
                   </Point>
                   <Point>
                     <position>603</position>
-                    <quantity>9037.98</quantity>
+                    <quantity>9115.71</quantity>
                   </Point>
                   <Point>
                     <position>604</position>
-                    <quantity>8990.71</quantity>
+                    <quantity>9099.84</quantity>
                   </Point>
                   <Point>
                     <position>605</position>
-                    <quantity>8951.55</quantity>
+                    <quantity>9084.53</quantity>
                   </Point>
                   <Point>
                     <position>606</position>
-                    <quantity>8895.43</quantity>
+                    <quantity>9181.63</quantity>
                   </Point>
                   <Point>
                     <position>607</position>
-                    <quantity>8895.47</quantity>
+                    <quantity>9315.69</quantity>
                   </Point>
                   <Point>
                     <position>608</position>
-                    <quantity>8946.24</quantity>
+                    <quantity>9386.13</quantity>
                   </Point>
                   <Point>
                     <position>609</position>
-                    <quantity>9077.4</quantity>
+                    <quantity>9529.51</quantity>
                   </Point>
                   <Point>
                     <position>610</position>
-                    <quantity>9093.61</quantity>
+                    <quantity>9672.03</quantity>
                   </Point>
                   <Point>
                     <position>611</position>
-                    <quantity>9136.33</quantity>
+                    <quantity>9779.34</quantity>
                   </Point>
                   <Point>
                     <position>612</position>
-                    <quantity>9170.84</quantity>
+                    <quantity>9834.54</quantity>
                   </Point>
                   <Point>
                     <position>613</position>
-                    <quantity>9323.81</quantity>
+                    <quantity>10004.7</quantity>
                   </Point>
                   <Point>
                     <position>614</position>
-                    <quantity>9329.65</quantity>
+                    <quantity>10144.5</quantity>
                   </Point>
                   <Point>
                     <position>615</position>
-                    <quantity>9339.53</quantity>
+                    <quantity>10305.81</quantity>
                   </Point>
                   <Point>
                     <position>616</position>
-                    <quantity>9317.2</quantity>
+                    <quantity>10442.7</quantity>
                   </Point>
                   <Point>
                     <position>617</position>
-                    <quantity>9631.14</quantity>
+                    <quantity>10537.92</quantity>
                   </Point>
                   <Point>
                     <position>618</position>
-                    <quantity>9447.56</quantity>
+                    <quantity>10689.77</quantity>
                   </Point>
                   <Point>
                     <position>619</position>
-                    <quantity>9350.03</quantity>
+                    <quantity>10769.63</quantity>
                   </Point>
                   <Point>
                     <position>620</position>
-                    <quantity>9366.97</quantity>
+                    <quantity>10833.01</quantity>
                   </Point>
                   <Point>
                     <position>621</position>
-                    <quantity>9500.59</quantity>
+                    <quantity>10891.27</quantity>
                   </Point>
                   <Point>
                     <position>622</position>
-                    <quantity>9489.25</quantity>
+                    <quantity>10998.02</quantity>
                   </Point>
                   <Point>
                     <position>623</position>
-                    <quantity>9491.97</quantity>
+                    <quantity>11055.56</quantity>
                   </Point>
                   <Point>
                     <position>624</position>
-                    <quantity>9505.82</quantity>
+                    <quantity>11154.81</quantity>
                   </Point>
                   <Point>
                     <position>625</position>
-                    <quantity>9508.81</quantity>
+                    <quantity>11136.35</quantity>
                   </Point>
                   <Point>
                     <position>626</position>
-                    <quantity>9418.1</quantity>
+                    <quantity>11116.36</quantity>
                   </Point>
                   <Point>
                     <position>627</position>
-                    <quantity>9381.64</quantity>
+                    <quantity>11143.35</quantity>
                   </Point>
                   <Point>
                     <position>628</position>
-                    <quantity>9344.31</quantity>
+                    <quantity>11081.53</quantity>
                   </Point>
                   <Point>
                     <position>629</position>
-                    <quantity>9391.78</quantity>
+                    <quantity>11025.45</quantity>
                   </Point>
                   <Point>
                     <position>630</position>
-                    <quantity>9408.66</quantity>
+                    <quantity>10949.73</quantity>
                   </Point>
                   <Point>
                     <position>631</position>
-                    <quantity>9414.58</quantity>
+                    <quantity>10917.48</quantity>
                   </Point>
                   <Point>
                     <position>632</position>
-                    <quantity>9308.12</quantity>
+                    <quantity>10809.72</quantity>
                   </Point>
                   <Point>
                     <position>633</position>
-                    <quantity>9296.9</quantity>
+                    <quantity>10709.68</quantity>
                   </Point>
                   <Point>
                     <position>634</position>
-                    <quantity>9149.76</quantity>
+                    <quantity>10668.31</quantity>
                   </Point>
                   <Point>
                     <position>635</position>
-                    <quantity>9187.58</quantity>
+                    <quantity>10662.73</quantity>
                   </Point>
                   <Point>
                     <position>636</position>
-                    <quantity>9190.66</quantity>
+                    <quantity>10626.86</quantity>
                   </Point>
                   <Point>
                     <position>637</position>
-                    <quantity>9215.62</quantity>
+                    <quantity>10561.76</quantity>
                   </Point>
                   <Point>
                     <position>638</position>
-                    <quantity>9287.77</quantity>
+                    <quantity>10502.5</quantity>
                   </Point>
                   <Point>
                     <position>639</position>
-                    <quantity>9308.06</quantity>
+                    <quantity>10472.13</quantity>
                   </Point>
                   <Point>
                     <position>640</position>
-                    <quantity>9337.28</quantity>
+                    <quantity>10440.23</quantity>
                   </Point>
                   <Point>
                     <position>641</position>
-                    <quantity>9306.17</quantity>
+                    <quantity>10339.02</quantity>
                   </Point>
                   <Point>
                     <position>642</position>
-                    <quantity>9441.98</quantity>
+                    <quantity>10353.43</quantity>
                   </Point>
                   <Point>
                     <position>643</position>
-                    <quantity>9563.97</quantity>
+                    <quantity>10431.02</quantity>
                   </Point>
                   <Point>
                     <position>644</position>
-                    <quantity>9623.17</quantity>
+                    <quantity>10554.24</quantity>
                   </Point>
                   <Point>
                     <position>645</position>
-                    <quantity>9624.16</quantity>
+                    <quantity>10711.79</quantity>
                   </Point>
                   <Point>
                     <position>646</position>
-                    <quantity>9949.6</quantity>
+                    <quantity>10879.75</quantity>
                   </Point>
                   <Point>
                     <position>647</position>
-                    <quantity>10074.78</quantity>
+                    <quantity>11008.37</quantity>
                   </Point>
                   <Point>
                     <position>648</position>
-                    <quantity>10290.75</quantity>
+                    <quantity>11010.05</quantity>
                   </Point>
                   <Point>
                     <position>649</position>
-                    <quantity>10539.98</quantity>
+                    <quantity>11225.75</quantity>
                   </Point>
                   <Point>
                     <position>650</position>
-                    <quantity>10699.72</quantity>
+                    <quantity>11204.97</quantity>
                   </Point>
                   <Point>
                     <position>651</position>
-                    <quantity>10799.77</quantity>
+                    <quantity>11156.98</quantity>
                   </Point>
                   <Point>
                     <position>652</position>
-                    <quantity>11007.24</quantity>
+                    <quantity>11167.01</quantity>
                   </Point>
                   <Point>
                     <position>653</position>
-                    <quantity>11153.07</quantity>
+                    <quantity>11051.64</quantity>
                   </Point>
                   <Point>
                     <position>654</position>
-                    <quantity>11385.51</quantity>
+                    <quantity>10979.56</quantity>
                   </Point>
                   <Point>
                     <position>655</position>
-                    <quantity>11466.41</quantity>
+                    <quantity>10873.4</quantity>
                   </Point>
                   <Point>
                     <position>656</position>
-                    <quantity>11639.19</quantity>
+                    <quantity>10788.51</quantity>
                   </Point>
                   <Point>
                     <position>657</position>
-                    <quantity>11708.49</quantity>
+                    <quantity>10675.02</quantity>
                   </Point>
                   <Point>
                     <position>658</position>
-                    <quantity>11825.23</quantity>
+                    <quantity>10614.65</quantity>
                   </Point>
                   <Point>
                     <position>659</position>
-                    <quantity>11913.71</quantity>
+                    <quantity>10447.2</quantity>
                   </Point>
                   <Point>
                     <position>660</position>
-                    <quantity>11957.72</quantity>
+                    <quantity>10372.23</quantity>
                   </Point>
                   <Point>
                     <position>661</position>
-                    <quantity>11942.19</quantity>
+                    <quantity>10101.83</quantity>
                   </Point>
                   <Point>
                     <position>662</position>
-                    <quantity>11900.7</quantity>
+                    <quantity>9998.85</quantity>
                   </Point>
                   <Point>
                     <position>663</position>
-                    <quantity>11859.9</quantity>
+                    <quantity>9899.2</quantity>
                   </Point>
                   <Point>
                     <position>664</position>
-                    <quantity>11802.23</quantity>
+                    <quantity>9781.82</quantity>
                   </Point>
                   <Point>
                     <position>665</position>
-                    <quantity>11735.94</quantity>
+                    <quantity>9804.45</quantity>
                   </Point>
                   <Point>
                     <position>666</position>
-                    <quantity>11693.51</quantity>
+                    <quantity>9856.29</quantity>
                   </Point>
                   <Point>
                     <position>667</position>
-                    <quantity>11599.83</quantity>
+                    <quantity>9771.17</quantity>
                   </Point>
                   <Point>
                     <position>668</position>
-                    <quantity>11473.03</quantity>
+                    <quantity>9761.96</quantity>
                   </Point>
                   <Point>
                     <position>669</position>
-                    <quantity>11308.92</quantity>
+                    <quantity>9835.05</quantity>
                   </Point>
                   <Point>
                     <position>670</position>
-                    <quantity>11208.45</quantity>
+                    <quantity>9746.31</quantity>
                   </Point>
                   <Point>
                     <position>671</position>
-                    <quantity>11074.72</quantity>
+                    <quantity>9677.3</quantity>
                   </Point>
                   <Point>
                     <position>672</position>
-                    <quantity>10900.16</quantity>
+                    <quantity>9542.33</quantity>
                   </Point>
               </Period>
           </TimeSeries>
@@ -2740,7 +2740,7 @@ responses:
         - Host: "web-api.tp.entsoe.eu"
       body: ""
       method: "GET"
-      target: "/api?periodEnd=202409082200&outBiddingZone_Domain=10YNL----------L&processType=A01&periodStart=202409012200&documentType=A65"
+      target: "/api?periodEnd=202401212300&outBiddingZone_Domain=10YBE----------2&processType=A01&periodStart=202401142300&documentType=A65"
       version: "1.1.0"
     version: "1.1.0"
 format: "1.0.0"

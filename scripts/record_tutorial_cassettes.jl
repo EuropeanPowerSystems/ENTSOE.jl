@@ -107,20 +107,20 @@ const T2_TARGETS = [
 
 const T3_TARGETS = [
     Target(
-        "tut_load_actual_NL_week.yml",
+        "tut_load_actual_BE_week.yml",
         () -> actual_total_load(
-            CLIENT, EIC.NL,
-            DateTime("2024-09-01T22:00"),
-            DateTime("2024-09-08T22:00"),
+            CLIENT, EIC.BE,
+            DateTime("2024-01-14T23:00"),
+            DateTime("2024-01-21T23:00"),
             Raw(),
         ),
     ),
     Target(
-        "tut_load_forecast_NL_week.yml",
+        "tut_load_forecast_BE_week.yml",
         () -> day_ahead_load_forecast(
-            CLIENT, EIC.NL,
-            DateTime("2024-09-01T22:00"),
-            DateTime("2024-09-08T22:00"),
+            CLIENT, EIC.BE,
+            DateTime("2024-01-14T23:00"),
+            DateTime("2024-01-21T23:00"),
             Raw(),
         ),
     ),
