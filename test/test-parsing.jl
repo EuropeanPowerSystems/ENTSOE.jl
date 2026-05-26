@@ -98,6 +98,71 @@ end
     @test rows[2].time == DateTime("2024-09-01T22:15")  # +15 min @ PT15M
 end
 
+# Variable-sized-block (curveType A03) document: unchanged points are
+# omitted. The 24-hour PT60M period lists only positions 1, 4 and 20 —
+# the run between each holds the previous value, and position 20 holds
+# through the period's <end>.
+const _TS_A03_XML = """
+<?xml version="1.0" encoding="utf-8"?>
+<Publication_MarketDocument xmlns="urn:iec62325.351:tc57wg16:451-3:publicationdocument:7:0">
+  <TimeSeries>
+    <mRID>1</mRID>
+    <curveType>A03</curveType>
+    <Period>
+      <timeInterval>
+        <start>2025-01-01T00:00Z</start>
+        <end>2025-01-02T00:00Z</end>
+      </timeInterval>
+      <resolution>PT60M</resolution>
+      <Point><position>1</position><price.amount>50.0</price.amount></Point>
+      <Point><position>4</position><price.amount>60.0</price.amount></Point>
+      <Point><position>20</position><price.amount>70.0</price.amount></Point>
+    </Period>
+  </TimeSeries>
+</Publication_MarketDocument>
+"""
+
+@testset "parse_timeseries — A03 forward-fill (default)" begin
+    rows = parse_timeseries(_TS_A03_XML)
+    @test length(rows) == 24                       # expanded to every PT60M step
+    @test rows[1].time == DateTime("2025-01-01T00:00")
+    @test rows[1].value == 50.0
+    @test rows[3].value == 50.0                    # positions 1–3 hold 50
+    @test rows[4].value == 60.0                    # position 4 changes to 60
+    @test rows[19].value == 60.0                   # positions 4–19 hold 60
+    @test rows[20].value == 70.0                   # position 20 changes to 70
+    @test rows[24].value == 70.0                   # last block holds to <end>
+    @test rows[24].time == DateTime("2025-01-01T23:00")
+end
+
+@testset "parse_timeseries — A03 fill_gaps=false keeps literal points" begin
+    rows = parse_timeseries(_TS_A03_XML; fill_gaps = false)
+    @test length(rows) == 3                         # only the listed points
+    @test rows[1].time == DateTime("2025-01-01T00:00")
+    @test rows[2].time == DateTime("2025-01-01T03:00")   # position 4
+    @test rows[3].time == DateTime("2025-01-01T19:00")   # position 20
+    @test (rows[1].value, rows[2].value, rows[3].value) == (50.0, 60.0, 70.0)
+end
+
+@testset "parse_timeseries — A01-style docs are never expanded" begin
+    # No <curveType> (and the explicit A01 form) must stay literal even
+    # when the declared interval is longer than the listed points.
+    rows = parse_timeseries(_TS_PRICE_XML)           # 24h interval, 3 points, no curveType
+    @test length(rows) == 3
+    a01 = replace(_TS_A03_XML, "<curveType>A03</curveType>" => "<curveType>A01</curveType>")
+    @test length(parse_timeseries(a01)) == 3
+end
+
+@testset "parse_timeseries — fill_gaps honours set_config default" begin
+    try
+        ENTSOE.set_config(; fill_gaps = false)
+        @test length(parse_timeseries(_TS_A03_XML)) == 3   # global default off
+    finally
+        ENTSOE.set_config(; fill_gaps = true)              # restore
+    end
+    @test length(parse_timeseries(_TS_A03_XML)) == 24
+end
+
 @testset "parse_timeseries — empty/acknowledgement document" begin
     # The acknowledgement document has no <TimeSeries>, so the parser
     # returns an empty vector rather than throwing.

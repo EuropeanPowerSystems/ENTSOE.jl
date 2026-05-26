@@ -13,10 +13,11 @@ The user-facing surface is the *third* layer — named, code-prefilled wrappers 
 ```text
 src/
   conveniences/   ← hand-written ENTSO-E layer (untouched by codegen)
-    queries.jl    ←   ~45 named wrappers (day_ahead_prices, …, imbalance_prices,
+    queries.jl    ←   ~50 named wrappers (day_ahead_prices, …, imbalance_prices,
                   ←     intraday_prices, year_ahead_forecast_margin,
-                  ←     prices_of_activated_balancing_energy, SO-GL reserve family, …)
-                  ←   ResponseFormat dispatch (Parsed() default, Raw() escape hatch)
+                  ←     prices_of_activated_balancing_energy, cross_border_physical_flows_all,
+                  ←     volumes_and_prices_of_contracted_reserves, SO-GL reserve family, …)
+                  ←   ResponseFormat dispatch (Parsed() default, Raw() + LocalTime(tz) variants)
                   ←   `_query` is zip-aware — every wrapper transparently unzips
                       application/zip bodies (balancing 17.1.x, outages with many notices)
     parsing.jl    ←   XML → StructVector{NamedTuple} via EzXML
@@ -53,6 +54,7 @@ scripts/
   regenerate_smoke_cassettes.jl      ← re-record the 77-endpoint smoke fixtures
   record_tutorial_cassettes.jl       ← re-record the descriptive `tut_*.yml` fixtures
   record_eu_prices_2025.jl           ← one-off recorder for the EU-wide prices demo
+  record_intraday_offshore_cassettes.jl  ← one-off recorder for intraday/offshore fixtures
 examples/
   walkthrough.jl                     ← runnable end-to-end demo (own Project.toml)
 ```
@@ -152,17 +154,21 @@ DataFrame(prices)    # works directly
 
 The named wrappers (`day_ahead_prices`, `actual_total_load`, `day_ahead_load_forecast`, `installed_capacity_per_production_type`, `actual_generation_per_production_type`, `cross_border_physical_flows`, …) live in `src/conveniences/queries.jl`. They pre-fill the magic ENTSO-E codes (`A44`, `A65`, `A68`, …), accept `DateTime`/`Date`/`ZonedDateTime`/`Int64` for periods, and parse the XML response.
 
-### `Parsed()` vs `Raw()` — keep returns type-stable
+### `ResponseFormat` (`Parsed` / `Raw` / `LocalTime`) — keep returns type-stable
 
-Every wrapper takes an optional trailing `ResponseFormat` positional argument:
+Every wrapper takes an optional trailing `ResponseFormat` positional argument. There are **three** concrete subtypes of `abstract type ResponseFormat` (all in `src/conveniences/queries.jl`):
 
 ```julia
 prices = day_ahead_prices(client, EIC.NL, t1, t2)            # default: Parsed()
-prices = day_ahead_prices(client, EIC.NL, t1, t2, Parsed())  # explicit
+prices = day_ahead_prices(client, EIC.NL, t1, t2, Parsed())  # StructVector, UTC DateTime
 xml    = day_ahead_prices(client, EIC.NL, t1, t2, Raw())     # ::String
+local  = day_ahead_prices(client, EIC.NL, t1, t2,            # like Parsed but time::ZonedDateTime
+    LocalTime("Europe/Amsterdam"))
 ```
 
-`Parsed` and `Raw` are subtypes of `abstract type ResponseFormat`, so each variant has a **concrete inferred return type** — no `Union` widening, no `Any`. Preserve this when adding new wrappers: give them a method on `Parsed` and a method on `Raw`, not a single method that branches on a flag.
+`LocalTime(tz)` mirrors entsoe-py's `query_*_local` variants: same shape as `Parsed()` but the `time` column is converted from UTC to a timezone-aware `ZonedDateTime` in `tz` (a `TimeZones.TimeZone` or a string). For documents without a `time` column (e.g. installed-capacity snapshots) it's a no-op equal to `Parsed()`.
+
+Each variant has a **concrete inferred return type** — no `Union` widening, no `Any`. Preserve this when adding new wrappers: give them separate methods dispatching on `Parsed`, `Raw`, and `LocalTime`, not a single method that branches on a flag.
 
 ### Long periods — use `query_split`
 
