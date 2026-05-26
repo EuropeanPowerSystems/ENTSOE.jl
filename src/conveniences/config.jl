@@ -9,9 +9,11 @@
 """
     ENTSOEConfig
 
-Holds the global default token, endpoint URL, and whether named-argument
-wrappers should run [`validate_eic`](@ref) by default. Construct via
-[`set_config`](@ref); read via [`get_config`](@ref).
+Holds the global default token, endpoint URL, whether named-argument
+wrappers should run [`validate_eic`](@ref) by default, and whether the
+time-series parsers forward-fill ENTSO-E's sparse (`curveType` `A03`)
+step-function points. Construct via [`set_config`](@ref); read via
+[`get_config`](@ref).
 
 Defaults:
 
@@ -23,17 +25,26 @@ Defaults:
   - `validate_eic` — `false`. Passing `validate_eic = true` to
     `set_config` makes every named-arg wrapper validate the EIC by
     default; the per-call `validate = …` keyword still overrides.
+  - `fill_gaps` — `true`. ENTSO-E emits *variable-sized block*
+    (`curveType` `A03`) series in which unchanged points are omitted:
+    a `<Point>` at position `p` holds until the next listed position
+    (or the period's end). With `fill_gaps = true` the time-series
+    parsers expand those runs so every resolution step gets a row;
+    set `fill_gaps = false` (globally here, or per-call on the
+    [`parse_timeseries`](@ref) family) to keep only the literal points.
+    For dense (`A01`) series the expansion is a no-op.
 """
 mutable struct ENTSOEConfig
     token::String
     endpoint_url::String
     validate_eic::Bool
+    fill_gaps::Bool
 end
 
-const _CONFIG = Ref(ENTSOEConfig("", ENTSOE_BASE_URL, false))
+const _CONFIG = Ref(ENTSOEConfig("", ENTSOE_BASE_URL, false, true))
 
 """
-    set_config(; token=nothing, endpoint_url=nothing, validate_eic=nothing) -> ENTSOEConfig
+    set_config(; token=nothing, endpoint_url=nothing, validate_eic=nothing, fill_gaps=nothing) -> ENTSOEConfig
 
 Update the global [`ENTSOEConfig`](@ref). Any keyword left as
 `nothing` keeps its current value. Returns the new (mutated) config.
@@ -50,11 +61,13 @@ function set_config(;
         token::Union{Nothing, AbstractString} = nothing,
         endpoint_url::Union{Nothing, AbstractString} = nothing,
         validate_eic::Union{Nothing, Bool} = nothing,
+        fill_gaps::Union{Nothing, Bool} = nothing,
     )
     cfg = _CONFIG[]
     token === nothing || (cfg.token = String(token))
     endpoint_url === nothing || (cfg.endpoint_url = String(endpoint_url))
     validate_eic === nothing || (cfg.validate_eic = validate_eic)
+    fill_gaps === nothing || (cfg.fill_gaps = fill_gaps)
     return cfg
 end
 

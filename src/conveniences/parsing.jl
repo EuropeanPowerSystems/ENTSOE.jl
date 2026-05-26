@@ -76,6 +76,64 @@ function _point_value_node(pt::EzXML.Node)
     return nothing
 end
 
+# The `<curveType>` of a `<TimeSeries>` (or `<Available_Period>` parent),
+# e.g. `A01` (sequential, every point present) or `A03` (variable-sized
+# block, unchanged points omitted). Empty string when absent.
+_curve_type(node::EzXML.Node) =
+let n = _first_named(node, "curveType")
+    n === nothing ? "" : strip(nodecontent(n))
+end
+
+# Total number of resolution steps a `<Period>` spans, derived from its
+# `<timeInterval>` (`end - start`) and the per-step `stride` in minutes.
+# Returns `nothing` when the interval has no parseable `<end>` — in which
+# case the final A03 block can't be extended past its listed position.
+function _period_npoints(ti::EzXML.Node, start::DateTime, stride::Int)
+    end_node = _first_named(ti, "end")
+    end_node === nothing && return nothing
+    stop = _parse_entsoe_datetime(nodecontent(end_node))
+    stop <= start && return nothing
+    total_minutes = div(Dates.value(stop - start), 60_000)   # ms → minutes
+    return div(total_minutes, stride)
+end
+
+# Expand one `<Period>`'s listed `(position, value)` points into per-step
+# `(time, value)` columns. ENTSO-E's variable-sized-block encoding
+# (`curveType` `A03`) omits unchanged points: a point at position `p` holds
+# until the next listed position, and the last point holds to the period's
+# end (`npoints`). When `expand` (the caller's `fill_gaps && curveType==A03`),
+# every step in those runs gets a row; otherwise only the literal points are
+# emitted — leaving sequential (`A01`) documents untouched.
+function _expand_period(
+        positions::Vector{Int}, vals::Vector{Float64},
+        start::DateTime, stride::Int, npoints::Union{Int, Nothing}, expand::Bool,
+    )
+    times = DateTime[]
+    values = Float64[]
+    n = length(positions)
+    n == 0 && return (times, values)
+    if !expand
+        for i in 1:n
+            push!(times, start + Minute((positions[i] - 1) * stride))
+            push!(values, vals[i])
+        end
+        return (times, values)
+    end
+    for i in 1:n
+        p = positions[i]
+        stop_pos = if i < n
+            positions[i + 1] - 1
+        else
+            npoints === nothing ? p : max(p, npoints)
+        end
+        for pos in p:stop_pos
+            push!(times, start + Minute((pos - 1) * stride))
+            push!(values, vals[i])
+        end
+    end
+    return (times, values)
+end
+
 # ---------------------------------------------------------------------------
 # Public parsers
 
@@ -103,6 +161,20 @@ Returns an empty `StructVector` if the document has no usable TimeSeries
 [`ENTSOEAcknowledgement`](@ref). For typed handling of that case use a
 pipeline that calls [`check_acknowledgement`](@ref) first.
 
+## Sparse (`curveType` `A03`) series and `fill_gaps`
+
+ENTSO-E often emits *variable-sized block* series (`<curveType>A03`) in
+which **unchanged points are omitted**: a `<Point>` at position `p`
+holds its value until the next listed position, and the final point
+holds until the period's `<timeInterval>/<end>`. Read literally this
+leaves gaps in the `time` column (e.g. a jump from 17:00 straight to
+19:00). With `fill_gaps = true` (the default, taken from
+[`get_config`](@ref)`().fill_gaps`) the parser forward-fills those runs
+so every resolution step gets a row; pass `fill_gaps = false` to keep
+only the literal points. For dense (`A01`) series the expansion is a
+no-op. Toggle the default globally with
+[`set_config`](@ref)`(; fill_gaps = false)`.
+
 # Example
 ```julia
 using ENTSOE, Dates
@@ -117,32 +189,38 @@ mean(prices.value)
 DataFrame(prices)
 ```
 """
-function parse_timeseries(xml::AbstractString)
+function parse_timeseries(xml::AbstractString; fill_gaps::Bool = get_config().fill_gaps)
     times = DateTime[]
     values = Float64[]
     doc = parsexml(xml)
-    for ts in _named(root(doc), "TimeSeries"),
-            period in _named(ts, "Period")
+    for ts in _named(root(doc), "TimeSeries")
+        expand = fill_gaps && _curve_type(ts) == "A03"
+        for period in _named(ts, "Period")
+            ti = _first_named(period, "timeInterval")
+            ti === nothing && continue
+            start_node = _first_named(ti, "start")
+            start_node === nothing && continue
+            start = _parse_entsoe_datetime(nodecontent(start_node))
 
-        ti = _first_named(period, "timeInterval")
-        ti === nothing && continue
-        start_node = _first_named(ti, "start")
-        start_node === nothing && continue
-        start = _parse_entsoe_datetime(nodecontent(start_node))
+            res_node = _first_named(period, "resolution")
+            res_node === nothing && continue
+            stride = _resolution_minutes(nodecontent(res_node))
+            stride === nothing && continue   # warned + skip this Period
 
-        res_node = _first_named(period, "resolution")
-        res_node === nothing && continue
-        stride = _resolution_minutes(nodecontent(res_node))
-        stride === nothing && continue   # warned + skip this Period
-
-        for pt in _named(period, "Point")
-            pos_node = _first_named(pt, "position")
-            pos_node === nothing && continue
-            pos = parse(Int, nodecontent(pos_node))
-            vnode = _point_value_node(pt)
-            vnode === nothing && continue
-            push!(times, start + Minute((pos - 1) * stride))
-            push!(values, parse(Float64, nodecontent(vnode)))
+            positions = Int[]
+            vals = Float64[]
+            for pt in _named(period, "Point")
+                pos_node = _first_named(pt, "position")
+                pos_node === nothing && continue
+                vnode = _point_value_node(pt)
+                vnode === nothing && continue
+                push!(positions, parse(Int, nodecontent(pos_node)))
+                push!(vals, parse(Float64, nodecontent(vnode)))
+            end
+            npoints = _period_npoints(ti, start, stride)
+            ptimes, pvalues = _expand_period(positions, vals, start, stride, npoints, expand)
+            append!(times, ptimes)
+            append!(values, pvalues)
         end
     end
     return StructArray((time = times, value = values))
@@ -173,7 +251,7 @@ solar_only = rows[rows.psr_type .== "B16"]
 solar_only.value
 ```
 """
-function parse_timeseries_per_psr(xml::AbstractString)
+function parse_timeseries_per_psr(xml::AbstractString; fill_gaps::Bool = get_config().fill_gaps)
     times = DateTime[]
     psr_types = String[]
     values = Float64[]
@@ -186,6 +264,7 @@ function parse_timeseries_per_psr(xml::AbstractString)
             n = _first_named(psrwrap, "psrType")
             n === nothing ? "" : nodecontent(n)
         end
+        expand = fill_gaps && _curve_type(ts) == "A03"
         for period in _named(ts, "Period")
             ti = _first_named(period, "timeInterval")
             ti === nothing && continue
@@ -197,16 +276,21 @@ function parse_timeseries_per_psr(xml::AbstractString)
             stride = _resolution_minutes(nodecontent(res_node))
             stride === nothing && continue   # warned + skip
 
+            positions = Int[]
+            vals = Float64[]
             for pt in _named(period, "Point")
                 pos_node = _first_named(pt, "position")
                 pos_node === nothing && continue
-                pos = parse(Int, nodecontent(pos_node))
                 vnode = _point_value_node(pt)
                 vnode === nothing && continue
-                push!(times, start + Minute((pos - 1) * stride))
-                push!(psr_types, psr)
-                push!(values, parse(Float64, nodecontent(vnode)))
+                push!(positions, parse(Int, nodecontent(pos_node)))
+                push!(vals, parse(Float64, nodecontent(vnode)))
             end
+            npoints = _period_npoints(ti, start, stride)
+            ptimes, pvalues = _expand_period(positions, vals, start, stride, npoints, expand)
+            append!(times, ptimes)
+            append!(psr_types, fill(psr, length(ptimes)))
+            append!(values, pvalues)
         end
     end
     return StructArray((time = times, psr_type = psr_types, value = values))
@@ -326,7 +410,7 @@ Parse a per-generation-unit time-series document — used by 16.1.A
 tagged with the parent generating unit's mRID and name (extracted
 from `<MktPSRType>/<PowerSystemResources>`) plus the PSR type.
 """
-function parse_timeseries_per_unit(xml::AbstractString)
+function parse_timeseries_per_unit(xml::AbstractString; fill_gaps::Bool = get_config().fill_gaps)
     times = DateTime[]
     unit_mrids = String[]
     unit_names = String[]
@@ -356,6 +440,7 @@ function parse_timeseries_per_unit(xml::AbstractString)
             unit_name = _first_text(ts, "registeredResource.name")
         end
 
+        expand = fill_gaps && _curve_type(ts) == "A03"
         for period in _named(ts, "Period")
             ti = _first_named(period, "timeInterval")
             ti === nothing && continue
@@ -367,18 +452,24 @@ function parse_timeseries_per_unit(xml::AbstractString)
             stride = _resolution_minutes(nodecontent(res_node))
             stride === nothing && continue
 
+            positions = Int[]
+            vals = Float64[]
             for pt in _named(period, "Point")
                 pos_node = _first_named(pt, "position")
                 pos_node === nothing && continue
-                pos = parse(Int, nodecontent(pos_node))
                 vnode = _point_value_node(pt)
                 vnode === nothing && continue
-                push!(times, start + Minute((pos - 1) * stride))
-                push!(unit_mrids, unit_mrid)
-                push!(unit_names, unit_name)
-                push!(psr_types, psr)
-                push!(values, parse(Float64, nodecontent(vnode)))
+                push!(positions, parse(Int, nodecontent(pos_node)))
+                push!(vals, parse(Float64, nodecontent(vnode)))
             end
+            npoints = _period_npoints(ti, start, stride)
+            ptimes, pvalues = _expand_period(positions, vals, start, stride, npoints, expand)
+            m = length(ptimes)
+            append!(times, ptimes)
+            append!(unit_mrids, fill(unit_mrid, m))
+            append!(unit_names, fill(unit_name, m))
+            append!(psr_types, fill(psr, m))
+            append!(values, pvalues)
         end
     end
     return StructArray(
@@ -562,7 +653,7 @@ slice (not the rated capacity — for that pair this with the
 For documents without `<Available_Period>` children (rare), the
 corresponding TimeSeries contributes no rows.
 """
-function parse_unavailability_curve(xml::AbstractString)
+function parse_unavailability_curve(xml::AbstractString; fill_gaps::Bool = get_config().fill_gaps)
     times = DateTime[]
     mrids = String[]
     names = String[]
@@ -572,6 +663,7 @@ function parse_unavailability_curve(xml::AbstractString)
     for ts in _named(root(doc), "TimeSeries")
         mrid = _resource_field(ts, "mRID", ["production_RegisteredResource", "mRID"])
         name = _resource_field(ts, "name", ["production_RegisteredResource", "name"])
+        expand = fill_gaps && _curve_type(ts) == "A03"
 
         for ap in _named(ts, "Available_Period")
             ti = _first_named(ap, "timeInterval")
@@ -585,17 +677,23 @@ function parse_unavailability_curve(xml::AbstractString)
             stride = _resolution_minutes(nodecontent(res_node))
             stride === nothing && continue
 
+            positions = Int[]
+            vals = Float64[]
             for pt in _named(ap, "Point")
                 pos_node = _first_named(pt, "position")
                 pos_node === nothing && continue
-                pos = parse(Int, nodecontent(pos_node))
                 qty = _first_named(pt, "quantity")
                 qty === nothing && continue
-                push!(times, start + Minute((pos - 1) * stride))
-                push!(mrids, mrid)
-                push!(names, name)
-                push!(available_mws, parse(Float64, nodecontent(qty)))
+                push!(positions, parse(Int, nodecontent(pos_node)))
+                push!(vals, parse(Float64, nodecontent(qty)))
             end
+            npoints = _period_npoints(ti, start, stride)
+            ptimes, pvalues = _expand_period(positions, vals, start, stride, npoints, expand)
+            m = length(ptimes)
+            append!(times, ptimes)
+            append!(mrids, fill(mrid, m))
+            append!(names, fill(name, m))
+            append!(available_mws, pvalues)
         end
     end
     return StructArray(
