@@ -175,8 +175,8 @@ end
     @test rows[1].psr_type == "B16"
     @test rows[1].capacity_mw == 22850.0
     @test rows[2].psr_type == "B19"
-    @test PSR_TYPE.B16 == "Solar"           # codes table sanity
-    @test PSR_TYPE.B19 == "Wind Onshore"
+    @test PSR_LABELS.B16 == "Solar"           # codes table sanity
+    @test PSR_LABELS.B19 == "Wind Onshore"
 end
 
 @testset "parse_acknowledgement" begin

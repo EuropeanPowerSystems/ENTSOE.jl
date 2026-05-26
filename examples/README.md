@@ -28,8 +28,11 @@ fetched, so you can scroll the output and see exactly what landed.
   predicate, `entsoe_period` for date conversion.
 - The `EIC` curated zone tuple, `EIC_REGISTRY` lookup, `validate_eic`,
   `eics_of_type`.
-- All four code-list tables (`DOCUMENT_TYPE`, `PROCESS_TYPE`,
-  `BUSINESS_TYPE`, `PSR_TYPE`) plus `describe` and `code_for`.
+- The semantic-name code constants (`PsrType`, `BusinessType`,
+  `ProcessType`, `DocumentType`, `AuctionType`, `AuctionCategory`,
+  `ContractType`, `DocStatus`, `StandardProduct`) and the `PsrGroup`
+  subset tuples, plus the legacy `*_LABELS` description tables with
+  `describe` / `code_for`.
 - Every named wrapper currently exported (Market 12.1.D prices; Load
   6.1.A–E; Generation 14.1.A/C/D + 16.1.B/C; Transmission 11.1.A,
   12.1.F, 12.1.F net positions, 12.1.G; OMI with pagination).

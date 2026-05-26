@@ -109,13 +109,35 @@ eics_of_type
 validate_eic
 ```
 
-## Code lists (DocumentType / ProcessType / …)
+## Code lists
+
+ENTSO-E parameters that take IEC code-list values (`psrType`, `businessType`,
+…) are exposed in two complementary shapes:
+
+- **Semantic-name → code** constants for *passing* to wrappers
+    (`PsrType.SOLAR == "B16"`, `BusinessType.PLANNED_OUTAGE == "A53"`, …).
+- **Code → description** NamedTuples for *labelling* output
+    (`PSR_LABELS.B16 == "Solar"`, `code_for(PSR_LABELS, "wind onshore")`).
+
+A third shape, [`PsrGroup`](@ref), holds **subset tuples** for client-side
+filtering (`caps[in.(caps.psr_type, Ref(PsrGroup.HYDRO))]`).
 
 ```@docs
-DOCUMENT_TYPE
-PROCESS_TYPE
-BUSINESS_TYPE
-PSR_TYPE
+CodeTable
+PsrType
+PsrGroup
+BusinessType
+ProcessType
+DocumentType
+AuctionType
+AuctionCategory
+ContractType
+DocStatus
+StandardProduct
+DOCUMENT_LABELS
+PROCESS_LABELS
+BUSINESS_LABELS
+PSR_LABELS
 ENTSOE.describe
 ENTSOE.code_for
 ```

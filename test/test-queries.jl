@@ -121,7 +121,7 @@ let BR = _load_brokenrecord()
             )
             @test !isempty(rows)
             # Every row should carry a known PSR-type code.
-            @test all(haskey(PSR_TYPE, Symbol(r.psr_type)) for r in rows)
+            @test all(haskey(PSR_LABELS, Symbol(r.psr_type)) for r in rows)
             # Solar is one of the largest categories in NL.
             solar = filter(r -> r.psr_type == "B16", rows)
             @test !isempty(solar)

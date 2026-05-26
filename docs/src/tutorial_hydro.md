@@ -40,8 +40,11 @@ hydro
 For broader context, pull the installed-capacity registry on the same
 control area and isolate the hydro PSR types:
 
+[`PsrGroup`](@ref) bundles the three hydro PSR codes
+(`B10` pumped storage, `B11` run-of-river, `B12` reservoir) into a
+single tuple — useful for client-side filtering of a fetched table:
+
 ```@example hydro
-HYDRO_PSR = ("B10", "B11", "B12")   # reservoir, RoR, pumped storage
 # Reuse a smoke cassette so this works offline; it covers NL but the
 # document shape is identical across zones.
 caps = BR.playback("generation_141a_installed_capacity_NL.yml") do
@@ -50,9 +53,15 @@ caps = BR.playback("generation_141a_installed_capacity_NL.yml") do
         DateTime("2023-12-31T23:00"), DateTime("2024-12-31T23:00"),
     )
 end
-hydro_caps = caps[in.(caps.psr_type, Ref(HYDRO_PSR))]
+hydro_caps = caps[in.(caps.psr_type, Ref(PsrGroup.HYDRO))]
 hydro_caps
 ```
+
+`PsrGroup` also exposes `WIND`, `FOSSIL`, `RENEWABLE`, `STORAGE`, and
+`INFRASTRUCTURE` for the same pattern. For a *single-technology*
+filter on the **server**, pass the scalar [`PsrType`](@ref) constant
+to the wrapper's `psr_type` kwarg — e.g.
+`actual_generation_per_production_type(...; psr_type = PsrType.HYDRO_WATER_RESERVOIR)`.
 
 ## Stored energy across the week
 
@@ -105,7 +114,7 @@ ax = Axis(fig2[1, 1];
     title  = "Hydro PSR types (NL fixture for shape)",
     xlabel = "Installed MW",
     yticks = (1:length(hydro_caps),
-        [PSR_TYPE[Symbol(c)] for c in hydro_caps.psr_type]),
+        [PSR_LABELS[Symbol(c)] for c in hydro_caps.psr_type]),
 )
 barplot!(ax, 1:length(hydro_caps), hydro_caps.capacity_mw;
     direction = :x,
@@ -117,7 +126,8 @@ fig2
 ## Where to next
 
 - [`actual_generation_per_production_type`](@ref) with
-  `psr_type = "B10"` or `"B12"` for the actual hourly hydro output —
+  `psr_type = PsrType.HYDRO_PUMPED_STORAGE` or
+  `PsrType.HYDRO_WATER_RESERVOIR` for the actual hourly hydro output —
   pair it with this reservoir state to study **drawdown rate**.
 - Multi-year fetches just work — the wrapper splits the range into
   the one-year windows ENTSO-E permits. Override the `window` keyword

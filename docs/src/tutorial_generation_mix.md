@@ -33,7 +33,7 @@ nothing # hide
 ## Fetching one day, every technology
 
 `actual_generation_per_production_type` returns one TimeSeries per
-[`PSR_TYPE`](@ref) (Solar, Wind Onshore, Nuclear, Fossil Gas, …); each
+[`PSR_LABELS`](@ref) (Solar, Wind Onshore, Nuclear, Fossil Gas, …); each
 TimeSeries carries quarter-hour points. The wrapper parses every row
 and tags it with its `psr_type` code.
 
@@ -129,8 +129,8 @@ operations — no per-row indirection:
 
 ```@example genmix
 total_mwh = sum(gen.value) * 0.25   # quarter-hour points → MWh
-solar_mwh = sum(gen.value[gen.psr_type .== "B16"]) * 0.25
-wind_mwh  = sum(gen.value[in.(gen.psr_type, Ref(("B18", "B19")))]) * 0.25
+solar_mwh = sum(gen.value[gen.psr_type .== PsrType.SOLAR]) * 0.25
+wind_mwh  = sum(gen.value[in.(gen.psr_type, Ref(PsrGroup.WIND))]) * 0.25
 (total_mwh = round(Int, total_mwh),
  solar_mwh = round(Int, solar_mwh),
  wind_mwh  = round(Int, wind_mwh),
@@ -167,7 +167,7 @@ fig2
 - The same wrapper takes a `psr_type=` kwarg to pull a *single*
   technology server-side — handy if you only need solar:
   `actual_generation_per_production_type(client, EIC.NL, t1, t2;
-  psr_type = "B16")`.
+  psr_type = PsrType.SOLAR)`.
 - Forecasts of just wind+solar (one document) are exposed via
   [`wind_solar_forecast`](@ref).
 - For the *installed* (year-ahead declared) capacity by PSR type,

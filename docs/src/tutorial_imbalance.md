@@ -45,7 +45,7 @@ prices = BR.playback("tut_imbalance_prices_AT_2024.bson") do
     imbalance_prices(
         client, EIC.AT,
         DateTime("2024-01-01T00:00"), DateTime("2024-01-05T00:00");
-        psr_type = "A04",
+        psr_type = PsrType.GENERATION,
     )
 end
 length(prices), prices[1]
@@ -56,7 +56,7 @@ volumes = BR.playback("tut_imbalance_volumes_AT_2023.bson") do
     total_imbalance_volumes(
         client, EIC.AT,
         DateTime("2023-11-03T23:00"), DateTime("2023-11-04T23:00");
-        business_type = "A19",
+        business_type = BusinessType.BALANCE_ENERGY_DEVIATION,
     )
 end
 length(volumes), volumes[1]

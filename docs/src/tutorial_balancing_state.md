@@ -32,15 +32,15 @@ nothing # hide
 
 ## Fetch one day
 
-`business_type = "B33"` is the IEC 62325 code for "area control error" —
-the difference between scheduled and actual cross-border exchange.
+`BusinessType.AREA_CONTROL_ERROR` (IEC 62325 code `B33`) is the
+difference between scheduled and actual cross-border exchange.
 
 ```@example bal
 ace = BR.playback("tut_balancing_state_HU_2024.yml") do
     current_balancing_state(
         client, EIC.HU,
         DateTime("2024-05-29T22:00"), DateTime("2024-05-30T22:00");
-        business_type = "B33",
+        business_type = BusinessType.AREA_CONTROL_ERROR,
     )
 end
 length(ace), ace[1]

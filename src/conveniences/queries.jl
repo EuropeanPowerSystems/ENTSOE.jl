@@ -418,7 +418,7 @@ function intraday_prices(
             apis.market, "A44",
             s, e,
             String(area), String(area);
-            contract_market_agreement_type = "A07",
+            contract_market_agreement_type = ContractType.INTRADAY,
             classification_sequence_attribute_instance_component_position =
                 sequence === nothing ? nothing : Int(sequence),
         )
@@ -479,7 +479,7 @@ end
 
 """
     congestion_income(client, in_area, out_area, period_start, period_end[, format];
-                      contract_market_agreement_type="A01")
+                      contract_market_agreement_type=ContractType.DAILY)
       -> StructVector | String
 
 Congestion income from implicit + flow-based allocations (Market
@@ -496,7 +496,7 @@ function congestion_income(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        contract_market_agreement_type::AbstractString = "A01",
+        contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -522,14 +522,14 @@ Intraday cross-border offered transfer capacity. Thin router over the
 three underlying allocation endpoints:
 
   - `implicit=false` → `explicit_allocations_offered_transfer_capacity`
-    with `auction_type="A02"` (used on the few explicit-ID borders
+    with `auction_type=AuctionType.EXPLICIT` (used on the few explicit-ID borders
     like BE↔GB).
   - `implicit=true, id_type="IDCT"` →
     `continuous_allocations_offered_transfer_capacity`
-    (SIDC continuous trading, `auction_type="A08"`).
+    (SIDC continuous trading, `auction_type=AuctionType.CONTINUOUS`).
   - `implicit=true, id_type="IDA1"`/`"IDA2"`/`"IDA3"` →
     `implicit_allocations_offered_transfer_capacity` with
-    `contract_market_agreement_type="A07"` and `sequence=1`/`2`/`3`
+    `contract_market_agreement_type=ContractType.INTRADAY` and `sequence=1`/`2`/`3`
     (SIDC pan-European IDA auctions).
 """
 function intraday_offered_capacity(
@@ -545,8 +545,8 @@ function intraday_offered_capacity(
         return explicit_allocations_offered_transfer_capacity(
             client, in_area, out_area, period_start, period_end, format;
             validate = validate,
-            auction_type = "A02",
-            contract_market_agreement_type = "A07",
+            auction_type = AuctionType.EXPLICIT,
+            contract_market_agreement_type = ContractType.INTRADAY,
             window = window,
         )
     end
@@ -554,8 +554,8 @@ function intraday_offered_capacity(
         return continuous_allocations_offered_transfer_capacity(
             client, in_area, out_area, period_start, period_end, format;
             validate = validate,
-            auction_type = "A08",
-            contract_market_agreement_type = "A07",
+            auction_type = AuctionType.CONTINUOUS,
+            contract_market_agreement_type = ContractType.INTRADAY,
             window = window,
         )
     end
@@ -576,8 +576,8 @@ function intraday_offered_capacity(
     return implicit_allocations_offered_transfer_capacity(
         client, in_area, out_area, period_start, period_end, format;
         validate = validate,
-        auction_type = "A01",
-        contract_market_agreement_type = "A07",
+        auction_type = AuctionType.IMPLICIT,
+        contract_market_agreement_type = ContractType.INTRADAY,
         sequence = sequence,
         window = window,
     )
@@ -585,8 +585,8 @@ end
 
 """
     explicit_allocations_offered_transfer_capacity(client, in_area, out_area, period_start, period_end[, format];
-                                                   auction_type="A02",
-                                                   contract_market_agreement_type="A01",
+                                                   auction_type=AuctionType.EXPLICIT,
+                                                   contract_market_agreement_type=ContractType.DAILY,
                                                    auction_category=nothing,
                                                    sequence=nothing)
       -> StructVector | String
@@ -595,16 +595,16 @@ Explicit allocations offered transfer capacity (Market 11.1.A,
 `documentType=A31`). Returns the capacity offered to explicit-auction
 participants per direction/timeframe.
 
-Defaults match the Postman canonical example (`auction_type="A02"`
-monthly, `contract_market_agreement_type="A01"` daily).
+Defaults match the Postman canonical example (`auction_type=AuctionType.EXPLICIT`
+monthly, `contract_market_agreement_type=ContractType.DAILY` daily).
 """
 function explicit_allocations_offered_transfer_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        auction_type::AbstractString = "A02",
-        contract_market_agreement_type::AbstractString = "A01",
+        auction_type::AbstractString = AuctionType.EXPLICIT,
+        contract_market_agreement_type::AbstractString = ContractType.DAILY,
         auction_category::Union{Nothing, AbstractString} = nothing,
         sequence::Union{Nothing, Integer} = nothing,
         update_date_and_or_time::Union{Nothing, Integer} = nothing,
@@ -632,7 +632,7 @@ end
 
 """
     flow_based_allocations(client, in_area, out_area, period_start, period_end[, format];
-                           process_type="A44") -> StructVector | String
+                           process_type=ProcessType.INTRADAY_FLOW_BASED) -> StructVector | String
 
 Flow-based allocation results (Market 11.1.B, `documentType=B09`).
 `process_type` default `"A44"` (Intraday); pass `"A01"` for day-ahead.
@@ -643,7 +643,7 @@ function flow_based_allocations(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A44",
+        process_type::AbstractString = ProcessType.INTRADAY_FLOW_BASED,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -662,7 +662,7 @@ end
 
 """
     flow_based_allocations_archives(client, in_area, out_area, period_start, period_end[, format];
-                                    process_type="A32",
+                                    process_type=ProcessType.MONTH_AHEAD,
                                     storage_type="archive") -> StructVector | String
 
 Archived flow-based allocations (Market 11.1.B archive variant).
@@ -674,7 +674,7 @@ function flow_based_allocations_archives(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A32",
+        process_type::AbstractString = ProcessType.MONTH_AHEAD,
         storage_type::AbstractString = "archive",
         window::Period = Year(1),
     )
@@ -695,21 +695,21 @@ end
 
 """
     continuous_allocations_offered_transfer_capacity(client, in_area, out_area, period_start, period_end[, format];
-                                                     auction_type="A08",
-                                                     contract_market_agreement_type="A07")
+                                                     auction_type=AuctionType.CONTINUOUS,
+                                                     contract_market_agreement_type=ContractType.INTRADAY)
       -> StructVector | String
 
 Continuous-intraday offered transfer capacity (Market 11.1, SIDC IDCT),
-`documentType=A31`. `auction_type="A08"` is the continuous-intraday
-auction; `contract_market_agreement_type="A07"` is intraday.
+`documentType=A31`. `auction_type=AuctionType.CONTINUOUS` is the continuous-intraday
+auction; `contract_market_agreement_type=ContractType.INTRADAY` is intraday.
 """
 function continuous_allocations_offered_transfer_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        auction_type::AbstractString = "A08",
-        contract_market_agreement_type::AbstractString = "A07",
+        auction_type::AbstractString = AuctionType.CONTINUOUS,
+        contract_market_agreement_type::AbstractString = ContractType.INTRADAY,
         update_date_and_or_time::Union{Nothing, Integer} = nothing,
         window::Period = Year(1),
     )
@@ -732,14 +732,14 @@ end
 
 """
     implicit_allocations_offered_transfer_capacity(client, in_area, out_area, period_start, period_end[, format];
-                                                   auction_type="A01",
-                                                   contract_market_agreement_type="A01",
+                                                   auction_type=AuctionType.IMPLICIT,
+                                                   contract_market_agreement_type=ContractType.DAILY,
                                                    sequence=nothing)
       -> StructVector | String
 
 Implicit-auction offered transfer capacity (Market 11.1, implicit
 day-ahead), `documentType=A31`. Defaults to day-ahead implicit auction
-(`auction_type="A01"`, `contract_market_agreement_type="A01"`).
+(`auction_type=AuctionType.IMPLICIT`, `contract_market_agreement_type=ContractType.DAILY`).
 Pass `sequence` to filter SIDC IDA1/2/3 results.
 """
 function implicit_allocations_offered_transfer_capacity(
@@ -747,8 +747,8 @@ function implicit_allocations_offered_transfer_capacity(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        auction_type::AbstractString = "A01",
-        contract_market_agreement_type::AbstractString = "A01",
+        auction_type::AbstractString = AuctionType.IMPLICIT,
+        contract_market_agreement_type::AbstractString = ContractType.DAILY,
         sequence::Union{Nothing, Integer} = nothing,
         update_date_and_or_time::Union{Nothing, Integer} = nothing,
         window::Period = Year(1),
@@ -774,8 +774,8 @@ end
 
 """
     explicit_allocations_auction_revenue(client, in_area, out_area, period_start, period_end[, format];
-                                         business_type="B07",
-                                         contract_market_agreement_type="A01")
+                                         business_type=BusinessType.VOLUME_CONTRACTED,
+                                         contract_market_agreement_type=ContractType.DAILY)
       -> StructVector | String
 
 Explicit-allocation auction revenue (Market 12.1.A, `documentType=A25`,
@@ -786,8 +786,8 @@ function explicit_allocations_auction_revenue(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        business_type::AbstractString = "B07",
-        contract_market_agreement_type::AbstractString = "A01",
+        business_type::AbstractString = BusinessType.VOLUME_CONTRACTED,
+        contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -807,8 +807,8 @@ end
 
 """
     explicit_allocations_use_of_transfer_capacity(client, in_area, out_area, period_start, period_end[, format];
-                                                  business_type="B05",
-                                                  contract_market_agreement_type="A07",
+                                                  business_type=BusinessType.COUNTER_TRADE,
+                                                  contract_market_agreement_type=ContractType.INTRADAY,
                                                   auction_category=nothing,
                                                   sequence=nothing)
       -> StructVector | String
@@ -821,8 +821,8 @@ function explicit_allocations_use_of_transfer_capacity(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        business_type::AbstractString = "B05",
-        contract_market_agreement_type::AbstractString = "A07",
+        business_type::AbstractString = BusinessType.COUNTER_TRADE,
+        contract_market_agreement_type::AbstractString = ContractType.INTRADAY,
         auction_category::Union{Nothing, AbstractString} = nothing,
         sequence::Union{Nothing, Integer} = nothing,
         window::Period = Year(1),
@@ -847,8 +847,8 @@ end
 
 """
     total_capacity_already_allocated(client, in_area, out_area, period_start, period_end[, format];
-                                     business_type="A29",
-                                     contract_market_agreement_type="A01",
+                                     business_type=BusinessType.ALREADY_ALLOCATED_CAPACITY,
+                                     contract_market_agreement_type=ContractType.DAILY,
                                      auction_category=nothing)
       -> StructVector | String
 
@@ -860,8 +860,8 @@ function total_capacity_already_allocated(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        business_type::AbstractString = "A29",
-        contract_market_agreement_type::AbstractString = "A01",
+        business_type::AbstractString = BusinessType.ALREADY_ALLOCATED_CAPACITY,
+        contract_market_agreement_type::AbstractString = ContractType.DAILY,
         auction_category::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
     )
@@ -883,8 +883,8 @@ end
 
 """
     transfer_capacities_with_third_countries(client, in_area, out_area, period_start, period_end[, format];
-                                             auction_type="A02",
-                                             contract_market_agreement_type="A07",
+                                             auction_type=AuctionType.EXPLICIT,
+                                             contract_market_agreement_type=ContractType.INTRADAY,
                                              auction_category=nothing,
                                              sequence=nothing)
       -> StructVector | String
@@ -897,8 +897,8 @@ function transfer_capacities_with_third_countries(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        auction_type::AbstractString = "A02",
-        contract_market_agreement_type::AbstractString = "A07",
+        auction_type::AbstractString = AuctionType.EXPLICIT,
+        contract_market_agreement_type::AbstractString = ContractType.INTRADAY,
         auction_category::Union{Nothing, AbstractString} = nothing,
         sequence::Union{Nothing, Integer} = nothing,
         window::Period = Year(1),
@@ -923,7 +923,7 @@ end
 
 """
     implicit_auction_net_positions(client, area, period_start, period_end[, format];
-                                   contract_market_agreement_type="A07")
+                                   contract_market_agreement_type=ContractType.INTRADAY)
       -> StructVector | String
 
 Net positions from implicit auctions (Market 12.1.E variant,
@@ -939,7 +939,7 @@ function implicit_auction_net_positions(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        contract_market_agreement_type::AbstractString = "A07",
+        contract_market_agreement_type::AbstractString = ContractType.INTRADAY,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1091,8 +1091,8 @@ Year-ahead installed capacity per production type (Generation 14.1.A,
 spanning Dec 31 23:00 → Dec 31 23:00. Returns
 `StructVector{(psr_type::String, capacity_mw::Float64)}`.
 
-Map `psr_type` codes to labels via [`PSR_TYPE`](@ref) /
-[`describe`](@ref): `describe(PSR_TYPE, "B16") == "Solar"`.
+Map `psr_type` codes to labels via [`PSR_LABELS`](@ref) /
+[`describe`](@ref): `describe(PSR_LABELS, "B16") == "Solar"`.
 """
 function installed_capacity_per_production_type(
         client::Client, area::AbstractString,
@@ -1120,7 +1120,7 @@ than aggregated per production type) — Generation 14.1.B,
 `documentType=A71`, `processType=A33`. Returns
 `StructVector{(unit_mrid, unit_name, psr_type, capacity_mw)}`.
 
-Pass `psr_type="B19"` (Wind Onshore) etc. to filter to a single
+Pass `psr_type=PsrType.WIND_ONSHORE` (Wind Onshore) etc. to filter to a single
 technology.
 """
 function installed_capacity_per_production_unit(
@@ -1178,7 +1178,7 @@ one TimeSeries per technology — we parse with
 [`parse_timeseries_per_psr`](@ref), so each row is tagged with its
 `psr_type` (`B16` Solar, `B18` Wind Offshore, `B19` Wind Onshore).
 
-Pass `psr_type="B19"` to filter at the API level (returns just that
+Pass `psr_type=PsrType.WIND_ONSHORE` to filter at the API level (returns just that
 technology).
 """
 function wind_solar_forecast(
@@ -1213,7 +1213,7 @@ the latest published forecast as auctions clear through the day, rather
 than the day-ahead snapshot.
 
 Returns a `StructVector{(time, psr_type, value)}` in MW. Pass
-`psr_type="B16"` (Solar), `"B18"` (Wind Offshore), or `"B19"` (Wind
+`psr_type=PsrType.SOLAR` (Solar), `"B18"` (Wind Offshore), or `"B19"` (Wind
 Onshore) to filter server-side.
 """
 function intraday_wind_solar_forecast(
@@ -1246,7 +1246,7 @@ Realised generation broken down by production type (Generation
 technology — parse rows are `(time, psr_type, value)` with `value` in
 MW.
 
-Pass `psr_type="B16"` to fetch a single technology server-side.
+Pass `psr_type=PsrType.SOLAR` to fetch a single technology server-side.
 """
 function actual_generation_per_production_type(
         client::Client, area::AbstractString,
@@ -1279,7 +1279,7 @@ Realised generation broken down per *generating unit* (Generation
 `<Point>` per unit; fields are
 `(time, unit_mrid, unit_name, psr_type, value)` with `value` in MW.
 
-Pass `psr_type="B16"` to filter to one technology; pass
+Pass `psr_type=PsrType.SOLAR` to filter to one technology; pass
 `registered_resource` to filter to a single generating unit by mRID.
 """
 function actual_generation_per_generation_unit(
@@ -1421,7 +1421,7 @@ end
 
 """
     commercial_schedules(client, in_area, out_area, start, stop[, format];
-                         contract_market_agreement_type="A01") -> StructVector | String
+                         contract_market_agreement_type=ContractType.DAILY) -> StructVector | String
 
 Total scheduled commercial exchanges between two bidding zones
 (Transmission 12.1.F, `documentType=A09`). Returns
@@ -1437,7 +1437,7 @@ function commercial_schedules(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        contract_market_agreement_type::AbstractString = "A01",
+        contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1484,7 +1484,7 @@ end
 
 """
     commercial_schedules_net_positions(client, area, start, stop[, format];
-                                       contract_market_agreement_type="A01")
+                                       contract_market_agreement_type=ContractType.DAILY)
       -> StructVector | String
 
 Net position from total scheduled commercial exchanges (Transmission
@@ -1500,7 +1500,7 @@ function commercial_schedules_net_positions(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        contract_market_agreement_type::AbstractString = "A01",
+        contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1520,7 +1520,7 @@ end
 
 """
     forecasted_transfer_capacities(client, in_area, out_area, start, stop[, format];
-                                   contract_market_agreement_type="A01")
+                                   contract_market_agreement_type=ContractType.DAILY)
       -> StructVector | String
 
 Forecasted transfer capacities between two bidding zones (Transmission
@@ -1536,7 +1536,7 @@ function forecasted_transfer_capacities(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        contract_market_agreement_type::AbstractString = "A01",
+        contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1566,7 +1566,7 @@ net_transfer_capacity_day_ahead(
     validate = false, window::Period = Year(1),
 ) = forecasted_transfer_capacities(
     client, in_area, out_area, start, stop, format;
-    validate = validate, contract_market_agreement_type = "A01", window = window,
+    validate = validate, contract_market_agreement_type = ContractType.DAILY, window = window,
 )
 
 """
@@ -1580,7 +1580,7 @@ net_transfer_capacity_week_ahead(
     validate = false, window::Period = Year(1),
 ) = forecasted_transfer_capacities(
     client, in_area, out_area, start, stop, format;
-    validate = validate, contract_market_agreement_type = "A02", window = window,
+    validate = validate, contract_market_agreement_type = ContractType.WEEKLY, window = window,
 )
 
 """
@@ -1594,7 +1594,7 @@ net_transfer_capacity_month_ahead(
     validate = false, window::Period = Year(1),
 ) = forecasted_transfer_capacities(
     client, in_area, out_area, start, stop, format;
-    validate = validate, contract_market_agreement_type = "A03", window = window,
+    validate = validate, contract_market_agreement_type = ContractType.MONTHLY, window = window,
 )
 
 """
@@ -1608,7 +1608,7 @@ net_transfer_capacity_year_ahead(
     validate = false, window::Period = Year(1),
 ) = forecasted_transfer_capacities(
     client, in_area, out_area, start, stop, format;
-    validate = validate, contract_market_agreement_type = "A04", window = window,
+    validate = validate, contract_market_agreement_type = ContractType.YEARLY, window = window,
 )
 
 """
@@ -1642,7 +1642,7 @@ function expansion_and_dismantling_project(
             String(out_area), String(in_area),
             s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = withdrawn ? "A13" :
+            doc_status = withdrawn ? DocStatus.WITHDRAWN :
                 (doc_status === nothing ? nothing : String(doc_status)),
         )
     end
@@ -1787,7 +1787,7 @@ end
       -> StructVector | String
 
 Outage notices for individual generation units in `area` (Outages
-15.1.A/B, `documentType=A80`). Pass `business_type="A53"` for planned
+15.1.A/B, `documentType=A80`). Pass `business_type=BusinessType.PLANNED_OUTAGE` for planned
 outages only, `"A54"` for unplanned. Filter to one unit with
 `registered_resource = "22WCOOX6X000064W"`.
 
@@ -1819,7 +1819,7 @@ function unavailability_of_generation_units(
             apis.outages, "A80", String(area),
             s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = withdrawn ? "A13" :
+            doc_status = withdrawn ? DocStatus.WITHDRAWN :
                 (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
@@ -1869,7 +1869,7 @@ function unavailability_of_production_units(
             apis.outages, "A77", String(area),
             s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = withdrawn ? "A13" :
+            doc_status = withdrawn ? DocStatus.WITHDRAWN :
                 (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
@@ -1892,7 +1892,7 @@ end
       -> StructVector | String
 
 Outage notices for cross-border transmission infrastructure (Outages
-10.1.A/B, `documentType=A78`). Pass `business_type="A53"` for planned
+10.1.A/B, `documentType=A78`). Pass `business_type=BusinessType.PLANNED_OUTAGE` for planned
 outages only. Returns `parse_unavailability` rows.
 """
 function unavailability_of_transmission_infrastructure(
@@ -1920,7 +1920,7 @@ function unavailability_of_transmission_infrastructure(
             String(out_area), String(in_area),
             s, e;
             business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = withdrawn ? "A13" :
+            doc_status = withdrawn ? DocStatus.WITHDRAWN :
                 (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
@@ -1934,7 +1934,7 @@ end
 
 """
     outages_fall_backs(client, bidding_zone, period_start, period_end[, format];
-                       process_type="A47", business_type="A53",
+                       process_type=ProcessType.MFRR, business_type=BusinessType.PLANNED_OUTAGE,
                        doc_status=nothing, m_r_i_d=nothing,
                        offset=nothing) -> StructVector | String
 
@@ -1950,8 +1950,8 @@ function outages_fall_backs(
         client::Client, bidding_zone::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A47",
-        business_type::AbstractString = "A53",
+        process_type::AbstractString = ProcessType.MFRR,
+        business_type::AbstractString = BusinessType.PLANNED_OUTAGE,
         doc_status::Union{Nothing, AbstractString} = nothing,
         withdrawn::Bool = false,
         m_r_i_d::Union{Nothing, AbstractString} = nothing,
@@ -1969,7 +1969,7 @@ function outages_fall_backs(
             String(process_type), String(business_type),
             String(bidding_zone),
             s, e;
-            doc_status = withdrawn ? "A13" :
+            doc_status = withdrawn ? DocStatus.WITHDRAWN :
                 (doc_status === nothing ? nothing : String(doc_status)),
             m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
@@ -2016,7 +2016,7 @@ function unavailability_of_transmission_infrastructure_available_capacity(
             business_type = business_type === nothing ? nothing : String(business_type),
             asset_registered_resource_m_r_i_d = asset_registered_resource_m_r_i_d === nothing ?
                 nothing : String(asset_registered_resource_m_r_i_d),
-            doc_status = withdrawn ? "A13" :
+            doc_status = withdrawn ? DocStatus.WITHDRAWN :
                 (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
@@ -2067,7 +2067,7 @@ function unavailability_of_transmission_infrastructure_net_position_impact(
             business_type = business_type === nothing ? nothing : String(business_type),
             asset_registered_resource_m_r_i_d = asset_registered_resource_m_r_i_d === nothing ?
                 nothing : String(asset_registered_resource_m_r_i_d),
-            doc_status = withdrawn ? "A13" :
+            doc_status = withdrawn ? DocStatus.WITHDRAWN :
                 (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
@@ -2093,7 +2093,7 @@ transmission, this one takes a single `bidding_zone` (no `in_Domain` /
 treats offshore-grid outages as a single document family.
 
 Returns [`parse_unavailability`](@ref) rows (one row per outage event).
-Pass `doc_status="A09"` for withdrawn notices, or the `*_update` pair
+Pass `doc_status=DocStatus.CANCELLED` for withdrawn notices, or the `*_update` pair
 to slice by publication-update window.
 """
 function unavailability_of_offshore_grid(
@@ -2117,7 +2117,7 @@ function unavailability_of_offshore_grid(
         outages101_c_unavailability_of_offshore_grid_infrastructure(
             apis.outages, "A79", String(bidding_zone),
             s, e;
-            doc_status = withdrawn ? "A13" :
+            doc_status = withdrawn ? DocStatus.WITHDRAWN :
                 (doc_status === nothing ? nothing : String(doc_status)),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
@@ -2138,7 +2138,7 @@ end
 """
     production_and_generation_units(client, area[, format];
         implementation_date::Union{Date,AbstractString} = Date(2017, 1, 1),
-        business_type = "B11",
+        business_type = BusinessType.PRODUCTION_UNIT,
         psr_type = nothing) -> StructVector | String
 
 Registry snapshot of production + generation units (Master Data
@@ -2160,7 +2160,7 @@ function production_and_generation_units(
         format::ResponseFormat = Parsed();
         validate::Bool = false,
         implementation_date::Union{Date, AbstractString} = Date(2017, 1, 1),
-        business_type::AbstractString = "B11",
+        business_type::AbstractString = BusinessType.PRODUCTION_UNIT,
         psr_type::Union{Nothing, AbstractString} = nothing,
     )
     apis = entsoe_apis(client)
@@ -2241,7 +2241,7 @@ end
 
 """
     current_balancing_state(client, area, start, stop[, format];
-                            business_type="B33") -> StructVector | String
+                            business_type=BusinessType.AREA_CONTROL_ERROR) -> StructVector | String
 
 Real-time area-control-error / imbalance state (Balancing 1.2.3.A,
 `documentType=A86`). `business_type` defaults to `"B33"` (Area control
@@ -2252,7 +2252,7 @@ function current_balancing_state(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        business_type::AbstractString = "B33",
+        business_type::AbstractString = BusinessType.AREA_CONTROL_ERROR,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2304,7 +2304,7 @@ end
 
 """
     cross_border_marginal_prices_for_afrr(client, control_area, period_start, period_end[, format];
-                                          standard_market_product="A01")
+                                          standard_market_product=StandardProduct.STANDARD)
       -> StructVector | String
 
 Cross-border marginal prices (CBMPs) for aFRR central selection
@@ -2316,7 +2316,7 @@ function cross_border_marginal_prices_for_afrr(
         client::Client, control_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        standard_market_product::AbstractString = "A01",
+        standard_market_product::AbstractString = StandardProduct.STANDARD,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2335,7 +2335,7 @@ end
 
 """
     netted_and_exchanged_volumes(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
-                                 process_type="A63")
+                                 process_type=ProcessType.IMBALANCE_NETTING)
       -> StructVector | String
 
 Netted and exchanged volumes between platforms (Balancing IF
@@ -2348,7 +2348,7 @@ function netted_and_exchanged_volumes(
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A63",
+        process_type::AbstractString = ProcessType.IMBALANCE_NETTING,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2367,7 +2367,7 @@ end
 
 """
     netted_and_exchanged_volumes_per_border(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
-                                            process_type="A60")
+                                            process_type=ProcessType.SCHEDULED_ACTIVATION_MFRR)
       -> StructVector | String
 
 Same data as [`netted_and_exchanged_volumes`](@ref) but published per
@@ -2379,7 +2379,7 @@ function netted_and_exchanged_volumes_per_border(
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A60",
+        process_type::AbstractString = ProcessType.SCHEDULED_ACTIVATION_MFRR,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2398,7 +2398,7 @@ end
 
 """
     balancing_border_capacity_limitations(client, in_area, out_area, period_start, period_end[, format];
-                                          business_type="A26", process_type="A47",
+                                          business_type=BusinessType.AVAILABLE_TRANSFER_CAPACITY, process_type=ProcessType.MFRR,
                                           registered_resource=nothing)
       -> StructVector | String
 
@@ -2412,8 +2412,8 @@ function balancing_border_capacity_limitations(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        business_type::AbstractString = "A26",
-        process_type::AbstractString = "A47",
+        business_type::AbstractString = BusinessType.AVAILABLE_TRANSFER_CAPACITY,
+        process_type::AbstractString = ProcessType.MFRR,
         registered_resource::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
     )
@@ -2436,7 +2436,7 @@ end
 
 """
     permanent_allocation_limitations_to_HVDC(client, in_area, out_area, period_start, period_end[, format];
-                                             process_type="A63", business_type="B06",
+                                             process_type=ProcessType.IMBALANCE_NETTING, business_type=BusinessType.DC_LINK_CONSTRAINT,
                                              registered_resource=nothing)
       -> StructVector | String
 
@@ -2449,8 +2449,8 @@ function permanent_allocation_limitations_to_HVDC(
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A63",
-        business_type::AbstractString = "B06",
+        process_type::AbstractString = ProcessType.IMBALANCE_NETTING,
+        business_type::AbstractString = BusinessType.DC_LINK_CONSTRAINT,
         registered_resource::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
     )
@@ -2473,7 +2473,7 @@ end
 
 """
     elastic_demands(client, acquiring_domain, period_start, period_end[, format];
-                    process_type="A47") -> StructVector | String
+                    process_type=ProcessType.MFRR) -> StructVector | String
 
 Elastic-demand curves from IF platforms (Balancing IF aFRR 3.4 /
 mFRR 3.4, `documentType=A37`, `businessType=B75`). `process_type`
@@ -2483,7 +2483,7 @@ function elastic_demands(
         client::Client, acquiring_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A47",
+        process_type::AbstractString = ProcessType.MFRR,
         offset::Union{Nothing, Integer} = nothing,
         window::Period = Year(1),
     )
@@ -2504,7 +2504,7 @@ end
 
 """
     changes_to_bid_availability(client, domain, period_start, period_end[, format];
-                                process_type="A47", business_type=nothing,
+                                process_type=ProcessType.MFRR, business_type=nothing,
                                 offset=nothing) -> StructVector | String
 
 Changes to bid availability published by IF platforms (Balancing IF
@@ -2518,7 +2518,7 @@ function changes_to_bid_availability(
         client::Client, domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A47",
+        process_type::AbstractString = ProcessType.MFRR,
         business_type::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
         window::Period = Year(1),
@@ -2540,7 +2540,7 @@ end
 
 """
     changes_to_bid_availability_archives(client, domain, period_start, period_end[, format];
-                                         process_type="A47",
+                                         process_type=ProcessType.MFRR,
                                          storage_type="archive",
                                          business_type=nothing,
                                          offset=nothing) -> StructVector | String
@@ -2552,7 +2552,7 @@ function changes_to_bid_availability_archives(
         client::Client, domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A47",
+        process_type::AbstractString = ProcessType.MFRR,
         storage_type::AbstractString = "archive",
         business_type::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
@@ -2576,7 +2576,7 @@ end
 
 """
     balancing_energy_bids(client, connecting_domain, period_start, period_end[, format];
-                          process_type="A47",
+                          process_type=ProcessType.MFRR,
                           direction=nothing,
                           standard_market_product=nothing,
                           original_market_product=nothing)
@@ -2595,7 +2595,7 @@ function balancing_energy_bids(
         client::Client, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A47",
+        process_type::AbstractString = ProcessType.MFRR,
         direction::Union{Nothing, AbstractString} = nothing,
         standard_market_product::Union{Nothing, AbstractString} = nothing,
         original_market_product::Union{Nothing, AbstractString} = nothing,
@@ -2624,7 +2624,7 @@ end
 
 """
     balancing_energy_bids_archives(client, connecting_domain, period_start, period_end[, format];
-                                   process_type="A47",
+                                   process_type=ProcessType.MFRR,
                                    storage_type="archive",
                                    offset=nothing)
       -> StructVector | String
@@ -2637,7 +2637,7 @@ function balancing_energy_bids_archives(
         client::Client, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A47",
+        process_type::AbstractString = ProcessType.MFRR,
         storage_type::AbstractString = "archive",
         offset::Union{Nothing, Integer} = nothing,
         window::Period = Day(1),
@@ -2660,7 +2660,7 @@ end
 
 """
     allocation_and_use_of_cross_zonal_balancing_capacity(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
-                                                         process_type="A46",
+                                                         process_type=ProcessType.RR,
                                                          type_market_agreement_type=nothing)
       -> StructVector | String
 
@@ -2673,7 +2673,7 @@ function allocation_and_use_of_cross_zonal_balancing_capacity(
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A46",
+        process_type::AbstractString = ProcessType.RR,
         type_market_agreement_type::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
     )
@@ -2695,7 +2695,7 @@ end
 
 """
     results_of_criteria_application_process(client, area, period_start, period_end[, format];
-                                            process_type="A47") -> StructVector | String
+                                            process_type=ProcessType.MFRR) -> StructVector | String
 
 Results of the criteria-application process (Balancing 18.5.4 SO GL,
 `documentType=A45`). `StructVector{(time, value)}` of TSO-quality
@@ -2705,7 +2705,7 @@ function results_of_criteria_application_process(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A47",
+        process_type::AbstractString = ProcessType.MFRR,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2742,7 +2742,7 @@ function fcr_total_capacity(
     ) do s, e
         balancing1872_fcr_total_capacity_so_gl(
             apis.balancing;
-            document_type = "A26", business_type = "A25",
+            document_type = DocumentType.CAPACITY, business_type = BusinessType.GENERAL_CAPACITY_INFORMATION,
             area_domain = String(area),
             period_start = s,
             period_end = e,
@@ -2771,7 +2771,7 @@ function shares_of_fcr_capacity(
     ) do s, e
         balancing1872_shares_of_fcr_capacity_so_gl(
             apis.balancing;
-            document_type = "A26", business_type = "C23",
+            document_type = DocumentType.CAPACITY, business_type = BusinessType.SHARE_OF_RESERVE_CAPACITY,
             area_domain = String(area),
             period_start = s,
             period_end = e,
@@ -2781,7 +2781,7 @@ end
 
 """
     frr_rr_capacity_outlook(client, area, period_start, period_end[, format];
-                            process_type="A56") -> StructVector | String
+                            process_type=ProcessType.FRR) -> StructVector | String
 
 FRR/RR capacity outlook (Balancing 18.8.3/18.9.2 SO GL,
 `documentType=A26`, `businessType=C76`). `process_type` default
@@ -2791,7 +2791,7 @@ function frr_rr_capacity_outlook(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A56",
+        process_type::AbstractString = ProcessType.FRR,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2809,7 +2809,7 @@ end
 
 """
     frr_and_rr_actual_capacity(client, area, period_start, period_end[, format];
-                               process_type="A56", business_type="C77")
+                               process_type=ProcessType.FRR, business_type=BusinessType.MIN)
       -> StructVector | String
 
 FRR & RR actual capacity (Balancing 18.8.4/18.9.3 SO GL,
@@ -2820,8 +2820,8 @@ function frr_and_rr_actual_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A56",
-        business_type::AbstractString = "C77",
+        process_type::AbstractString = ProcessType.FRR,
+        business_type::AbstractString = BusinessType.MIN,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2858,7 +2858,7 @@ function outlook_of_reserve_capacities_on_rr(
     ) do s, e
         balancing1892_outlook_of_reserve_capacities_on_rr_so_gl(
             apis.balancing;
-            document_type = "A26", process_type = "A46", business_type = "C76",
+            document_type = DocumentType.CAPACITY, process_type = ProcessType.RR, business_type = BusinessType.FORECASTED_CAPACITY,
             area_domain = String(area),
             period_start = s,
             period_end = e,
@@ -2887,7 +2887,7 @@ function rr_actual_capacity(
     ) do s, e
         balancing1893_rr_actual_capacity_so_gl(
             apis.balancing;
-            document_type = "A26", process_type = "A46", business_type = "C77",
+            document_type = DocumentType.CAPACITY, process_type = ProcessType.RR, business_type = BusinessType.MIN,
             area_domain = String(area),
             period_start = s,
             period_end = e,
@@ -2897,7 +2897,7 @@ end
 
 """
     sharing_of_rr_and_frr(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
-                          process_type="A56") -> StructVector | String
+                          process_type=ProcessType.FRR) -> StructVector | String
 
 Sharing of RR and FRR between connected areas (Balancing 19.0.1 SO GL,
 `documentType=A26`, `businessType=C22`). `process_type` default
@@ -2908,7 +2908,7 @@ function sharing_of_rr_and_frr(
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A56",
+        process_type::AbstractString = ProcessType.FRR,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2919,8 +2919,8 @@ function sharing_of_rr_and_frr(
     ) do s, e
         balancing1901_sharing_of_rr_and_frr_so_gl(
             apis.balancing;
-            document_type = "A26", process_type = String(process_type),
-            business_type = "C22",
+            document_type = DocumentType.CAPACITY, process_type = String(process_type),
+            business_type = BusinessType.SHARED_BALANCING_RESERVE_CAPACITY,
             acquiring_domain = String(acquiring_domain),
             connecting_domain = String(connecting_domain),
             period_start = s,
@@ -2950,7 +2950,7 @@ function sharing_of_fcr_between_sas(
     ) do s, e
         balancing1902_sharing_of_fcr_between_sas_so_gl(
             apis.balancing;
-            document_type = "A26", process_type = "A52", business_type = "C22",
+            document_type = DocumentType.CAPACITY, process_type = ProcessType.FCR, business_type = BusinessType.SHARED_BALANCING_RESERVE_CAPACITY,
             area_domain = String(area),
             period_start = s,
             period_end = e,
@@ -2960,7 +2960,7 @@ end
 
 """
     exchanged_reserve_capacity(client, acquiring_domain, connecting_domain, period_start, period_end[, format];
-                               process_type="A46") -> StructVector | String
+                               process_type=ProcessType.RR) -> StructVector | String
 
 Exchanged balancing-reserve capacity between control areas
 (Balancing 19.0.3 SO GL, `documentType=A26`, `businessType=C21`).
@@ -2974,7 +2974,7 @@ function exchanged_reserve_capacity(
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A46",
+        process_type::AbstractString = ProcessType.RR,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2985,9 +2985,9 @@ function exchanged_reserve_capacity(
     ) do s, e
         balancing1903_exchanged_reserve_capacity_so_gl(
             apis.balancing;
-            document_type = "A26",
+            document_type = DocumentType.CAPACITY,
             process_type = String(process_type),
-            business_type = "C21",
+            business_type = BusinessType.EXCHANGED_BALANCING_RESERVE_CAPACITY,
             acquiring_domain = String(acquiring_domain),
             connecting_domain = String(connecting_domain),
             period_start = s,
@@ -2998,7 +2998,7 @@ end
 
 """
     volumes_and_prices_of_contracted_reserves(client, control_area, period_start, period_end[, format];
-                                              type_market_agreement_type="A01",
+                                              type_market_agreement_type=ContractType.DAILY,
                                               process_type=nothing,
                                               psr_type=nothing,
                                               offset=nothing)
@@ -3018,7 +3018,7 @@ function volumes_and_prices_of_contracted_reserves(
         client::Client, control_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        type_market_agreement_type::AbstractString = "A01",
+        type_market_agreement_type::AbstractString = ContractType.DAILY,
         process_type::Union{Nothing, AbstractString} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
@@ -3070,7 +3070,7 @@ end
 
 """
     prices_of_activated_balancing_energy(client, control_area, period_start, period_end[, format];
-                                         process_type="A16",
+                                         process_type=ProcessType.REALISED,
                                          business_type=nothing,
                                          psr_type=nothing,
                                          standard_market_product=nothing,
@@ -3089,7 +3089,7 @@ function prices_of_activated_balancing_energy(
         client::Client, control_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A16",
+        process_type::AbstractString = ProcessType.REALISED,
         business_type::Union{Nothing, AbstractString} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
         standard_market_product::Union{Nothing, AbstractString} = nothing,
@@ -3116,7 +3116,7 @@ function prices_of_activated_balancing_energy(
 end
 
 """
-    total_imbalance_volumes(client, area, start, stop[, format]; business_type="A19")
+    total_imbalance_volumes(client, area, start, stop[, format]; business_type=BusinessType.BALANCE_ENERGY_DEVIATION)
       -> StructVector | String
 
 Total imbalance volumes per settlement period (Balancing 17.1.H,
@@ -3130,7 +3130,7 @@ function total_imbalance_volumes(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        business_type::AbstractString = "A19",
+        business_type::AbstractString = BusinessType.BALANCE_ENERGY_DEVIATION,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -3149,8 +3149,8 @@ end
 
 """
     procured_balancing_capacity(client, area, period_start[, period_end, format];
-                                process_type="A51",
-                                type_market_agreement_type="A01",
+                                process_type=ProcessType.AFRR,
+                                type_market_agreement_type=ContractType.DAILY,
                                 offset=nothing) -> StructVector | String
 
 Procured balancing capacity volumes (Balancing 1.2.3.F,
@@ -3165,8 +3165,8 @@ function procured_balancing_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A51",
-        type_market_agreement_type::AbstractString = "A01",
+        process_type::AbstractString = ProcessType.AFRR,
+        type_market_agreement_type::AbstractString = ContractType.DAILY,
         offset::Union{Nothing, Integer} = nothing,
         window::Period = Year(1),
     )
@@ -3203,7 +3203,7 @@ end
 
 """
     aggregated_balancing_energy_bids(client, area, start, stop[, format];
-                                     process_type="A51") -> StructVector | String
+                                     process_type=ProcessType.AFRR) -> StructVector | String
 
 Aggregated balancing-energy bid volumes (Balancing 1.2.3.E,
 `documentType=A24`). `process_type` defaults to `"A51"` (Automatic
@@ -3215,7 +3215,7 @@ function aggregated_balancing_energy_bids(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
         validate::Bool = false,
-        process_type::AbstractString = "A51",
+        process_type::AbstractString = ProcessType.AFRR,
         window::Period = Day(1),
     )
     apis = entsoe_apis(client)
@@ -3265,7 +3265,7 @@ xmls = omi_other_market_information(
 function omi_other_market_information(
         client::Client, control_area::AbstractString,
         period_start, period_end;
-        document_type::AbstractString = "A95",
+        document_type::AbstractString = DocumentType.CONFIGURATION,
         page_size::Int = 200,
         max_pages::Int = 25,
         validate::Bool = false,

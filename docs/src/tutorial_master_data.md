@@ -41,8 +41,8 @@ units = BR.playback("tut_master_data_BE.yml") do
     production_and_generation_units(
         client, EIC.BE;
         implementation_date = "2017-01-01",
-        business_type = "B11",     # production units
-        psr_type = "B04",          # Fossil gas only
+        business_type = BusinessType.PRODUCTION_UNIT,
+        psr_type = PsrType.FOSSIL_GAS,
     )
 end
 length(units), propertynames(units)

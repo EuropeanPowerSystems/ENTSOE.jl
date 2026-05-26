@@ -185,20 +185,32 @@ catch err
 end
 
 # ---------------------------------------------------------------------------
-section("4. Code lists — DOCUMENT_TYPE, PROCESS_TYPE, BUSINESS_TYPE, PSR_TYPE")
+section("4. Code lists — semantic constants + description labels")
 
-subhead("Forward lookup (Symbol → description)")
-note("DOCUMENT_TYPE.A44 = \"$(DOCUMENT_TYPE.A44)\"")
-note("PROCESS_TYPE.A16  = \"$(PROCESS_TYPE.A16)\"")
-note("BUSINESS_TYPE.A33 = \"$(BUSINESS_TYPE.A33)\"")
-note("PSR_TYPE.B19      = \"$(PSR_TYPE.B19)\"")
+subhead("Semantic-name → code (pass these directly into wrappers)")
+note("PsrType.SOLAR             = \"$(PsrType.SOLAR)\"")
+note("PsrType.WIND_ONSHORE      = \"$(PsrType.WIND_ONSHORE)\"")
+note("BusinessType.PLANNED_OUTAGE = \"$(BusinessType.PLANNED_OUTAGE)\"")
+note("ProcessType.REALISED      = \"$(ProcessType.REALISED)\"")
+note("DocumentType.PRICE        = \"$(DocumentType.PRICE)\"")
+
+subhead("Subset tuples — PsrGroup (for client-side filtering after fetch)")
+note("PsrGroup.HYDRO   = $(PsrGroup.HYDRO)")
+note("PsrGroup.WIND    = $(PsrGroup.WIND)")
+note("PsrGroup.FOSSIL  = $(PsrGroup.FOSSIL)")
+
+subhead("Code → description NamedTuples (for plot legends / pretty-printing)")
+note("DOCUMENT_LABELS.A44 = \"$(DOCUMENT_LABELS.A44)\"")
+note("PROCESS_LABELS.A16  = \"$(PROCESS_LABELS.A16)\"")
+note("BUSINESS_LABELS.A33 = \"$(BUSINESS_LABELS.A33)\"")
+note("PSR_LABELS.B19      = \"$(PSR_LABELS.B19)\"")
 
 subhead("describe / code_for — case-insensitive substring search")
-note("describe(PSR_TYPE, \"B16\") = \"$(ENTSOE.describe(PSR_TYPE, "B16"))\"")
-note("code_for(PSR_TYPE, \"wind onshore\") = \"$(ENTSOE.code_for(PSR_TYPE, "wind onshore"))\"")
+note("describe(PSR_LABELS, \"B16\") = \"$(ENTSOE.describe(PSR_LABELS, "B16"))\"")
+note("code_for(PSR_LABELS, \"wind onshore\") = \"$(ENTSOE.code_for(PSR_LABELS, "wind onshore"))\"")
 note(
-    "code_for(DOCUMENT_TYPE, \"price document\") = " *
-        "\"$(ENTSOE.code_for(DOCUMENT_TYPE, "price document"))\"  " *
+    "code_for(DOCUMENT_LABELS, \"price document\") = " *
+        "\"$(ENTSOE.code_for(DOCUMENT_LABELS, "price document"))\"  " *
         "(plain \"price\" would be ambiguous → A44/A84/A85/A89)"
 )
 
@@ -270,7 +282,7 @@ if caps !== nothing
     big_i = argmax(caps.capacity_mw)
     note(
         "largest: $(round(Int, caps.capacity_mw[big_i])) MW " *
-            "(\"$(ENTSOE.describe(PSR_TYPE, caps.psr_type[big_i]))\")"
+            "(\"$(ENTSOE.describe(PSR_LABELS, caps.psr_type[big_i]))\")"
     )
 end
 
@@ -286,7 +298,7 @@ if gen !== nothing
             rows = filter(r -> r.psr_type == code, gen)
             mean_mw = round(Int, mean(r.value for r in rows))
             note(
-                "    $code  $(rpad(ENTSOE.describe(PSR_TYPE, code), 35))" *
+                "    $code  $(rpad(ENTSOE.describe(PSR_LABELS, code), 35))" *
                     "  mean $(lpad(mean_mw, 6)) MW"
             )
         end
@@ -294,9 +306,9 @@ if gen !== nothing
 end
 
 # Server-side filter to one technology.
-subhead("Server-side filter: psr_type = \"B16\" (Solar only)")
-solar = try_call("actual_generation_per_production_type(NL, psr=B16)") do
-    actual_generation_per_production_type(CLIENT, EIC.NL, T0, T1; psr_type = "B16")
+subhead("Server-side filter: psr_type = PsrType.SOLAR (B16)")
+solar = try_call("actual_generation_per_production_type(NL, psr=SOLAR)") do
+    actual_generation_per_production_type(CLIENT, EIC.NL, T0, T1; psr_type = PsrType.SOLAR)
 end
 solar === nothing || note(
     "$(length(solar)) solar points, " *
@@ -311,7 +323,7 @@ if wsf !== nothing
     let techs = unique(wsf.psr_type)
         note("$(length(wsf)) forecast rows across $(length(techs)) technologies:")
         for code in techs
-            note("    $code  $(ENTSOE.describe(PSR_TYPE, code))")
+            note("    $code  $(ENTSOE.describe(PSR_LABELS, code))")
         end
     end
 end
@@ -438,7 +450,8 @@ pages = try_call("omi_other_market_information(NL, B47)") do
     omi_other_market_information(
         CLIENT, EIC.NL,
         DateTime("2024-09-23T22:00"), DateTime("2024-09-24T22:00");
-        document_type = "B47", page_size = 200, max_pages = 1,
+        document_type = DocumentType.OTHER_MARKET_INFORMATION,
+        page_size = 200, max_pages = 1,
     )
 end
 pages === nothing || note(
@@ -559,7 +572,7 @@ gen_outages = try_call("unavailability_of_generation_units(BE)") do
     unavailability_of_generation_units(
         CLIENT, EIC.BE,
         DateTime("2024-01-01T00:00"), DateTime("2024-02-01T00:00");
-        business_type = "A53",   # planned only
+        business_type = BusinessType.PLANNED_OUTAGE,
     )
 end
 if gen_outages !== nothing && !isempty(gen_outages.resource_name)
@@ -579,7 +592,7 @@ prod_outages = try_call("unavailability_of_production_units(BE)") do
     unavailability_of_production_units(
         CLIENT, EIC.BE,
         DateTime("2024-01-01T00:00"), DateTime("2024-02-01T00:00");
-        business_type = "A53",
+        business_type = BusinessType.PLANNED_OUTAGE,
     )
 end
 prod_outages === nothing || note("$(length(prod_outages)) planned production-unit outages")
@@ -607,13 +620,13 @@ end
 # ---------------------------------------------------------------------------
 section("16. Master data — production + generation unit registry")
 
-subhead("production_and_generation_units(BE, B11 production units)")
+subhead("production_and_generation_units(BE, PRODUCTION_UNIT, Fossil Gas)")
 units = try_call("production_and_generation_units(BE)") do
     production_and_generation_units(
         CLIENT, EIC.BE;
         implementation_date = Date(2017, 1, 1),
-        business_type = "B11",
-        psr_type = "B04",  # Fossil Gas only — keeps the response small
+        business_type = BusinessType.PRODUCTION_UNIT,
+        psr_type = PsrType.FOSSIL_GAS,
     )
 end
 if units !== nothing && !isempty(units.production_unit_mrid)
@@ -643,7 +656,7 @@ imbal_p = try_call("imbalance_prices(AT, 2024-01)") do
     imbalance_prices(
         CLIENT, EIC.AT,
         DateTime("2024-01-01T00:00"), DateTime("2024-01-02T00:00");
-        psr_type = "A04",
+        psr_type = PsrType.GENERATION,
     )
 end
 if imbal_p !== nothing && !isempty(imbal_p.value)
@@ -668,8 +681,8 @@ proc = try_call("procured_balancing_capacity(DE)") do
     procured_balancing_capacity(
         CLIENT, "10YDE-VE-------2",   # 50Hertz CA — not in EIC tuple
         DateTime("2023-06-15T00:00"), DateTime("2023-06-15T01:00");
-        process_type = "A51",
-        type_market_agreement_type = "A01",
+        process_type = ProcessType.AFRR,
+        type_market_agreement_type = ContractType.DAILY,
         offset = 0,
     )
 end

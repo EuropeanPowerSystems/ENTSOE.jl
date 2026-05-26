@@ -13,7 +13,9 @@ include("splitting.jl")
 
 export entsoe_period, EIC, ENTSOEClient, entsoe_apis, ENTSOE_BASE_URL, is_uuid_token
 export LocalTime
-export DOCUMENT_TYPE, PROCESS_TYPE, BUSINESS_TYPE, PSR_TYPE, code_for
+export DOCUMENT_LABELS, PROCESS_LABELS, BUSINESS_LABELS, PSR_LABELS, code_for
+export DocumentType, ProcessType, BusinessType, PsrType, PsrGroup,
+    AuctionType, AuctionCategory, ContractType, DocStatus, StandardProduct
 export parse_timeseries, parse_timeseries_per_psr, parse_installed_capacity,
     parse_installed_capacity_per_unit, parse_timeseries_per_unit,
     parse_unavailability, parse_unavailability_curve, parse_master_data

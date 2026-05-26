@@ -99,15 +99,28 @@ day_ahead_prices(client, EIC.NL, t1, t2, LocalTime("Europe/Amsterdam"))  # time 
 ## Codes and identifiers
 
 ```julia
-PSR_TYPE.B19                       # "Wind Onshore"
-code_for(PSR_TYPE, "wind onshore") # "B19"  — reverse lookup by fragment
-EIC.NL                             # "10YNL----------L"
+PsrType.SOLAR                        # "B16"  — pass into wrappers
+PsrType.WIND_ONSHORE                 # "B19"
+BusinessType.PLANNED_OUTAGE          # "A53"
+PsrGroup.HYDRO                       # ("B10", "B11", "B12") — subset for client-side filters
+PSR_LABELS.B19                       # "Wind Onshore"  — code → description
+code_for(PSR_LABELS, "wind onshore") # "B19"  — reverse lookup by fragment
+EIC.NL                               # "10YNL----------L"
 ```
 
-Four code tables (`DOCUMENT_TYPE`, `PROCESS_TYPE`, `BUSINESS_TYPE`,
-`PSR_TYPE`) and 33 named bidding zones in `EIC` are exported; pass any
-raw 16-char EIC string for zones not listed. `EIC_REGISTRY` covers the
-extended set. Pass `validate = true` to any wrapper to assert the zone.
+Two complementary shapes:
+
+- **Semantic-name → code** constants for *passing* into wrappers:
+  `PsrType`, `BusinessType`, `ProcessType`, `DocumentType`,
+  `AuctionType`, `AuctionCategory`, `ContractType`, `DocStatus`,
+  `StandardProduct`, plus `PsrGroup` subset tuples (`HYDRO`, `WIND`,
+  `FOSSIL`, `RENEWABLE`, `STORAGE`, `INFRASTRUCTURE`).
+- **Code → description** NamedTuples for *labelling* output:
+  `DOCUMENT_LABELS`, `PROCESS_LABELS`, `BUSINESS_LABELS`, `PSR_LABELS`.
+
+33 named bidding zones in `EIC` are exported; pass any raw 16-char EIC
+string for zones not listed. `EIC_REGISTRY` covers the extended set.
+Pass `validate = true` to any wrapper to assert the zone.
 
 ## Long periods, "no data", reliability
 

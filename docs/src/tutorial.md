@@ -146,7 +146,7 @@ working-day shape; valley around 02:00–04:00 UTC, ramp-up from
 [`installed_capacity_per_production_type`](@ref) wraps Generation
 14.1.A. The returned rows are `(psr_type, capacity_mw)` — translate
 the codes to labels with [`describe`](@ref) against the
-[`PSR_TYPE`](@ref) table.
+[`PSR_LABELS`](@ref) table.
 
 ```@example tutorial
 cap_rows = BR.playback("generation_141a_installed_capacity_NL.yml") do
@@ -155,12 +155,12 @@ cap_rows = BR.playback("generation_141a_installed_capacity_NL.yml") do
         DateTime("2024-12-31T23:00"))
 end
 sort!(cap_rows, by = r -> -r.capacity_mw)
-[(ENTSOE.describe(PSR_TYPE, r.psr_type), round(r.capacity_mw; digits = 0))
+[(ENTSOE.describe(PSR_LABELS, r.psr_type), round(r.capacity_mw; digits = 0))
  for r in cap_rows]
 ```
 
 ```@example tutorial
-labels = [ENTSOE.describe(PSR_TYPE, r.psr_type) for r in cap_rows]
+labels = [ENTSOE.describe(PSR_LABELS, r.psr_type) for r in cap_rows]
 mw     = [r.capacity_mw for r in cap_rows]
 fig = Figure(size = (900, 480))
 ax = Axis(fig[1, 1];
@@ -223,9 +223,13 @@ projects. All of that is now part of the package:
   [`parse_timeseries_per_psr`](@ref) /
   [`parse_installed_capacity`](@ref) for the two common ENTSO-E
   document shapes.
-- [`PSR_TYPE`](@ref), [`DOCUMENT_TYPE`](@ref),
-  [`PROCESS_TYPE`](@ref), [`BUSINESS_TYPE`](@ref) for the standard
-  code lists.
+- [`PsrType`](@ref) / [`BusinessType`](@ref) / [`ProcessType`](@ref) /
+  [`DocumentType`](@ref) for passing semantically-named codes into
+  wrappers (`PsrType.SOLAR == "B16"`), and [`PsrGroup`](@ref) for
+  subset filtering after a fetch.
+- [`PSR_LABELS`](@ref), [`DOCUMENT_LABELS`](@ref),
+  [`PROCESS_LABELS`](@ref), [`BUSINESS_LABELS`](@ref) for code →
+  description lookup (used for plot legends, pretty-printing, etc.).
 - The named-argument wrappers above (one per common endpoint) hide
   the magic codes and accept `DateTime` directly.
 

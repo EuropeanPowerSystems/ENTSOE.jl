@@ -126,30 +126,82 @@ end
 @testset "code lists" begin
     # Spot-check a representative code from each list — these are the ones
     # used in the cassette tests / tutorial.
-    @test DOCUMENT_TYPE.A44 == "Price document"
-    @test DOCUMENT_TYPE.A65 == "System total load"
-    @test DOCUMENT_TYPE.A68 == "Installed generation per type"
-    @test PROCESS_TYPE.A16 == "Realised"
-    @test PROCESS_TYPE.A33 == "Year ahead"
-    @test BUSINESS_TYPE.A33 == "Outage"
-    @test PSR_TYPE.B16 == "Solar"
-    @test PSR_TYPE.B19 == "Wind Onshore"
+    @test DOCUMENT_LABELS.A44 == "Price document"
+    @test DOCUMENT_LABELS.A65 == "System total load"
+    @test DOCUMENT_LABELS.A68 == "Installed generation per type"
+    @test PROCESS_LABELS.A16 == "Realised"
+    @test PROCESS_LABELS.A33 == "Year ahead"
+    @test BUSINESS_LABELS.A33 == "Outage"
+    @test PSR_LABELS.B16 == "Solar"
+    @test PSR_LABELS.B19 == "Wind Onshore"
     # All keys are 3-character A/B + two digits — sanity check.
-    @test all(occursin(r"^[AB]\d\d$", String(k)) for k in keys(PSR_TYPE))
-    @test all(occursin(r"^[AB]\d\d$", String(k)) for k in keys(DOCUMENT_TYPE))
+    @test all(occursin(r"^[AB]\d\d$", String(k)) for k in keys(PSR_LABELS))
+    @test all(occursin(r"^[AB]\d\d$", String(k)) for k in keys(DOCUMENT_LABELS))
 end
 
 @testset "describe / code_for" begin
-    @test ENTSOE.describe(DOCUMENT_TYPE, "A44") == "Price document"
-    @test ENTSOE.describe(DOCUMENT_TYPE, :A44) == "Price document"
-    @test_throws KeyError ENTSOE.describe(DOCUMENT_TYPE, "ZZZ")
+    @test ENTSOE.describe(DOCUMENT_LABELS, "A44") == "Price document"
+    @test ENTSOE.describe(DOCUMENT_LABELS, :A44) == "Price document"
+    @test_throws KeyError ENTSOE.describe(DOCUMENT_LABELS, "ZZZ")
 
     # Substring, case-insensitive.
-    @test ENTSOE.code_for(PSR_TYPE, "wind onshore") == "B19"
-    @test ENTSOE.code_for(DOCUMENT_TYPE, "price document") == "A44"
-    @test_throws KeyError ENTSOE.code_for(PSR_TYPE, "unobtanium")
+    @test ENTSOE.code_for(PSR_LABELS, "wind onshore") == "B19"
+    @test ENTSOE.code_for(DOCUMENT_LABELS, "price document") == "A44"
+    @test_throws KeyError ENTSOE.code_for(PSR_LABELS, "unobtanium")
     # "wind" matches both Onshore and Offshore — should error on ambiguity.
-    @test_throws ErrorException ENTSOE.code_for(PSR_TYPE, "wind")
+    @test_throws ErrorException ENTSOE.code_for(PSR_LABELS, "wind")
+end
+
+@testset "code constants — semantic-name → code" begin
+    # Field access returns the IEC code string.
+    @test PsrType.SOLAR == "B16"
+    @test PsrType.WIND_ONSHORE == "B19"
+    @test PsrType.HYDRO_PUMPED_STORAGE == "B10"
+    @test BusinessType.PLANNED_OUTAGE == "A53"
+    @test BusinessType.UNPLANNED_OUTAGE == "A54"
+    @test BusinessType.AREA_CONTROL_ERROR == "B33"
+    @test ProcessType.REALISED == "A16"
+    @test ProcessType.YEAR_AHEAD == "A33"
+    @test ProcessType.AFRR == "A51"
+    @test DocumentType.PRICE == "A44"
+    @test AuctionType.IMPLICIT == "A01"
+    @test AuctionType.EXPLICIT == "A02"
+    @test ContractType.DAILY == "A01"
+    @test ContractType.INTRADAY == "A07"
+    @test DocStatus.WITHDRAWN == "A13"
+
+    # Callable lookup: semantic name (case-insensitive) and raw-code pass-through.
+    @test PsrType("SOLAR") == "B16"
+    @test PsrType("solar") == "B16"
+    @test PsrType("B16") == "B16"
+    @test_throws ArgumentError PsrType("ZZZ")
+
+    # Iteration / introspection — every value of a non-group table is a code String.
+    @test all(v isa String && occursin(r"^[ABXC]\d\w$", v) for v in values(PsrType))
+    @test :SOLAR in propertynames(PsrType)
+    @test haskey(PsrType, :SOLAR)
+    @test length(PsrType) >= 25
+
+    # show prints the table name (used in error messages too).
+    @test occursin("PsrType", repr(PsrType))
+end
+
+@testset "code constants — subset groups (PsrGroup)" begin
+    @test PsrGroup.HYDRO == ("B10", "B11", "B12")
+    @test PsrGroup.WIND == ("B18", "B19")
+    @test "B04" in PsrGroup.FOSSIL          # Fossil Gas
+    @test "B16" in PsrGroup.RENEWABLE       # Solar
+    @test "B10" in PsrGroup.STORAGE         # Pumped storage
+    @test "B22" in PsrGroup.INFRASTRUCTURE  # DC Link
+
+    # Every code referenced by a group exists as a PsrType field value.
+    psr_codes = Set(v for v in values(PsrType) if v isa String)
+    for group in (
+            PsrGroup.HYDRO, PsrGroup.WIND, PsrGroup.FOSSIL,
+            PsrGroup.RENEWABLE, PsrGroup.STORAGE, PsrGroup.INFRASTRUCTURE,
+        )
+        @test all(code in psr_codes for code in group)
+    end
 end
 
 @testset "ENTSOEClient construction" begin

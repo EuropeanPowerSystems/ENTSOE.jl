@@ -40,7 +40,7 @@ notices = BR.playback("tut_outages_BE_2024.bson") do
     unavailability_of_generation_units(
         client, EIC.BE,
         DateTime("2024-01-01T00:00"), DateTime("2024-02-01T00:00");
-        business_type = "A53",   # planned only
+        business_type = BusinessType.PLANNED_OUTAGE,
     )
 end
 length(notices), propertynames(notices)

@@ -308,8 +308,8 @@ Tables.jl-compatible `StructVector`. Pull a column directly with
 `rows.capacity_mw` (`Vector{Float64}`) or `rows.psr_type`
 (`Vector{String}`); convert with `DataFrame(rows)`.
 
-The `psr_type` codes are documented in [`PSR_TYPE`](@ref); pass through
-[`describe(PSR_TYPE, code)`](@ref describe) for human-readable labels.
+The `psr_type` codes are documented in [`PSR_LABELS`](@ref); pass through
+[`describe(PSR_LABELS, code)`](@ref describe) for human-readable labels.
 
 # Example
 ```julia
@@ -558,7 +558,7 @@ One row per `<TimeSeries>`; fields:
 
   - `start` / `stop`    — DateTime UTC bounds of the outage window
   - `business_type`     — `A53` (planned) or `A54` (unplanned); see
-                          [`BUSINESS_TYPE`](@ref)
+                          [`BUSINESS_LABELS`](@ref)
   - `resource_name`     — `"production_RegisteredResource/name"`, or empty
                           when the document is an aggregated notice
   - `resource_mrid`     — mRID of the affected resource (or empty)

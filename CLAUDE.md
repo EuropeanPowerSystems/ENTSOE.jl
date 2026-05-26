@@ -28,7 +28,9 @@ src/
                       parse_master_data (registry), parse_acknowledgement, unzip_response
     splitting.jl  ←   split_period: chunk arithmetic reused by the wrappers'
                       automatic splitting (via `_split_query` in queries.jl)
-    codes.jl      ←   DOCUMENT_TYPE/PROCESS_TYPE/BUSINESS_TYPE/PSR_TYPE + code_for
+    codes.jl      ←   CodeTable; PsrType/BusinessType/ProcessType/DocumentType (pass-in),
+                  ←     PsrGroup (subset tuples for client-side filters),
+                  ←     PSR_LABELS/DOCUMENT_LABELS/PROCESS_LABELS/BUSINESS_LABELS (descriptions) + code_for
     eic.jl        ←   EIC named tuple + EIC_REGISTRY + validate_eic
     period.jl     ←   entsoe_period(DateTime|Date|ZonedDateTime) -> Int64
     client.jl     ←   ENTSOEClient(token; validate_token=false) + entsoe_apis + the
@@ -203,7 +205,10 @@ Note: the generated layer returns `(xml, response)` tuples directly. It does **n
 - **Auth is a query parameter, not a header.** `securityToken` is appended to the URL. The scaffold's built-in `APIKey` auth is header-only and does NOT work for ENTSO-E. `ENTSOEClient(token)` constructs a `Client` with `NoAuth()` and installs a `pre_request_hook` whose stage-1 form injects `ctx.query["securityToken"]` whenever an op declares the `"SecurityToken"` requirement.
 - **Periods are `Int64` UTC `yyyyMMddHHmm`.** The generated layer accepts that alone. Named wrappers accept `DateTime`/`Date`/`ZonedDateTime`/`Integer` via `_to_period` → `entsoe_period`. ZonedDateTimes are converted to UTC first.
 - **Bidding zones are EIC codes** (16-char). A curated 33-zone subset is exposed as `EIC.NL`, `EIC.DE_LU`, `EIC.NO2`, etc. The full registry is `EIC_REGISTRY` (mapping every EIC to `(name, types)` with types like `:BZN`, `:CTA`, `:MBA`). Pass `validate = true` to any wrapper to assert the zone exists and is the right type.
-- **Code-list tables.** `DOCUMENT_TYPE`, `PROCESS_TYPE`, `BUSINESS_TYPE`, `PSR_TYPE` are NamedTuples of code→description. `code_for(TABLE, "wind onshore")` does reverse lookup by substring.
+- **Code-list constants.** Two complementary shapes in `src/conveniences/codes.jl`:
+  - **Pass-into-wrappers** — `PsrType.SOLAR == "B16"`, `BusinessType.PLANNED_OUTAGE == "A53"`, plus `ProcessType`, `DocumentType`, `AuctionType`, `AuctionCategory`, `ContractType`, `DocStatus`. All wrap the shared `CodeTable` struct; values are raw `String`s so the wrappers' existing `String(x)` calls carry them through unchanged. Wrapper *defaults* in `queries.jl` use these (`business_type = BusinessType.PLANNED_OUTAGE`) so signatures are self-documenting.
+  - **Code → description NamedTuples** — `PSR_LABELS.B16 == "Solar"`, plus `DOCUMENT_LABELS`, `PROCESS_LABELS`, `BUSINESS_LABELS`. `code_for(LABELS, "wind onshore")` does reverse lookup by substring on the description.
+  - **Subset tuples** — `PsrGroup.HYDRO == ("B10", "B11", "B12")`, plus `WIND`, `FOSSIL`, `RENEWABLE`, `STORAGE`, `INFRASTRUCTURE`. For client-side filtering after a fetch (`rows[in.(rows.psr_type, Ref(PsrGroup.HYDRO))]`). ENTSO-E rejects multi-code server-side filters, so groups never go through the `psr_type` kwarg.
 - **"No data" is HTTP 200.** ENTSO-E returns an `<Acknowledgement_MarketDocument>` body. The wrappers detect this via `check_acknowledgement` and re-raise as `ENTSOEAcknowledgement` (with `.reason_code` and `.text`). The generated layer does not; callers using it directly must run `check_acknowledgement(xml)` themselves.
 - **`application/zip` happens.** Balancing 17.1.G/H/I, 1.2.3.F/H/I, and outages endpoints with many notices serve zipped XML. `_query` in `src/conveniences/queries.jl` sniffs the 4-byte ZIP magic, unzips with `ZipFile.jl` via `unzip_response`, runs the acknowledgement check per-member, and `vcat`-s the parsed `StructVector`s. `Raw()` returns the concatenated XML members separated by `<!-- next zip member -->` sentinels. This is fully transparent — no wrapper has to opt in.
 - **HTTP errors are typed.** `src/client/errors.jl#check_response` maps status codes to `AuthError` (401/403), `RateLimitError` (408/429, parses `Retry-After`, extracts ENTSO-E's HTML ban message via `rate_limit_message`), `ClientError` (other 4xx), `ServerError` (5xx). Network failures become `NetworkError`; timeouts become `TimeoutError(:connect | :read | :total)`. All five have `Base.showerror` overloads that truncate HTML/long bodies — a 503-during-maintenance no longer dumps 100 KB into stack traces. Don't write `try/catch err isa Exception` blocks — match on the specific subtype.

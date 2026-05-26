@@ -77,7 +77,7 @@ if !isempty(API_PAGES)
 end
 
 # Make `ENTSOE` symbols available unqualified in every doctest — without
-# this, `julia> DOCUMENT_TYPE.A44` fails with `UndefVarError` because
+# this, `julia> DOCUMENT_LABELS.A44` fails with `UndefVarError` because
 # Documenter's doctest runner uses `Main` by default.
 #
 # `recursive = false`: only set on the top-level `ENTSOE` module. The

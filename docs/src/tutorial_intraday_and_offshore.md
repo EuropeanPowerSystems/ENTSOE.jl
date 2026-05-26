@@ -46,16 +46,21 @@ end
 forecast[1]
 ```
 
-Pull out one technology — solar is `B16`:
+Pull out one technology — [`PsrType.SOLAR`](@ref PsrType) resolves to
+the IEC code `"B16"`:
 
 ```@example intraday
-solar = forecast[forecast.psr_type .== "B16"]
+solar = forecast[forecast.psr_type .== PsrType.SOLAR]
 length(solar), solar[1]
 ```
 
-Like `wind_solar_forecast`, pass a `psr_type="B16"` kwarg to filter
-server-side — useful when the response is large enough that you only
-want one curve.
+For server-side filtering (useful when the response is large), pass
+the same constant to the wrapper's `psr_type` kwarg:
+
+```julia
+intraday_wind_solar_forecast(client, EIC.NL, t1, t2;
+    psr_type = PsrType.SOLAR)
+```
 
 ## Intraday prices
 
@@ -143,11 +148,11 @@ outages[1]
 Same `parse_unavailability` shape used by the onshore wrappers
 (`unavailability_of_generation_units`, `..._production_units`,
 `..._transmission_infrastructure`), so existing analyses port across
-unchanged. Filter to unplanned outages (`A54`) with column-wise
-indexing:
+unchanged. Filter to unplanned outages with the
+[`BusinessType`](@ref) constant:
 
 ```@example intraday
-unplanned = outages[outages.business_type .== "A54"]
+unplanned = outages[outages.business_type .== BusinessType.UNPLANNED_OUTAGE]
 length(unplanned)
 ```
 
