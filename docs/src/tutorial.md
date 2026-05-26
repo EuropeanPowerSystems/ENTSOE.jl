@@ -240,8 +240,10 @@ Drop down to the generated layer (`ENTSOE.market121_d_energy_prices`,
 - Browse the Julia-side names (helpers, types, generated functions
   with their docstrings) on the
   [Generated Reference](generated_reference.md) page.
-- For very long historical queries, see
-  [`query_split`](@ref) which chunks the period and concatenates
-  results — ENTSO-E caps most endpoints at one year per request.
+- For very long historical queries you do nothing special: ENTSO-E
+  caps most endpoints at one year per request, and the wrappers split
+  longer ranges into `window`-sized chunks automatically. See the
+  [multi-year tutorial](tutorial_multiyear.md); [`split_period`](@ref)
+  exposes the chunk boundaries if you need them.
 - See the cassette mechanism in `test/test-cassettes.jl` if you
   want to add fixtures for other endpoints.

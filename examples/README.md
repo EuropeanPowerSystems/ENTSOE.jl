@@ -34,7 +34,7 @@ fetched, so you can scroll the output and see exactly what landed.
   6.1.A–E; Generation 14.1.A/C/D + 16.1.B/C; Transmission 11.1.A,
   12.1.F, 12.1.F net positions, 12.1.G; OMI with pagination).
 - `Parsed()` vs `Raw()` dispatch.
-- `query_split` over a multi-year window.
+- Automatic window splitting over a multi-year range.
 - `ENTSOEAcknowledgement` handling on a deliberately empty query.
 - `RateLimitError` body parsing via `rate_limit_message` (offline demo).
 - The `with_defaults` middleware composition (retry / rate-limit /

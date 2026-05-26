@@ -8,9 +8,16 @@
 # results.
 
 using Dates: Dates, DateTime, Date, Year, Period
+using TimeZones: ZonedDateTime, astimezone, TimeZone
+const _SPLIT_UTC = TimeZone("UTC")
+
+# A zoned timestamp is normalised to its UTC wall-clock DateTime, matching
+# `entsoe_period(::ZonedDateTime)`. Must precede the AbstractDateTime branch:
+# `DateTime(zdt)` alone would drop the offset without shifting to UTC.
+_to_datetime(z::ZonedDateTime) = DateTime(astimezone(z, _SPLIT_UTC))
 
 # Internal: invert `_to_period`. Accept anything `_to_period` accepts
-# and produce a `DateTime`. Used by `query_split` to chunk the period
+# and produce a `DateTime`. Used by `_split_query` to chunk the period
 # arithmetically before feeding chunks back into the wrapper.
 function _to_datetime(t)
     t isa DateTime && return t
@@ -38,9 +45,9 @@ last chunk is short if the total period isn't an exact multiple of
 `window`. Accepts `DateTime`, `Date`, or `yyyymmddHHMM` integer
 endpoints.
 
-Use [`query_split`](@ref) to actually call a query function once per
-chunk and concatenate the results — `split_period` is the pure
-arithmetic.
+This is the pure arithmetic primitive; the named wrappers reuse it
+internally (via `_split_query`) to fetch one chunk per window and
+concatenate the results automatically.
 
 ```jldoctest
 julia> using Dates
@@ -64,69 +71,4 @@ function split_period(start, stop; window::Period = Year(1))
         cursor = nxt
     end
     return chunks
-end
-
-"""
-    query_split(query_fn, fixed_args..., start, stop; window=Year(1), kwargs...)
-
-Call `query_fn(fixed_args..., chunk_start, chunk_end; kwargs...)` for
-each window in [`split_period(start, stop; window)`](@ref) and
-concatenate the results with `vcat`.
-
-`query_fn` must be one of the named-argument wrappers (or anything
-with the `(client, args..., start, stop; kwargs...)` shape) that
-returns a `Vector` per call. The two period arguments must be the
-*last two positional* arguments — same convention as the wrappers in
-this package.
-
-# Example
-```julia
-using Dates
-
-# Five years of NL prices, split into yearly chunks under the hood.
-prices = query_split(
-    day_ahead_prices,
-    client, EIC.NL,
-    DateTime("2020-01-01"), DateTime("2025-01-01");
-    window = Year(1),
-)
-```
-
-`Dates.Year(1)` is the right window for most ENTSO-E series; some
-endpoints (e.g. balancing energy bids) cap at one day, so pass
-`window = Day(1)` there.
-
-A chunk that returns an empty result (`ENTSOEAcknowledgement` —
-"no matching data") is skipped rather than aborting the whole run,
-unless the chunk *throws* during a non-acknowledgement error in which
-case the exception propagates as usual.
-"""
-function query_split(
-        query_fn::Function, args...;
-        window::Period = Year(1),
-        kwargs...,
-    )
-    length(args) >= 2 ||
-        throw(
-        ArgumentError(
-            "query_split needs at least 2 positional args (start, stop)"
-        )
-    )
-    head = args[1:(end - 2)]
-    start = args[end - 1]
-    stop = args[end]
-
-    chunks = split_period(start, stop; window = window)
-    results = Any[]
-    for (s, e) in chunks
-        chunk_result = try
-            query_fn(head..., s, e; kwargs...)
-        catch err
-            err isa ENTSOEAcknowledgement || rethrow()
-            continue   # acknowledgement on this window → skip it
-        end
-        push!(results, chunk_result)
-    end
-    isempty(results) && return []
-    return reduce(vcat, results)
 end

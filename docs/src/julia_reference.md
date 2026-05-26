@@ -320,11 +320,14 @@ omi_other_market_information(::ENTSOE.Client, ::AbstractString, ::Any, ::Any)
 
 ## Request splitting
 
-ENTSO-E caps most endpoints at "one year per request". For longer
-windows, [`query_split`](@ref) chunks the period and concatenates
-results.
+ENTSO-E caps most endpoints at "one year per request". The
+time-series wrappers handle this transparently: hand them a longer
+range and they split it into per-endpoint `window`-sized chunks
+(default `Year(1)`, or `Day(1)` for the balancing-bid family),
+fetch each chunk, skip empty ones, and concatenate the results.
+[`split_period`](@ref) exposes the underlying chunk arithmetic if
+you want the window boundaries themselves.
 
 ```@docs
 split_period
-query_split
 ```

@@ -156,6 +156,6 @@ What you read from this:
 - For the *generation* side of the forecast accuracy story, see
   [`generation_forecast_day_ahead`](@ref) and
   [`wind_solar_forecast`](@ref).
-- For full-history accuracy work spanning multiple years, chain
-  [`query_split`](@ref) — see
-  [the multi-year tutorial](tutorial_multiyear.md).
+- For full-history accuracy work spanning multiple years, just call
+  the wrapper over the long range — it splits into yearly windows
+  automatically. See [the multi-year tutorial](tutorial_multiyear.md).

@@ -103,5 +103,5 @@ export day_ahead_prices,
 # `omi_other_market_information` is already exported by the codegen layer
 # (`ENTSOEAPI`); our paginated method is just a new dispatch on the same
 # name (`(::Client, …)` instead of `(::OMIApi, …)`), so no extra export.
-export split_period, query_split
+export split_period
 export ENTSOEConfig, set_config, get_config

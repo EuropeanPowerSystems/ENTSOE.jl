@@ -372,20 +372,19 @@ catch err
 end
 
 # ---------------------------------------------------------------------------
-section("10. query_split — multi-year request, one wrapper call per chunk")
+section("10. Automatic window splitting — multi-year request in one call")
 
-subhead("3-year NL day-ahead prices, window=Year(1)")
-long = try_call("query_split(day_ahead_prices, 2022→2025)") do
-    query_split(
-        day_ahead_prices, CLIENT, EIC.NL,
-        DateTime("2022-01-01"), DateTime("2025-01-01");
-        window = Year(1),
+subhead("3-year NL day-ahead prices (splits into yearly windows internally)")
+long = try_call("day_ahead_prices(NL, 2022→2025)") do
+    day_ahead_prices(
+        CLIENT, EIC.NL,
+        DateTime("2022-01-01"), DateTime("2025-01-01"),
     )
 end
 if long !== nothing
     note("$(length(long)) total price points across the three windows")
     note("first day mean = $(round(mean(long.value[1:min(96, end)]); digits = 2)) EUR/MWh")
-    note("(query_split also catches per-chunk ENTSOEAcknowledgement and skips)")
+    note("(the wrapper splits internally and skips per-chunk ENTSOEAcknowledgements)")
 end
 
 # ---------------------------------------------------------------------------

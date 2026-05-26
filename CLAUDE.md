@@ -18,13 +18,16 @@ src/
                   ←     prices_of_activated_balancing_energy, cross_border_physical_flows_all,
                   ←     volumes_and_prices_of_contracted_reserves, SO-GL reserve family, …)
                   ←   ResponseFormat dispatch (Parsed() default, Raw() + LocalTime(tz) variants)
+                  ←   automatic windowing — every time-series wrapper auto-splits long
+                      ranges via `_split_query` (per-endpoint `window` kwarg default)
                   ←   `_query` is zip-aware — every wrapper transparently unzips
                       application/zip bodies (balancing 17.1.x, outages with many notices)
     parsing.jl    ←   XML → StructVector{NamedTuple} via EzXML
                   ←   parse_timeseries (price/quantity/*.amount), parse_timeseries_per_psr,
                       parse_installed_capacity, parse_unavailability (outages),
                       parse_master_data (registry), parse_acknowledgement, unzip_response
-    splitting.jl  ←   query_split: chunk multi-year requests, concatenate
+    splitting.jl  ←   split_period: chunk arithmetic reused by the wrappers'
+                      automatic splitting (via `_split_query` in queries.jl)
     codes.jl      ←   DOCUMENT_TYPE/PROCESS_TYPE/BUSINESS_TYPE/PSR_TYPE + code_for
     eic.jl        ←   EIC named tuple + EIC_REGISTRY + validate_eic
     period.jl     ←   entsoe_period(DateTime|Date|ZonedDateTime) -> Int64
@@ -170,17 +173,16 @@ local  = day_ahead_prices(client, EIC.NL, t1, t2,            # like Parsed but t
 
 Each variant has a **concrete inferred return type** — no `Union` widening, no `Any`. Preserve this when adding new wrappers: give them separate methods dispatching on `Parsed`, `Raw`, and `LocalTime`, not a single method that branches on a flag.
 
-### Long periods — use `query_split`
+### Long periods — splitting is automatic
 
-Most ENTSO-E endpoints reject single requests longer than one year (some cap at one day). To fetch multi-year history, wrap with `query_split`:
+Most ENTSO-E endpoints reject single requests longer than one year (some cap at one day). Every named time-series wrapper handles this for you: it auto-splits the requested range via the internal `_split_query`, calls the endpoint once per chunk, concatenates the results, and **catches `ENTSOEAcknowledgement` per chunk** so partially populated multi-year requests still return whatever data exists.
 
 ```julia
-prices = query_split(day_ahead_prices, client, EIC.NL,
-    DateTime("2020-01-01"), DateTime("2025-01-01");
-    window = Year(1))     # use Day(1) for balancing-energy-bid endpoints
+prices = day_ahead_prices(client, EIC.NL,
+    DateTime("2020-01-01"), DateTime("2025-01-01"))   # split + concatenated for you
 ```
 
-`query_split` calls the wrapper once per chunk, concatenates the results, and **catches `ENTSOEAcknowledgement` per chunk** so partially populated multi-year requests still return whatever data exists.
+The per-endpoint chunk size lives in each wrapper's `window` kwarg default (most `Year(1)`, the balancing-energy-bid family `Day(1)`); pass `window = Month(1)` (etc.) to override it. `split_period` remains the exported arithmetic primitive that `_split_query` builds on. (The old standalone splitting wrapper has been removed — there's nothing to call by hand any more.)
 
 ### When you must call the generated layer directly
 

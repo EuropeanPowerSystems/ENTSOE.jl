@@ -127,22 +127,21 @@ const T3_TARGETS = [
 ]
 
 # ---------------------------------------------------------------------------
-# Tutorial 4 — Multi-year NL day-ahead prices via `query_split`. ENTSO-E
-# caps day-ahead price queries at one year; we record the five yearly
-# chunks the tutorial then chains together.
+# Tutorial 4 — Multi-year NL day-ahead prices. ENTSO-E caps day-ahead
+# price queries at one year; `day_ahead_prices` splits a longer range
+# into yearly windows automatically, so we record the five yearly chunks
+# it issues internally.
 
 const T4_TARGETS = [
     Target(
         # One cassette holds all 5 yearly responses — BrokenRecord captures
         # every HTTP call inside the thunk in order, so a single playback
-        # in the tutorial replays the full `query_split` chain.
+        # in the tutorial replays the full auto-split chain.
         "tut_prices_NL_2020_2024.yml",
-        () -> query_split(
-            day_ahead_prices,
+        () -> day_ahead_prices(
             CLIENT, EIC.NL,
             DateTime("2019-12-31T23:00"),
-            DateTime("2024-12-31T23:00");
-            window = Dates.Year(1),
+            DateTime("2024-12-31T23:00"),
         ),
     ),
 ]
