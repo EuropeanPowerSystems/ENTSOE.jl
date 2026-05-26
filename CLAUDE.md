@@ -169,7 +169,7 @@ local  = day_ahead_prices(client, EIC.NL, t1, t2,            # like Parsed but t
     LocalTime("Europe/Amsterdam"))
 ```
 
-`LocalTime(tz)` mirrors entsoe-py's `query_*_local` variants: same shape as `Parsed()` but the `time` column is converted from UTC to a timezone-aware `ZonedDateTime` in `tz` (a `TimeZones.TimeZone` or a string). For documents without a `time` column (e.g. installed-capacity snapshots) it's a no-op equal to `Parsed()`.
+`LocalTime(tz)` has the same shape as `Parsed()` but the `time` column is converted from UTC to a timezone-aware `ZonedDateTime` in `tz` (a `TimeZones.TimeZone` or a string). For documents without a `time` column (e.g. installed-capacity snapshots) it's a no-op equal to `Parsed()`.
 
 Each variant has a **concrete inferred return type** — no `Union` widening, no `Any`. Preserve this when adding new wrappers: give them separate methods dispatching on `Parsed`, `Raw`, and `LocalTime`, not a single method that branches on a flag.
 

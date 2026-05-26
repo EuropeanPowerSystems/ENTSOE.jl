@@ -2,7 +2,7 @@
 # record_intraday_offshore_cassettes.jl
 # =====================================
 #
-# Re-record cassettes for the entsoe-py-parity wrappers landed in
+# Re-record cassettes for the specialised wrappers landed in
 # `src/conveniences/queries.jl`:
 #
 #   - intraday_prices

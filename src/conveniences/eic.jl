@@ -68,9 +68,9 @@ end
 Curated EIC → `Vector{String}` map of cross-border interconnections,
 keyed by 16-character EIC. Used by
 [`cross_border_physical_flows_all`](@ref) to iterate over a zone's
-neighbours. Ported from entsoe-py's `NEIGHBOURS` mapping for the
-most-queried bidding zones — extend in user code by mutating the dict
-or by passing an explicit `neighbours` kwarg to the helper.
+neighbours. Covers the most-queried bidding zones — extend in user
+code by mutating the dict or by passing an explicit `neighbours`
+kwarg to the helper.
 """
 const NEIGHBOURS = Dict{String, Vector{String}}(
     "10YBE----------2" => ["10YNL----------L", "10YFR-RTE------C", "10YGB----------A", "10Y1001A1001A82H"],                          # BE
@@ -112,7 +112,7 @@ Three equivalent spellings of the same zone:
 
 ```julia
 EIC.NL       # field access — best when the zone is a literal
-EIC("NL")    # callable — useful when porting entsoe-py country strings
+EIC("NL")    # callable — useful when zones are built from string data
 "10YNL----------L"   # the raw 16-char code is always accepted
 ```
 

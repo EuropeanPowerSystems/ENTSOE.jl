@@ -1,10 +1,13 @@
+```@meta
+CurrentModule = ENTSOE
+```
+
 # Beyond day-ahead: intraday, margins, and offshore outages
 
 The headline wrappers (`day_ahead_prices`, `actual_total_load`,
 `cross_border_physical_flows`) cover most everyday workflows, but
 ENTSO-E publishes a long tail of more specialised documents. This page
-introduces four wrappers that opened up alongside the entsoe-py
-parity sweep:
+introduces four wrappers that cover those specialised documents:
 
 | Wrapper                              | What it returns                                                              |
 | ------------------------------------ | ---------------------------------------------------------------------------- |
@@ -13,14 +16,16 @@ parity sweep:
 | [`year_ahead_forecast_margin`](@ref) | Generation-adequacy margin one year out (8.1, A70/A33)                       |
 | [`unavailability_of_offshore_grid`](@ref) | Outage notices for offshore-grid infrastructure (10.1.C, A79)           |
 
-Setup is the same as anywhere else:
+## Setup
 
-```julia
+```@example intraday
 using ENTSOE
 using Dates
-using DataFrames    # only needed for the last example
 
-client = ENTSOEClient(ENV["ENTSOE_API_TOKEN"])
+include(joinpath(pkgdir(ENTSOE), "test", "_brokenrecord_helpers.jl"))
+const BR = _load_brokenrecord()
+client = ENTSOEClient("PLAYBACK")
+nothing # hide
 ```
 
 ## Intraday wind & solar forecast
@@ -31,15 +36,21 @@ the intraday horizon. `intraday_wind_solar_forecast` exposes the latest
 published forecast — same wire endpoint as the day-ahead variant, but
 with the intraday process type:
 
-```julia
-forecast = intraday_wind_solar_forecast(client, EIC.NL,
-    DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"))
-
+```@example intraday
+forecast = BR.playback("generation_141d_intraday_wind_solar_forecast_NL.yml") do
+    intraday_wind_solar_forecast(
+        client, EIC.NL,
+        DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+    )
+end
 forecast[1]
-# → (time = DateTime("2024-09-01T22:00"), psr_type = "B16", value = 0.0)
+```
 
-# Pull out one technology:
+Pull out one technology — solar is `B16`:
+
+```@example intraday
 solar = forecast[forecast.psr_type .== "B16"]
+length(solar), solar[1]
 ```
 
 Like `wind_solar_forecast`, pass a `psr_type="B16"` kwarg to filter
@@ -49,29 +60,35 @@ want one curve.
 ## Intraday prices
 
 Intraday cleared prices ride on the same 12.1.D endpoint as day-ahead,
-distinguished by the contract-marketagreement type (`A07` vs `A01`):
+distinguished by the contract-marketagreement type (`A07` vs `A01`).
+The wrapper takes an optional `sequence=1`/`2`/`3` kwarg to pick a
+specific IDA auction; omit it to receive every published sequence in
+one call.
 
-```julia
-prices = intraday_prices(client, EIC.NL, t1, t2; sequence = 1)
-```
+ENTSO-E publishes A07 patchily — many zones don't expose intraday
+results on a given day, and the body comes back as an
+[`ENTSOEAcknowledgement`](@ref) with `reason_code = "999"`. DE_LU on
+2024-09-01 is one such case, and the wrapper surfaces the empty
+document as a typed exception rather than crashing the parser:
 
-`sequence` selects a specific IDA auction (1 / 2 / 3 in SIDC); omit it
-to receive every published sequence in one call. Data is published
-patchily — many zones don't expose A07 results at all, and on days
-without IDA auctions ENTSO-E returns an
-[`ENTSOEAcknowledgement`](@ref) with `reason_code = "999"`. Wrap
-accordingly:
-
-```julia
-try
-    intraday_prices(client, EIC.ES,
-        DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00");
-        sequence = 1)
+```@example intraday
+reason_code = try
+    BR.playback("market_121d_intraday_prices_DE_LU.yml") do
+        intraday_prices(
+            client, EIC.DE_LU,
+            DateTime("2024-09-01T22:00"), DateTime("2024-09-02T22:00"),
+        )
+    end
+    nothing
 catch err
     err isa ENTSOEAcknowledgement || rethrow()
-    @info "no intraday data for that zone/date" err.reason_code
+    err.reason_code
 end
 ```
+
+`reason_code == "999"` is ENTSO-E's "no matching data" code — wrap
+intraday calls in `try`/`catch` whenever you sweep across zones or
+dates that may not all have IDA results.
 
 ## Year-ahead forecast margin
 
@@ -80,11 +97,14 @@ end
 load?* One row per published period — typically a single annual
 snapshot in MW.
 
-```julia
-margin = year_ahead_forecast_margin(client, EIC.BE,
-    DateTime("2023-12-31T23:00"), DateTime("2024-12-31T23:00"))
-
-margin[1]      # → (time = DateTime("2023-12-31T23:00"), value = 970.0)
+```@example intraday
+margin = BR.playback("load_81_year_ahead_forecast_margin_BE.yml") do
+    year_ahead_forecast_margin(
+        client, EIC.BE,
+        DateTime("2023-12-31T23:00"), DateTime("2024-12-31T23:00"),
+    )
+end
+margin[1]
 ```
 
 Distinct from [`year_ahead_load_forecast`](@ref) — that's the forecast
@@ -97,35 +117,49 @@ The offshore-grid outage notices live on a separate endpoint from
 onshore transmission outages (10.1.C vs 10.1.A/B) and a different
 document type (`A79` vs `A78`). The wrapper takes a single
 `bidding_zone` rather than the `in_Domain`/`out_Domain` pair the onshore
-endpoint requires:
+endpoint requires.
 
-```julia
-outages = unavailability_of_offshore_grid(client, EIC.DE_LU,
-    DateTime("2024-01-01"), DateTime("2024-04-01"))
+The response is an `application/zip` bundle (one XML notice per event),
+so the cassette is stored as BSON — YAML can't byte-stably round-trip
+binary bodies. We flip BrokenRecord's extension before loading:
 
-length(outages)        # number of outage events in the window
-outages[1].start       # DateTime UTC
-outages[1].nominal_mw  # rated MW of the affected resource
-
-# Filter to unplanned outages:
-unplanned = outages[outages.business_type .== "A54"]
+```@example intraday
+BR.configure!(; extension = "bson")
+outages = BR.playback("outages_101c_unavailability_offshore_grid_DE_LU.bson") do
+    unavailability_of_offshore_grid(
+        client, EIC.DE_LU,
+        DateTime("2024-01-01"), DateTime("2024-04-01"),
+    )
+end
+length(outages), propertynames(outages)
 ```
 
-The same `parse_unavailability` row shape used by the onshore wrappers
+Sample row:
+
+```@example intraday
+outages[1]
+```
+
+Same `parse_unavailability` shape used by the onshore wrappers
 (`unavailability_of_generation_units`, `..._production_units`,
 `..._transmission_infrastructure`), so existing analyses port across
-unchanged.
+unchanged. Filter to unplanned outages (`A54`) with column-wise
+indexing:
 
-## Porting from entsoe-py
-
-`EIC` is now callable with a plain string, so country codes can be
-passed positionally exactly the way entsoe-py expects them:
-
-```julia
-day_ahead_prices(client, EIC("NL"), t1, t2)   # ≡ EIC.NL
-day_ahead_prices(client, EIC("DE_LU"), t1, t2)
+```@example intraday
+unplanned = outages[outages.business_type .== "A54"]
+length(unplanned)
 ```
 
-This matters when porting code that builds country codes dynamically
-(e.g. iterating over a list of strings) — no need to hand-write a
-`Dict("NL" => EIC.NL, "BE" => EIC.BE, …)` lookup.
+## EIC codes from plain strings
+
+`EIC` is also callable with a plain country-code string, so zones can
+be constructed dynamically without field access:
+
+```@example intraday
+EIC("NL") == EIC.NL, EIC("DE_LU") == EIC.DE_LU
+```
+
+This matters when you're iterating over a list of country-code strings
+(e.g. from a config file or another data source) — no need to
+hand-write a `Dict("NL" => EIC.NL, "BE" => EIC.BE, …)` lookup.

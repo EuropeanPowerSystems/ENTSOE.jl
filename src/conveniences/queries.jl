@@ -72,9 +72,8 @@ struct Raw <: ResponseFormat end
     LocalTime("Europe/Amsterdam")
 
 Like [`Parsed()`](@ref) but converts the `time` column from UTC
-`DateTime` to timezone-aware `ZonedDateTime` in `tz`. Mirrors entsoe-py's
-`query_*_local` variants — useful when porting analyses that expect
-local-time stamps.
+`DateTime` to timezone-aware `ZonedDateTime` in `tz`. Useful when
+analyses expect local-time stamps.
 
 ```julia
 prices_local = day_ahead_prices(client, EIC.NL, t1, t2,
@@ -401,8 +400,6 @@ ENTSO-E returns one TimeSeries per intraday auction sequence (SIDC IDA
 Pass `sequence=1`/`2`/`3` to filter server-side to a single auction;
 omit it to receive every sequence the publication exposes. Returns a
 Tables.jl-compatible `StructVector{(time, value)}` in EUR/MWh.
-
-Mirrors entsoe-py's `query_intraday_prices`.
 """
 function intraday_prices(
         client::Client, area::AbstractString,
@@ -522,8 +519,7 @@ end
                               implicit=true, id_type="IDCT") -> StructVector | String
 
 Intraday cross-border offered transfer capacity. Thin router over the
-three underlying allocation endpoints, mirroring entsoe-py's
-`query_intraday_offered_capacity`:
+three underlying allocation endpoints:
 
   - `implicit=false` → `explicit_allocations_offered_transfer_capacity`
     with `auction_type="A02"` (used on the few explicit-ID borders
@@ -1125,8 +1121,7 @@ than aggregated per production type) — Generation 14.1.B,
 `StructVector{(unit_mrid, unit_name, psr_type, capacity_mw)}`.
 
 Pass `psr_type="B19"` (Wind Onshore) etc. to filter to a single
-technology. Mirrors entsoe-py's
-`query_installed_generation_capacity_per_unit`.
+technology.
 """
 function installed_capacity_per_production_unit(
         client::Client, area::AbstractString,
@@ -1219,8 +1214,7 @@ than the day-ahead snapshot.
 
 Returns a `StructVector{(time, psr_type, value)}` in MW. Pass
 `psr_type="B16"` (Solar), `"B18"` (Wind Offshore), or `"B19"` (Wind
-Onshore) to filter server-side. Mirrors entsoe-py's
-`query_intraday_wind_and_solar_forecast`.
+Onshore) to filter server-side.
 """
 function intraday_wind_solar_forecast(
         client::Client, area::AbstractString,
@@ -1287,7 +1281,6 @@ Realised generation broken down per *generating unit* (Generation
 
 Pass `psr_type="B16"` to filter to one technology; pass
 `registered_resource` to filter to a single generating unit by mRID.
-Mirrors entsoe-py's `query_generation_per_plant`.
 """
 function actual_generation_per_generation_unit(
         client::Client, area::AbstractString,
@@ -1364,7 +1357,6 @@ a `border` column (the neighbouring EIC).
 sums flows arriving in `area`. Pass `neighbours` explicitly to
 restrict / extend the default list from [`NEIGHBOURS`](@ref).
 
-Mirrors entsoe-py's `query_physical_crossborder_allborders`.
 `ENTSOEAcknowledgement`s on individual borders are caught per-border
 and dropped — partial coverage is normal when ENTSO-E hasn't published
 flows on every link.
@@ -1468,8 +1460,8 @@ end
                         dayahead=false) -> StructVector | String
 
 Scheduled cross-border exchanges (Transmission 12.1.F, `documentType=A09`).
-Same endpoint as [`commercial_schedules`](@ref); this alias preserves
-the entsoe-py call shape — `dayahead=true` selects A01 (day-ahead),
+Same endpoint as [`commercial_schedules`](@ref); this alias exposes a
+`dayahead` boolean — `dayahead=true` selects A01 (day-ahead),
 `dayahead=false` (default) selects A05 (total).
 
 Use `commercial_schedules(...; contract_market_agreement_type=...)`
@@ -1567,8 +1559,7 @@ end
       -> StructVector | String
 
 Day-ahead forecasted net transfer capacity (`contract_marketagreement_type=A01`).
-Thin wrapper over [`forecasted_transfer_capacities`](@ref); mirrors
-entsoe-py's `query_net_transfer_capacity_dayahead`.
+Thin wrapper over [`forecasted_transfer_capacities`](@ref).
 """
 net_transfer_capacity_day_ahead(
     client::Client, in_area, out_area, start, stop, format::ResponseFormat = Parsed();
@@ -2103,8 +2094,7 @@ treats offshore-grid outages as a single document family.
 
 Returns [`parse_unavailability`](@ref) rows (one row per outage event).
 Pass `doc_status="A09"` for withdrawn notices, or the `*_update` pair
-to slice by publication-update window. Mirrors entsoe-py's
-`query_unavailability_of_offshore_grid`.
+to slice by publication-update window.
 """
 function unavailability_of_offshore_grid(
         client::Client, bidding_zone::AbstractString,
@@ -3023,8 +3013,6 @@ Optional kwargs:
   - `process_type` — `"A51"` (aFRR), `"A52"` (FCR), `"A47"` (mFRR),
     `"A46"` (RR)
   - `psr_type` — `"A03"` (Mixed), `"A04"` (Generation), `"A05"` (Load)
-
-Mirrors entsoe-py's `query_contracted_reserve_{amount,prices}`.
 """
 function volumes_and_prices_of_contracted_reserves(
         client::Client, control_area::AbstractString,
@@ -3095,8 +3083,7 @@ Prices of activated balancing energy (Balancing 17.1.F,
 `application/zip`; the wrapper unzips and parses transparently.
 
 `process_type` defaults to `"A16"` (Realised). Pass `business_type` /
-`psr_type` / market-product strings to filter server-side. Mirrors
-entsoe-py's `query_activated_balancing_energy_prices`.
+`psr_type` / market-product strings to filter server-side.
 """
 function prices_of_activated_balancing_energy(
         client::Client, control_area::AbstractString,

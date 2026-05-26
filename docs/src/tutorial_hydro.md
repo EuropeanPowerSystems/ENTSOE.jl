@@ -76,18 +76,23 @@ fig
 A single weekly reading produces a sparse curve. In practice you'd
 pull a *year* of weekly samples — the seasonality of hydro state
 (drawdown through summer, refill in autumn/winter rains) becomes the
-headline. Just hand the wrapper the full range; it splits the period
-into ENTSO-E's one-year windows automatically:
+headline. Just hand the wrapper the full range and it splits the
+period into ENTSO-E's one-year windows automatically. You can preview
+the chunk boundaries the wrapper uses by calling
+[`split_period`](@ref) directly:
 
-```julia
-weekly = water_reservoirs_and_hydro_storage_plants(
-    client, EIC.AT,
-    DateTime("2023-01-01"), DateTime("2024-01-01"),
+```@example hydro
+chunks = split_period(
+    DateTime("2020-01-01"), DateTime("2023-01-01"); window = Year(1),
 )
 ```
 
-(That call hits the network — left as an exercise to wire up with
-your own token.)
+The wrapper invokes the endpoint once per `(start, stop)` pair,
+re-raises the per-chunk `ENTSOEAcknowledgement`s as skips so a
+partially populated multi-year fetch still returns whatever data
+exists, and `vcat`s the results. Override the chunk size by passing
+`window = Month(1)` (etc.) — useful when a year hits ENTSO-E's
+response-size cap.
 
 ## Hydro PSR types side by side
 

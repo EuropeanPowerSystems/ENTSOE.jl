@@ -94,7 +94,7 @@ Three ways to spell the same zone:
 
 ```julia
 EIC.NL       # field access — best when the zone is a literal
-EIC("NL")    # callable — useful when porting entsoe-py country strings
+EIC("NL")    # callable — useful when zones are built from string data
 "10YNL----------L"   # the raw 16-char code is always accepted
 ```
 
