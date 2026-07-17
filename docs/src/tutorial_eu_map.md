@@ -35,12 +35,12 @@ zones = data["zones"]
 (year = year, zone_count = length(zones))
 ```
 
-A peek at one entry — Netherlands, January through December (EUR/MWh):
+A peek at one entry — the Netherlands' twelve monthly means, January
+through December (EUR/MWh):
 
 ```@example eu_map
 nl = zones[findfirst(z -> z["name"] == "Netherlands", zones)]
-[(month = m, price = round(nl["monthly_eur_mwh"][m]; digits = 1))
- for m in 1:12]
+round.(Float64.(nl["monthly_eur_mwh"]); digits = 1)
 ```
 
 ## Setting up the map
@@ -59,7 +59,8 @@ using GeoMakie, CairoMakie
 using GeoMakie: NaturalEarth
 using GeoInterface
 using Polylabel
-using Proj
+using Proj                       # enables GeometryOps' Proj-backed extension
+import GeometryOps as GO
 
 CairoMakie.activate!(type = "png")
 
@@ -82,43 +83,25 @@ sort(collect(keys(price_by_iso)))
 For each country polygon, decide whether it's one of our zones — we
 match on Natural Earth's two-letter ISO code (`:ISO_A2_EH`, falling
 back to `:ISO_A2`; the GeoJSON properties are `Symbol`-keyed). For
-label *positions* we use [Polylabel.jl](https://github.com/asinghvi17/Polylabel.jl)
-on the country polygon **after** projecting it into LCC; that lands
-the price label in the visual centre of each country's mainland.
+label *positions* we pick the country's largest sub-polygon by
+**geodesic area** (`GeometryOps.area(GeometryOps.Geodesic(), …)`, so
+mainlands beat far-flung islands on true ellipsoidal area, not
+degrees²), reproject it into LCC with `GeometryOps.reproject`, and run
+[Polylabel.jl](https://github.com/asinghvi17/Polylabel.jl) on the
+result; that lands the price label in the visual centre of each
+country's mainland.
 
 ```@example eu_map
 const PROJ_STR = "+proj=lcc +lat_1=35 +lat_2=65 +lat_0=50 +lon_0=10"
-const TO_LCC   = Proj.Transformation(
-    "+proj=longlat +datum=WGS84", PROJ_STR; always_xy = true,
-)
-const FROM_LCC = Proj.inv(TO_LCC)
-
-function _ring_area(pts)
-    n = length(pts); s = 0.0
-    @inbounds for i in 1:n
-        x1, y1 = pts[i]; x2, y2 = pts[mod1(i + 1, n)]
-        s += x1 * y2 - x2 * y1
-    end
-    return abs(s) / 2
-end
+const WGS84    = "+proj=longlat +datum=WGS84"
 
 function label_lonlat(geom)
     sub_polys = GeoInterface.geomtrait(geom) isa GeoInterface.MultiPolygonTrait ?
         collect(GeoInterface.getgeom(geom)) : [geom]
-    polys_pts = Vector{Vector{Tuple{Float64, Float64}}}()
-    for sub in sub_polys
-        ring = GeoInterface.getexterior(sub)
-        push!(polys_pts,
-            [TO_LCC(GeoInterface.x(p), GeoInterface.y(p))
-             for p in GeoInterface.getgeom(ring)])
-    end
-    main = polys_pts[argmax(_ring_area.(polys_pts))]
-    pole = polylabel(
-        GeoInterface.Wrappers.Polygon([GeoInterface.Wrappers.LinearRing(main)]);
-        rtol = 0.005,
-    )
-    lonlat = FROM_LCC(pole[1], pole[2])
-    return (Float64(lonlat[1]), Float64(lonlat[2]))
+    main = argmax(sub -> GO.area(GO.Geodesic(), sub), sub_polys)
+    pole = polylabel(GO.reproject(main, WGS84, PROJ_STR); rtol = 0.005)
+    pt = GO.reproject(GeoInterface.Wrappers.Point(pole...), PROJ_STR, WGS84)
+    return (GeoInterface.x(pt), GeoInterface.y(pt))
 end
 
 function _country_iso2(feature)
@@ -232,8 +215,8 @@ for (i, iso) in enumerate(plotted_iso)
     text!(ax, plotted_centers[i]...;
         text = string(round(Int, annual_by_iso[iso])),
         align = (:center, :center),
-        fontsize = 14, color = :white,
-        strokewidth = 1.0, strokecolor = :black)
+        fontsize = 14, color = :black,
+        glowwidth = 4, glowcolor = (:white, 0.9))
 end
 Colorbar(fig2[1, 2];
     colormap = COLORMAP, colorrange = PRICE_RANGE,

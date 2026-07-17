@@ -25,7 +25,8 @@ using GeoMakie, CairoMakie
 using GeoMakie: NaturalEarth
 using GeoInterface
 using Polylabel
-using Proj
+using Proj                       # enables GeometryOps' Proj-backed extension
+import GeometryOps as GO
 using Dates
 
 # Static map — no slider, no interactivity, so CairoMakie's PNG output
@@ -92,44 +93,23 @@ share_by_iso
 
 ## Country polygons and projection-aware labels
 
-This is the same recipe as the EU price map: project each country
-into our destination CRS (Lambert Conformal Conic), pick the
-largest connected component (= the mainland), run Polylabel there,
-inverse-transform back to `(lon, lat)`.
+This is the same recipe as the EU price map: pick the country's
+largest sub-polygon by geodesic area (= the mainland), reproject it
+into our destination CRS (Lambert Conformal Conic) with
+`GeometryOps.reproject`, run Polylabel there, reproject the pole back
+to `(lon, lat)`.
 
 ```@example renew
 const PROJ_STR = "+proj=lcc +lat_1=35 +lat_2=65 +lat_0=50 +lon_0=10"
-const TO_LCC   = Proj.Transformation(
-    "+proj=longlat +datum=WGS84", PROJ_STR; always_xy = true,
-)
-const FROM_LCC = Proj.inv(TO_LCC)
-
-function _ring_area(pts)
-    n = length(pts); s = 0.0
-    @inbounds for i in 1:n
-        x1, y1 = pts[i]; x2, y2 = pts[mod1(i + 1, n)]
-        s += x1 * y2 - x2 * y1
-    end
-    return abs(s) / 2
-end
+const WGS84    = "+proj=longlat +datum=WGS84"
 
 function label_lonlat(geom)
     sub_polys = GeoInterface.geomtrait(geom) isa GeoInterface.MultiPolygonTrait ?
         collect(GeoInterface.getgeom(geom)) : [geom]
-    polys_pts = Vector{Vector{Tuple{Float64, Float64}}}()
-    for sub in sub_polys
-        ring = GeoInterface.getexterior(sub)
-        push!(polys_pts,
-            [TO_LCC(GeoInterface.x(p), GeoInterface.y(p))
-             for p in GeoInterface.getgeom(ring)])
-    end
-    main = polys_pts[argmax(_ring_area.(polys_pts))]
-    pole = polylabel(
-        GeoInterface.Wrappers.Polygon([GeoInterface.Wrappers.LinearRing(main)]);
-        rtol = 0.005,
-    )
-    lonlat = FROM_LCC(pole[1], pole[2])
-    return (Float64(lonlat[1]), Float64(lonlat[2]))
+    main = argmax(sub -> GO.area(GO.Geodesic(), sub), sub_polys)
+    pole = polylabel(GO.reproject(main, WGS84, PROJ_STR); rtol = 0.005)
+    pt = GO.reproject(GeoInterface.Wrappers.Point(pole...), PROJ_STR, WGS84)
+    return (GeoInterface.x(pt), GeoInterface.y(pt))
 end
 
 countries_fc = NaturalEarth.naturalearth("admin_0_countries", 50)
@@ -192,7 +172,7 @@ for (i, iso) in enumerate(plotted_iso)
         text = string(round(Int, pct), "%"),
         align = (:center, :center),
         fontsize = 16, color = :black,
-        strokewidth = 1.0, strokecolor = :white,
+        glowwidth = 4, glowcolor = (:white, 0.9),
         overdraw = true,
     )
 end
