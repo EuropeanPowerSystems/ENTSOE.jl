@@ -64,9 +64,26 @@ function _resolution_step(s::AbstractString)
     return nothing
 end
 
-# ENTSO-E ISO timestamps look like `2024-09-01T22:00Z`. Drop the trailing
-# `Z` (`DateTime` is naive, parsed values are always interpreted as UTC).
-_parse_entsoe_datetime(s::AbstractString) = DateTime(s[1:min(end, 16)])
+# ENTSO-E ISO timestamps usually look like `2024-09-01T22:00Z`, but the
+# schema also permits seconds (kept — PT1M grids misalign otherwise) and
+# numeric UTC offsets (applied, so the returned naive DateTime is always
+# UTC). Falls back to the historical truncate-at-minutes behavior for any
+# shape the pattern doesn't recognise.
+const _ENTSOE_DATETIME_RX =
+    r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(Z|[+-]\d{2}(?::?\d{2})?)?$"
+
+function _parse_entsoe_datetime(s::AbstractString)
+    str = strip(String(s))
+    m = match(_ENTSOE_DATETIME_RX, str)
+    m === nothing && return DateTime(str[1:min(end, 16)])
+    body, zone = m.captures
+    dt = DateTime(body)
+    (zone === nothing || zone == "Z") && return dt
+    sign = zone[1] == '+' ? 1 : -1
+    hh = parse(Int, zone[2:3])
+    mm = length(zone) >= 5 ? parse(Int, zone[(end - 1):end]) : 0
+    return dt - sign * (Minute(60hh) + Minute(mm))
+end
 
 # A `<Point>` carries its numeric value in one of several differently-named
 # child elements: `<quantity>` (load/generation/flows/capacity/balancing

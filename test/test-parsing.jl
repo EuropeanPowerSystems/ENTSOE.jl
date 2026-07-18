@@ -623,3 +623,16 @@ end
     ]
     @test rows.value == [10.0, 10.0, 50.0, 50.0, 50.0, 50.0]
 end
+
+@testset "_parse_entsoe_datetime — offsets and seconds" begin
+    P = ENTSOE._parse_entsoe_datetime
+    # The classic ENTSO-E shapes, unchanged.
+    @test P("2024-09-01T22:00Z") == DateTime(2024, 9, 1, 22, 0)
+    @test P("2024-09-01T22:00") == DateTime(2024, 9, 1, 22, 0)
+    @test P("2024-05-01T00:00:00Z") == DateTime(2024, 5, 1)
+    # Non-zero seconds must survive (PT1M grids misalign otherwise).
+    @test P("2024-09-01T22:00:30Z") == DateTime(2024, 9, 1, 22, 0, 30)
+    # A numeric UTC offset must be applied, not silently discarded.
+    @test P("2024-01-01T00:00:00+01:00") == DateTime(2023, 12, 31, 23, 0)
+    @test P("2024-01-01T00:00-01:30") == DateTime(2024, 1, 1, 1, 30)
+end
