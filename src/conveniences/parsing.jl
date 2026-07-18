@@ -525,9 +525,13 @@ function _outage_datetime(ts::EzXML.Node, which::Symbol)
         )
     end
 
-    # Fall back to the Available_Period timeInterval.
-    ap = _first_named(ts, "Available_Period")
-    ap === nothing && return nothing
+    # Fall back to the Available_Period timeIntervals: the outage window
+    # starts at the FIRST period's <start> and ends at the LAST period's
+    # <end> — a curve split across several Available_Periods must not be
+    # truncated to its first block.
+    aps = _named(ts, "Available_Period")
+    isempty(aps) && return nothing
+    ap = which === :start ? aps[1] : aps[end]
     ti = _first_named(ap, "timeInterval")
     ti === nothing && return nothing
     boundary_field = which === :start ? "start" : "end"

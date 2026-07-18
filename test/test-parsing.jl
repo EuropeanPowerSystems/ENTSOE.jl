@@ -677,3 +677,31 @@ end
     @test rows.resource_name[2] == "DolWin1"
     @test rows.psr_type[2] == "B22"
 end
+
+@testset "parse_unavailability — stop spans the LAST Available_Period" begin
+    # No start/end_DateAndOrTime fields: bounds fall back to the
+    # Available_Period intervals. A curve split across two periods must
+    # report the full window, not just the first sub-period.
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <businessType>A53</businessType>
+        <production_RegisteredResource><mRID>U9</mRID><name>Unit 9</name></production_RegisteredResource>
+        <Available_Period>
+          <timeInterval><start>2024-05-01T00:00Z</start><end>2024-05-03T00:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>100.0</quantity></Point>
+        </Available_Period>
+        <Available_Period>
+          <timeInterval><start>2024-05-03T00:00Z</start><end>2024-05-10T00:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>50.0</quantity></Point>
+        </Available_Period>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = ENTSOE.parse_unavailability(xml)
+    @test length(rows) == 1
+    @test rows.start[1] == DateTime(2024, 5, 1)
+    @test rows.stop[1] == DateTime(2024, 5, 10)
+end
