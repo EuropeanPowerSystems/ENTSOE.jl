@@ -973,6 +973,12 @@ This is the low-level form. Most callers want
 "no data" responses into typed errors.
 """
 function parse_acknowledgement(xml::AbstractString)
+    # Fast path: an acknowledgement document necessarily contains its own
+    # root tag name, so a body without the substring cannot be one — skip
+    # the full DOM parse that every response otherwise pays twice (once
+    # here, once in the actual parser). A substring hit in regular content
+    # merely falls through to the real root-name check below.
+    occursin("Acknowledgement_MarketDocument", xml) || return nothing
     doc = parsexml(xml)
     nodename(root(doc)) == "Acknowledgement_MarketDocument" || return nothing
     reason = _first_named(root(doc), "Reason")

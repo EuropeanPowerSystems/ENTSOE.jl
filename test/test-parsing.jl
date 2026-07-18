@@ -749,3 +749,14 @@ end
     @test rows.quantity == [100.0, 100.0, 200.0, 200.0]
     @test rows.price == [5.0, 5.0, 6.0, 6.0]
 end
+
+@testset "parse_acknowledgement — substring in content is not an ack" begin
+    # Invariant guarding the fast-path sniff: a document that merely
+    # MENTIONS Acknowledgement_MarketDocument in a text node is not one.
+    xml = """<?xml version="1.0"?>
+    <Publication_MarketDocument xmlns="urn:x">
+      <description>relates to an Acknowledgement_MarketDocument</description>
+    </Publication_MarketDocument>"""
+    @test ENTSOE.parse_acknowledgement(xml) === nothing
+    @test ENTSOE.check_acknowledgement(xml) == xml   # pass-through, no throw
+end
