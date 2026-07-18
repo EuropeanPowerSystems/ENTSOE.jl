@@ -140,6 +140,7 @@ ENTSOE.code_for
 ```@docs
 parse_timeseries
 parse_timeseries_per_psr
+parse_timeseries_quantity_price
 parse_installed_capacity
 parse_installed_capacity_per_unit
 parse_timeseries_per_unit

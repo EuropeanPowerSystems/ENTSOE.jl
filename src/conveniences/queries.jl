@@ -3436,6 +3436,10 @@ end
 # no single "parsed" shape — different document types live behind this
 # endpoint. Users parse pages with `parse_timeseries` etc. as needed.
 
+# The OMI endpoint serves fixed 200-document pages; only `offset` exists on
+# the wire, so any other local stride would duplicate or skip documents.
+const _OMI_PAGE_SIZE = 200
+
 """
     omi_other_market_information(client, control_area, start, stop;
                                   document_type="A95",
@@ -3461,10 +3465,6 @@ xmls = omi_other_market_information(
 # raw XML).
 ```
 """
-# The OMI endpoint serves fixed 200-document pages; only `offset` exists on
-# the wire, so any other local stride would duplicate or skip documents.
-const _OMI_PAGE_SIZE = 200
-
 function omi_other_market_information(
         client::Client, control_area::AbstractString,
         period_start, period_end;
