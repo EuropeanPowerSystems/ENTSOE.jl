@@ -528,6 +528,18 @@ function total_nominated_capacity(
     end
 end
 
+# Snapshot form — `period_end` omitted, exactly as the docstring
+# describes. The ResponseFormat type in the period_end slot makes this
+# method more specific than the ranged one, so dispatch stays unambiguous.
+total_nominated_capacity(
+    client::Client,
+    in_area::AbstractString, out_area::AbstractString,
+    period_start, format::ResponseFormat = Parsed();
+    kwargs...,
+) = total_nominated_capacity(
+    client, in_area, out_area, period_start, nothing, format; kwargs...,
+)
+
 """
     congestion_income(client, in_area, out_area, period_start, period_end[, format];
                       contract_market_agreement_type=ContractType.DAILY)
@@ -3303,6 +3315,16 @@ function procured_balancing_capacity(
         )
     end
 end
+
+# Snapshot form — `period_end` omitted, exactly as the docstring
+# describes (see `total_nominated_capacity` for the dispatch note).
+procured_balancing_capacity(
+    client::Client, area::AbstractString,
+    period_start, format::ResponseFormat = Parsed();
+    kwargs...,
+) = procured_balancing_capacity(
+    client, area, period_start, nothing, format; kwargs...,
+)
 
 """
     aggregated_balancing_energy_bids(client, area, start, stop[, format];

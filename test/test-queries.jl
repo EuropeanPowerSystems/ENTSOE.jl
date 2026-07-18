@@ -1316,3 +1316,25 @@ end
     @test err isa ENTSOE.APIError
     @test !(err isa MethodError)
 end
+
+@testset "period_end is genuinely optional where documented" begin
+    # The docstrings promise "when omitted, ENTSO-E returns the single
+    # publication snapshot" — calling that way must dispatch (reaching the
+    # network layer; here a typed transport error from an unreachable
+    # host), not throw a MethodError.
+    offline = ENTSOEClient("PLAYBACK"; base_url = "http://127.0.0.1:9/api")
+    for f in (
+            () -> total_nominated_capacity(offline, EIC.NL, EIC.BE, DateTime(2024, 9, 1)),
+            () -> total_nominated_capacity(offline, EIC.NL, EIC.BE, DateTime(2024, 9, 1), Raw()),
+            () -> procured_balancing_capacity(offline, EIC.DE_LU, DateTime(2024, 9, 1)),
+            () -> procured_balancing_capacity(offline, EIC.DE_LU, DateTime(2024, 9, 1), Raw()),
+        )
+        err = try
+            f()
+            nothing
+        catch e
+            e
+        end
+        @test err isa ENTSOE.APIError
+    end
+end
