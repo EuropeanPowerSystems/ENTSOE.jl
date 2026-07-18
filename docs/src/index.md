@@ -14,7 +14,7 @@ A Julia REST/JSON API wrapper scaffolded with
 ```julia
 using ENTSOE
 
-client = Client("https://api.example.com"; auth = BearerToken(ENV["ENTSOE_TOKEN"]))
+client = ENTSOEClient(ENV["ENTSOE_API_TOKEN"])
 ```
 
 See the [Getting Started](getting_started.md) guide for a worked example, or

@@ -15,14 +15,10 @@ using ENTSOE
 client = Client("https://api.example.com"; auth = NoAuth())
 ```
 
-Available auth strategies:
-
-| Type | When to use |
-|---|---|
-| [`NoAuth`](@ref) | public APIs |
-| [`BearerToken`](@ref) | OAuth2/JWT bearer-token APIs |
-| [`APIKey`](@ref) | header-based API-key APIs (configurable header name) |
-| [`BasicAuth`](@ref) | HTTP basic auth |
+ENTSO-E authenticates with a `securityToken` **query parameter**, so
+header-based auth strategies don't apply here — construct clients with
+[`ENTSOEClient`](@ref) (which uses [`NoAuth`](@ref) plus a query-injecting
+pre-request hook) and never set the token via headers.
 
 ## Reliability primitives
 
@@ -39,10 +35,6 @@ end
 
 ## Pagination
 
-```julia
-for item in paginate_offset((offset, limit) -> list_things(client; offset, limit))
-    @show item
-end
-```
-
-See [`paginate_cursor`](@ref), [`paginate_offset`](@ref), [`paginate_pagenum`](@ref).
+The only paginated ENTSO-E endpoint is OMI — its wrapper
+[`omi_other_market_information`](@ref) walks the server's fixed
+200-document pages via the `offset` parameter automatically.

@@ -118,7 +118,7 @@ following are safe to commit:
 
 ```julia
 @testset "POST /pet" begin
-    authed     = Client("https://api.example.com"; auth = BearerToken("secret"))
+    authed     = Client("https://api.example.com"; auth = NoAuth())
     authed_pet = PetApi(authed.inner)
 
     new_pet = Pet(; name = "doggie", photoUrls = ["https://example.com/dog.jpg"])
