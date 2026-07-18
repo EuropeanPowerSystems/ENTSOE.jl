@@ -475,3 +475,43 @@ include("_brokenrecord_helpers.jl")
         end
     end
 end
+
+@testset "parse_timeseries_per_psr strips pretty-printed psrType" begin
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <GL_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <MktPSRType>
+          <psrType>
+            B16
+          </psrType>
+        </MktPSRType>
+        <Period>
+          <timeInterval><start>2024-09-01T22:00Z</start><end>2024-09-01T23:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>10.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </GL_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries_per_psr(xml)
+    @test length(rows) == 1
+    @test rows.psr_type[1] == "B16"
+end
+
+@testset "parse_unavailability_curve accepts *.amount value nodes" begin
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <production_RegisteredResource><mRID>U1</mRID><name>Unit 1</name></production_RegisteredResource>
+        <Available_Period>
+          <timeInterval><start>2024-05-01T00:00Z</start><end>2024-05-01T01:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><curtailed_Quantity.amount>120.0</curtailed_Quantity.amount></Point>
+        </Available_Period>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = ENTSOE.parse_unavailability_curve(xml)
+    @test length(rows) == 1
+    @test rows.available_mw[1] == 120.0
+end
