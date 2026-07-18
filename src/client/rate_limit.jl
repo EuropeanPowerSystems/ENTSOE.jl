@@ -14,6 +14,8 @@ end
 
 function TokenBucket(; rate::Real = 10.0, burst::Real = 10.0)
     r = Float64(rate); b = Float64(burst)
+    r > 0 || throw(ArgumentError("rate must be positive, got $r"))
+    b > 0 || throw(ArgumentError("burst must be positive, got $b"))
     # `last_refill = NaN` is a sentinel meaning "uninitialised" — the first
     # `acquire!` will seed it from its `time_fn`, so a mocked clock and the
     # bucket's notion of time stay consistent.
@@ -35,9 +37,18 @@ function acquire!(
         time_fn = time,
     )
     need = Float64(tokens)
+    need <= b.burst || throw(
+        ArgumentError(
+            "tokens ($need) exceeds burst capacity ($(b.burst)) — " *
+                "the request can never be satisfied",
+        ),
+    )
     deadline = time_fn() + Float64(timeout)
-    return lock(b.lock) do
-        while true
+    while true
+        # Hold the lock only for the refill/deduct bookkeeping; sleeping
+        # happens outside so concurrent acquirers can still enter, observe
+        # their own deadlines, and time out independently.
+        wait_secs = lock(b.lock) do
             now = time_fn()
             if isnan(b.last_refill)
                 b.last_refill = now
@@ -49,14 +60,17 @@ function acquire!(
             end
             if b.tokens >= need
                 b.tokens -= need
-                return nothing
+                return 0.0
             end
-            wait_secs = (need - b.tokens) / b.rate
-            if time_fn() + wait_secs > deadline
-                throw(RateLimitError(; status = 429, retry_after = wait_secs))
-            end
-            sleep_fn(wait_secs)
+            return (need - b.tokens) / b.rate
         end
+        wait_secs == 0.0 && return nothing
+        if time_fn() + wait_secs > deadline
+            throw(RateLimitError(; status = 429, retry_after = wait_secs))
+        end
+        # Another task may take the refilled tokens while we sleep; the loop
+        # recomputes the shortfall on wake-up.
+        sleep_fn(wait_secs)
     end
 end
 
