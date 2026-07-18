@@ -1230,3 +1230,31 @@ end
     )
     @test length(rows2) == 1
 end
+
+@testset "_raw_one raises on acknowledgement zip members" begin
+    # Zip-serving endpoints can answer a window with a zipped
+    # Acknowledgement_MarketDocument; the Raw() path must raise it like
+    # the Parsed() path does instead of concatenating it into the output.
+    import ZipFile
+    ack_xml = """<?xml version="1.0"?>
+    <Acknowledgement_MarketDocument xmlns="urn:x">
+      <Reason><code>999</code><text>No matching data found</text></Reason>
+    </Acknowledgement_MarketDocument>"""
+    io = IOBuffer()
+    w = ZipFile.Writer(io)
+    f = ZipFile.addfile(w, "member1.xml")
+    write(f, ack_xml)
+    close(w)
+    zipstr = String(take!(io))
+    @test ENTSOE._looks_like_zip(zipstr)
+    @test_throws ENTSOE.ENTSOEAcknowledgement ENTSOE._raw_one(zipstr)
+
+    # Non-ack members still come back joined.
+    io2 = IOBuffer()
+    w2 = ZipFile.Writer(io2)
+    write(ZipFile.addfile(w2, "a.xml"), "<Doc xmlns=\"urn:x\"/>")
+    write(ZipFile.addfile(w2, "b.xml"), "<Doc xmlns=\"urn:x\"/>")
+    close(w2)
+    raw = ENTSOE._raw_one(String(take!(io2)))
+    @test occursin("<!-- next zip member -->", raw)
+end

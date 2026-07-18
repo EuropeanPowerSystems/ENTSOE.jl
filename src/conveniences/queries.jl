@@ -191,18 +191,28 @@ end
 # for `Parsed()`, every zip member is parsed individually and the
 # StructVectors `vcat`-ed; for `Raw()`, members are concatenated with a
 # `<!-- next zip member -->` sentinel.
+# Unzip a zipped response body into per-member XML strings, raising
+# ENTSOEAcknowledgement if ANY member is an acknowledgement document —
+# the one shared zip walk, so Parsed() and Raw() treat ack members
+# identically.
+function _zip_members_checked(xml::AbstractString)
+    members = unzip_response(Vector{UInt8}(codeunits(xml)))
+    strs = String[]
+    for (_name, bytes) in members
+        s = String(copy(bytes))
+        check_acknowledgement(s)
+        push!(strs, s)
+    end
+    return strs
+end
+
 # Parse one response body (zip-aware) into rows. Raises ENTSOEAcknowledgement
 # if the body — or any zip member — is an acknowledgement document.
 function _parse_one(xml::AbstractString, parser::F) where {F <: Function}
     if _looks_like_zip(xml)
-        members = unzip_response(Vector{UInt8}(codeunits(xml)))
+        members = _zip_members_checked(xml)
         isempty(members) && return parser("")
-        parts = map(members) do (_name, bytes)
-            inner = String(copy(bytes))
-            check_acknowledgement(inner)
-            parser(inner)
-        end
-        return reduce(vcat, parts)
+        return reduce(vcat, map(parser, members))
     end
     check_acknowledgement(xml)
     return parser(xml)
@@ -211,11 +221,7 @@ end
 # Raw escape hatch for one response body (zip-aware). Raises on acknowledgement.
 function _raw_one(xml::AbstractString)
     if _looks_like_zip(xml)
-        members = unzip_response(Vector{UInt8}(codeunits(xml)))
-        return join(
-            (String(copy(b)) for (_n, b) in members),
-            "\n<!-- next zip member -->\n",
-        )
+        return join(_zip_members_checked(xml), "\n<!-- next zip member -->\n")
     end
     check_acknowledgement(xml)
     return xml
