@@ -27,15 +27,6 @@ using Dates: DateTime
 
 include("_brokenrecord_helpers.jl")
 
-const _TOKEN_FILE = joinpath(@__DIR__, "..", "token.txt")
-
-function _resolve_token()
-    tok = get(ENV, "ENTSOE_API_TOKEN", "")
-    isempty(tok) || return strip(tok)
-    isfile(_TOKEN_FILE) && return strip(read(_TOKEN_FILE, String))
-    return ""
-end
-
 mkpath(_BROKENRECORD_CASSETTES_DIR)
 const BR = _load_brokenrecord()
 

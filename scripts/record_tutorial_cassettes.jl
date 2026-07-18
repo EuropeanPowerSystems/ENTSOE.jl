@@ -32,15 +32,7 @@ const BR = _load_brokenrecord()
 BR === nothing &&
     error("BrokenRecord is not installed — `pkg> add BrokenRecord@0.1` first.")
 
-const TOKEN = let env_tok = get(ENV, "ENTSOE_API_TOKEN", "")
-    if !isempty(env_tok)
-        env_tok
-    elseif isfile(joinpath(REPO_ROOT, "token.txt"))
-        strip(read(joinpath(REPO_ROOT, "token.txt"), String))
-    else
-        error("No ENTSOE_API_TOKEN env var and no token.txt — set one first.")
-    end
-end
+const TOKEN = _resolve_token(require = true)
 
 const CLIENT = ENTSOEClient(TOKEN)
 
