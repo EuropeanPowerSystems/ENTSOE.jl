@@ -23,8 +23,9 @@
 #      [`ResponseFormat`](@ref) argument that picks the return shape:
 #      [`Parsed()`](@ref) (the default) returns a typed `StructVector`
 #      from the matching parser; [`Raw()`](@ref) returns the raw XML
-#      `String`. Two methods, two return types — fully type-stable, no
-#      `Union` widening.
+#      `String`; [`LocalTime(tz)`](@ref) is `Parsed` with the `time`
+#      column converted to `ZonedDateTime`. One method per format, each
+#      with its own return type — fully type-stable, no `Union` widening.
 #
 # These wrappers live entirely outside `src/api/`, so re-running
 # `gen/regenerate.jl` against a refreshed spec leaves them untouched.
@@ -37,7 +38,9 @@ using TimeZones: TimeZones, ZonedDateTime, astimezone, @tz_str
 
 Tag type that selects the return shape of every wrapper. Subtypes:
 [`Parsed`](@ref) (the default — a typed `StructVector` from the matching
-parser) and [`Raw`](@ref) (the raw `application/xml` `String`).
+parser), [`Raw`](@ref) (the raw `application/xml` `String`), and
+[`LocalTime`](@ref) (like `Parsed` but with the `time` column converted
+to timezone-aware `ZonedDateTime`).
 
 Pass an instance as the **last positional argument** to any wrapper:
 
@@ -219,9 +222,10 @@ let cu = codeunits(s)
         cu[3] == 0x03 && cu[4] == 0x04
 end
 
-# Internal dispatch on `ResponseFormat`. Two methods, each with a
-# concrete return type — that's what makes the public wrappers
-# type-stable. Both transparently unzip `application/zip` bodies:
+# Internal dispatch on `ResponseFormat`. One method per format
+# (`Parsed`/`Raw`/`LocalTime`), each with a concrete return type —
+# that's what makes the public wrappers type-stable. All of them
+# transparently unzip `application/zip` bodies:
 # for `Parsed()`, every zip member is parsed individually and the
 # StructVectors `vcat`-ed; for `Raw()`, members are concatenated with a
 # `<!-- next zip member -->` sentinel.

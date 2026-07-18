@@ -3,9 +3,10 @@
 #
 # The Transparency Platform caps most time-series endpoints at "one year
 # per request". A naive call covering five years silently returns only
-# the first year. This file splits a long period into a sequence of
-# bounded windows, calls a query function for each, and concatenates the
-# results.
+# the first year. This file owns the pure chunk arithmetic
+# (`split_period`); the fetching and concatenation live in
+# `queries.jl`'s `_split_query`/`_collect_windows`, which every named
+# time-series wrapper routes through automatically.
 
 using Dates: Dates, DateTime, Date, Year, Period
 using TimeZones: ZonedDateTime, astimezone, TimeZone
