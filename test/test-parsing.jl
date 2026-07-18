@@ -475,3 +475,295 @@ include("_brokenrecord_helpers.jl")
         end
     end
 end
+
+@testset "parse_timeseries_per_psr strips pretty-printed psrType" begin
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <GL_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <MktPSRType>
+          <psrType>
+            B16
+          </psrType>
+        </MktPSRType>
+        <Period>
+          <timeInterval><start>2024-09-01T22:00Z</start><end>2024-09-01T23:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>10.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </GL_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries_per_psr(xml)
+    @test length(rows) == 1
+    @test rows.psr_type[1] == "B16"
+end
+
+@testset "parse_unavailability_curve accepts *.amount value nodes" begin
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <production_RegisteredResource><mRID>U1</mRID><name>Unit 1</name></production_RegisteredResource>
+        <Available_Period>
+          <timeInterval><start>2024-05-01T00:00Z</start><end>2024-05-01T01:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><curtailed_Quantity.amount>120.0</curtailed_Quantity.amount></Point>
+        </Available_Period>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = ENTSOE.parse_unavailability_curve(xml)
+    @test length(rows) == 1
+    @test rows.available_mw[1] == 120.0
+end
+
+@testset "parse_timeseries — P1M periods step by calendar month" begin
+    # Position 2 of a monthly series starting Jan 1 must be Feb 1 — not
+    # Jan 31 (start + 30 nominal days). Shape mirrors 13.1.C congestion
+    # costs (tut_costs_BE_2022.yml).
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <CongestionCosts_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A01</curveType>
+        <Period>
+          <timeInterval><start>2022-01-01T00:00Z</start><end>2023-01-01T00:00Z</end></timeInterval>
+          <resolution>P1M</resolution>
+          $(join(["<Point><position>$p</position><congestionCost_Price.amount>$(p * 10.0)</congestionCost_Price.amount></Point>" for p in 1:12], "\n"))
+        </Period>
+      </TimeSeries>
+    </CongestionCosts_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries(xml)
+    @test length(rows) == 12
+    @test rows.time == [DateTime(2022, m, 1) for m in 1:12]
+    @test rows.value == [p * 10.0 for p in 1:12]
+end
+
+@testset "parse_timeseries — P1M A03 fill counts calendar months" begin
+    # A single point covering Jan–Mar must fill 3 monthly rows; the old
+    # nominal-30-day arithmetic computed div(90d, 30d)=3 only by luck and
+    # yielded 0 for a single short month (February).
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <CongestionCosts_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A03</curveType>
+        <Period>
+          <timeInterval><start>2022-01-01T00:00Z</start><end>2022-04-01T00:00Z</end></timeInterval>
+          <resolution>P1M</resolution>
+          <Point><position>1</position><quantity>7.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </CongestionCosts_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries(xml; fill_gaps = true)
+    @test rows.time == [DateTime(2022, 1, 1), DateTime(2022, 2, 1), DateTime(2022, 3, 1)]
+    @test all(rows.value .== 7.0)
+
+    feb = """<?xml version="1.0" encoding="UTF-8"?>
+    <Doc xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A03</curveType>
+        <Period>
+          <timeInterval><start>2022-02-01T00:00Z</start><end>2022-03-01T00:00Z</end></timeInterval>
+          <resolution>P1M</resolution>
+          <Point><position>1</position><quantity>3.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </Doc>
+    """
+    rows_feb = ENTSOE.parse_timeseries(feb; fill_gaps = true)
+    @test rows_feb.time == [DateTime(2022, 2, 1)]
+    @test rows_feb.value == [3.0]
+end
+
+@testset "parse_timeseries — P1Y periods step by calendar year" begin
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Doc xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A01</curveType>
+        <Period>
+          <timeInterval><start>2020-01-01T00:00Z</start><end>2023-01-01T00:00Z</end></timeInterval>
+          <resolution>P1Y</resolution>
+          <Point><position>1</position><quantity>1.0</quantity></Point>
+          <Point><position>2</position><quantity>2.0</quantity></Point>
+          <Point><position>3</position><quantity>3.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </Doc>
+    """
+    rows = ENTSOE.parse_timeseries(xml)
+    # 2020 is a leap year: nominal 365-day stepping would land position 2
+    # on 2020-12-31T00:00 instead of 2021-01-01.
+    @test rows.time == [DateTime(2020, 1, 1), DateTime(2021, 1, 1), DateTime(2022, 1, 1)]
+end
+
+@testset "parse_timeseries — A03 fill stops at explicitly valueless points" begin
+    # Real shape (balancing_if_afrr316_cbmps_DE_AMPRION.yml): a listed
+    # <Point> with a <position> but no value element marks "no value here" —
+    # the previous run must stop before it and no value may be fabricated
+    # until the next valued point.
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Doc xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A03</curveType>
+        <Period>
+          <timeInterval><start>2024-01-01T00:00Z</start><end>2024-01-01T08:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>10.0</quantity></Point>
+          <Point><position>3</position></Point>
+          <Point><position>5</position><quantity>50.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </Doc>
+    """
+    rows = ENTSOE.parse_timeseries(xml; fill_gaps = true)
+    @test rows.time == [
+        DateTime(2024, 1, 1, 0), DateTime(2024, 1, 1, 1),          # run of 10.0: pos 1–2
+        DateTime(2024, 1, 1, 4), DateTime(2024, 1, 1, 5),          # run of 50.0: pos 5–8
+        DateTime(2024, 1, 1, 6), DateTime(2024, 1, 1, 7),
+    ]
+    @test rows.value == [10.0, 10.0, 50.0, 50.0, 50.0, 50.0]
+end
+
+@testset "_parse_entsoe_datetime — offsets and seconds" begin
+    P = ENTSOE._parse_entsoe_datetime
+    # The classic ENTSO-E shapes, unchanged.
+    @test P("2024-09-01T22:00Z") == DateTime(2024, 9, 1, 22, 0)
+    @test P("2024-09-01T22:00") == DateTime(2024, 9, 1, 22, 0)
+    @test P("2024-05-01T00:00:00Z") == DateTime(2024, 5, 1)
+    # Non-zero seconds must survive (PT1M grids misalign otherwise).
+    @test P("2024-09-01T22:00:30Z") == DateTime(2024, 9, 1, 22, 0, 30)
+    # A numeric UTC offset must be applied, not silently discarded.
+    @test P("2024-01-01T00:00:00+01:00") == DateTime(2023, 12, 31, 23, 0)
+    @test P("2024-01-01T00:00-01:30") == DateTime(2024, 1, 1, 1, 30)
+end
+
+@testset "parse_unavailability — transmission outages (Asset_RegisteredResource)" begin
+    # 10.1.x / offshore documents identify the asset via
+    # Asset_RegisteredResource, not production_RegisteredResource. Shapes
+    # mirror the committed redispatch/offshore cassettes: mRID + name (or
+    # location.name) + pSRType.psrType (or asset_PSRType.psrType).
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <businessType>A54</businessType>
+        <start_DateAndOrTime.date>2023-10-31</start_DateAndOrTime.date>
+        <start_DateAndOrTime.time>23:00:00Z</start_DateAndOrTime.time>
+        <end_DateAndOrTime.date>2023-11-01</end_DateAndOrTime.date>
+        <end_DateAndOrTime.time>23:00:00Z</end_DateAndOrTime.time>
+        <Asset_RegisteredResource>
+          <mRID codingScheme="A01">49T000000000436O</mRID>
+          <pSRType.psrType>B21</pSRType.psrType>
+          <location.name>Hardenberg - Ommen 110 kV</location.name>
+        </Asset_RegisteredResource>
+      </TimeSeries>
+      <TimeSeries>
+        <businessType>A53</businessType>
+        <start_DateAndOrTime.date>2024-05-01</start_DateAndOrTime.date>
+        <end_DateAndOrTime.date>2024-05-03</end_DateAndOrTime.date>
+        <Asset_RegisteredResource>
+          <mRID>11T0-0000-0044-X</mRID>
+          <name>DolWin1</name>
+          <asset_PSRType.psrType>B22</asset_PSRType.psrType>
+        </Asset_RegisteredResource>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = ENTSOE.parse_unavailability(xml)
+    @test length(rows) == 2
+    @test rows.resource_mrid[1] == "49T000000000436O"
+    @test rows.resource_name[1] == "Hardenberg - Ommen 110 kV"
+    @test rows.psr_type[1] == "B21"
+    @test rows.resource_mrid[2] == "11T0-0000-0044-X"
+    @test rows.resource_name[2] == "DolWin1"
+    @test rows.psr_type[2] == "B22"
+end
+
+@testset "parse_unavailability — stop spans the LAST Available_Period" begin
+    # No start/end_DateAndOrTime fields: bounds fall back to the
+    # Available_Period intervals. A curve split across two periods must
+    # report the full window, not just the first sub-period.
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <businessType>A53</businessType>
+        <production_RegisteredResource><mRID>U9</mRID><name>Unit 9</name></production_RegisteredResource>
+        <Available_Period>
+          <timeInterval><start>2024-05-01T00:00Z</start><end>2024-05-03T00:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>100.0</quantity></Point>
+        </Available_Period>
+        <Available_Period>
+          <timeInterval><start>2024-05-03T00:00Z</start><end>2024-05-10T00:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>50.0</quantity></Point>
+        </Available_Period>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = ENTSOE.parse_unavailability(xml)
+    @test length(rows) == 1
+    @test rows.start[1] == DateTime(2024, 5, 1)
+    @test rows.stop[1] == DateTime(2024, 5, 10)
+end
+
+@testset "parse_timeseries_quantity_price — dual-value points (17.1.B&C)" begin
+    # Points on "volumes AND prices of contracted reserves" carry BOTH a
+    # <quantity> (MW) and a <procurement_Price.amount> (EUR/MW); a single
+    # value column can only keep one of them.
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Balancing_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A01</curveType>
+        <Period>
+          <timeInterval><start>2024-09-01T22:00Z</start><end>2024-09-02T00:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>600.0</quantity><procurement_Price.amount>11.5</procurement_Price.amount></Point>
+          <Point><position>2</position><quantity>580.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </Balancing_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries_quantity_price(xml)
+    @test length(rows) == 2
+    @test rows.time == [DateTime(2024, 9, 1, 22), DateTime(2024, 9, 1, 23)]
+    @test rows.quantity == [600.0, 580.0]
+    @test rows.price[1] == 11.5
+    @test isnan(rows.price[2])
+end
+
+@testset "parse_timeseries_quantity_price — A03 fill carries both columns" begin
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Balancing_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A03</curveType>
+        <Period>
+          <timeInterval><start>2024-09-01T00:00Z</start><end>2024-09-01T04:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>100.0</quantity><procurement_Price.amount>5.0</procurement_Price.amount></Point>
+          <Point><position>3</position><quantity>200.0</quantity><procurement_Price.amount>6.0</procurement_Price.amount></Point>
+        </Period>
+      </TimeSeries>
+    </Balancing_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries_quantity_price(xml; fill_gaps = true)
+    @test rows.quantity == [100.0, 100.0, 200.0, 200.0]
+    @test rows.price == [5.0, 5.0, 6.0, 6.0]
+end
+
+@testset "parse_acknowledgement — substring in content is not an ack" begin
+    # Invariant guarding the fast-path sniff: a document that merely
+    # MENTIONS Acknowledgement_MarketDocument in a text node is not one.
+    xml = """<?xml version="1.0"?>
+    <Publication_MarketDocument xmlns="urn:x">
+      <description>relates to an Acknowledgement_MarketDocument</description>
+    </Publication_MarketDocument>"""
+    @test ENTSOE.parse_acknowledgement(xml) === nothing
+    @test ENTSOE.check_acknowledgement(xml) == xml   # pass-through, no throw
+end
+
+@testset "_parse_entsoe_datetime — unrecognised shapes use the truncation fallback" begin
+    # Trailing junk defeats the strict pattern; the historical
+    # truncate-at-minutes behavior still applies.
+    @test ENTSOE._parse_entsoe_datetime("2024-09-01T22:00xyz") ==
+        DateTime(2024, 9, 1, 22, 0)
+end

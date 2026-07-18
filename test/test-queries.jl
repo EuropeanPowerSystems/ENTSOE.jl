@@ -1,6 +1,7 @@
 using ENTSOE
 using Test
-using Dates: DateTime, Date
+using Dates: DateTime, Date, Year
+using Logging: Logging
 using TimeZones: ZonedDateTime, FixedTimeZone
 
 # Unit tests for the named-argument query layer in
@@ -245,7 +246,7 @@ let BR = _load_brokenrecord()
                         client, EIC.NL,
                         DateTime("2024-09-23T22:00"),
                         DateTime("2024-09-24T22:00");
-                        document_type = "B47", page_size = 200, max_pages = 1,
+                        document_type = "B47", max_pages = 1,
                     ),
                     "omi_other_market_information_NL.yml",
                 )
@@ -1191,5 +1192,312 @@ let BR = _load_brokenrecord()
             @test err isa ENTSOEAcknowledgement
             @test err.reason_code == "999"
         end
+    end
+end
+
+@testset "_collect_windows warns on non-no-data acknowledgements" begin
+    data_xml = """<?xml version="1.0"?>
+    <Doc xmlns="urn:x"><TimeSeries><Period>
+      <timeInterval><start>2023-01-01T00:00Z</start><end>2023-01-01T01:00Z</end></timeInterval>
+      <resolution>PT60M</resolution>
+      <Point><position>1</position><quantity>1.0</quantity></Point>
+    </Period></TimeSeries></Doc>"""
+    ack(text) = """<?xml version="1.0"?>
+    <Acknowledgement_MarketDocument xmlns="urn:x">
+      <Reason><code>999</code><text>$text</text></Reason>
+    </Acknowledgement_MarketDocument>"""
+    overlimit = "The amount of requested data exceeds allowed limit. Requested: 389 documents. Allowed: 200. Use the offset parameter."
+
+    # A chunked call where one window hits the document limit must WARN —
+    # silently returning a partial multi-year result is indistinguishable
+    # from "no data in that window".
+    calls = Ref(0)
+    fake = (s, e) -> (calls[] += 1; (calls[] == 1 ? data_xml : ack(overlimit), nothing))
+    rows = @test_logs (:warn, r"not plain no-data") ENTSOE._split_query(
+        fake, ENTSOE.Parsed(), ENTSOE.parse_timeseries;
+        period_start = DateTime(2023, 1, 1), period_end = DateTime(2025, 1, 1),
+        window = Year(1),
+    )
+    @test length(rows) == 1
+
+    # Plain no-data windows stay silent (the normal sparse-history case).
+    calls2 = Ref(0)
+    fake2 = (s, e) -> (calls2[] += 1; (calls2[] == 1 ? data_xml : ack("No matching data found"), nothing))
+    rows2 = @test_logs min_level = Logging.Warn ENTSOE._split_query(
+        fake2, ENTSOE.Parsed(), ENTSOE.parse_timeseries;
+        period_start = DateTime(2023, 1, 1), period_end = DateTime(2025, 1, 1),
+        window = Year(1),
+    )
+    @test length(rows2) == 1
+end
+
+@testset "_raw_one raises on acknowledgement zip members" begin
+    # Zip-serving endpoints can answer a window with a zipped
+    # Acknowledgement_MarketDocument; the Raw() path must raise it like
+    # the Parsed() path does instead of concatenating it into the output.
+    import ZipFile
+    ack_xml = """<?xml version="1.0"?>
+    <Acknowledgement_MarketDocument xmlns="urn:x">
+      <Reason><code>999</code><text>No matching data found</text></Reason>
+    </Acknowledgement_MarketDocument>"""
+    io = IOBuffer()
+    w = ZipFile.Writer(io)
+    f = ZipFile.addfile(w, "member1.xml")
+    write(f, ack_xml)
+    close(w)
+    zipstr = String(take!(io))
+    @test ENTSOE._looks_like_zip(zipstr)
+    @test_throws ENTSOE.ENTSOEAcknowledgement ENTSOE._raw_one(zipstr)
+
+    # Non-ack members still come back joined.
+    io2 = IOBuffer()
+    w2 = ZipFile.Writer(io2)
+    write(ZipFile.addfile(w2, "a.xml"), "<Doc xmlns=\"urn:x\"/>")
+    write(ZipFile.addfile(w2, "b.xml"), "<Doc xmlns=\"urn:x\"/>")
+    close(w2)
+    raw = ENTSOE._raw_one(String(take!(io2)))
+    @test occursin("<!-- next zip member -->", raw)
+end
+
+@testset "cross_border_physical_flows_all internals (_flows_all)" begin
+    mkrows(vals...) = ENTSOE.StructArrays.StructArray(
+        (
+            time = [DateTime(2024, 1, 1, i) for i in 0:(length(vals) - 1)],
+            value = collect(Float64, vals),
+        )
+    )
+    nodata = ENTSOE.ENTSOEAcknowledgement("999", "No matching data found")
+
+    # Parsed: rows tagged with their border, no-data borders skipped.
+    fetch1 = (in_a, out_a, fmt) -> in_a == "B1" ? mkrows(1.0, 2.0) : throw(nodata)
+    rows = ENTSOE._flows_all(ENTSOE.Parsed(), fetch1, ["B1", "B2"], "AREA", true)
+    @test rows.border == ["B1", "B1"]
+    @test rows.value == [1.0, 2.0]
+
+    # LocalTime: same rows, ZonedDateTime time column — this used to
+    # MethodError on the first successful border.
+    lrows = ENTSOE._flows_all(LocalTime("Europe/Amsterdam"), fetch1, ["B1", "B2"], "AREA", true)
+    @test eltype(lrows.time) <: ZonedDateTime
+    @test lrows.border == ["B1", "B1"]
+    @test lrows.value == [1.0, 2.0]
+
+    # Every border acknowledged → rethrow, matching _collect_windows,
+    # instead of returning an empty table indistinguishable from data.
+    fetchack = (a, b, fmt) -> throw(nodata)
+    @test_throws ENTSOE.ENTSOEAcknowledgement ENTSOE._flows_all(
+        ENTSOE.Parsed(), fetchack, ["B1", "B2"], "AREA", true,
+    )
+
+    # Raw: members joined with the border sentinel.
+    fetchraw = (a, b, fmt) -> "<Doc/>"
+    raw = ENTSOE._flows_all(ENTSOE.Raw(), fetchraw, ["B1", "B2"], "AREA", true)
+    @test raw == "<Doc/>\n<!-- next border -->\n<Doc/>"
+
+    # export_ direction mapping: export_=true queries (neighbour ← area).
+    seen = Tuple{String, String}[]
+    spy = (in_a, out_a, fmt) -> (push!(seen, (in_a, out_a)); mkrows(0.0))
+    ENTSOE._flows_all(ENTSOE.Parsed(), spy, ["N1"], "AREA", true)
+    ENTSOE._flows_all(ENTSOE.Parsed(), spy, ["N1"], "AREA", false)
+    @test seen == [("N1", "AREA"), ("AREA", "N1")]
+end
+
+@testset "omi_other_market_information surfaces typed HTTP errors" begin
+    # Non-2xx / transport failures must raise the same typed APIErrors as
+    # every other wrapper (via _query_xml), not a MethodError from
+    # parse_acknowledgement(nothing).
+    unreachable = ENTSOEClient("PLAYBACK"; base_url = "http://127.0.0.1:9/api")
+    err = try
+        omi_other_market_information(
+            unreachable, EIC.NL,
+            DateTime(2024, 9, 1), DateTime(2024, 9, 2),
+        )
+        nothing
+    catch e
+        e
+    end
+    @test err isa ENTSOE.APIError
+    @test !(err isa MethodError)
+end
+
+@testset "period_end is genuinely optional where documented" begin
+    # The docstrings promise "when omitted, ENTSO-E returns the single
+    # publication snapshot" — calling that way must dispatch (reaching the
+    # network layer; here a typed transport error from an unreachable
+    # host), not throw a MethodError.
+    offline = ENTSOEClient("PLAYBACK"; base_url = "http://127.0.0.1:9/api")
+    for f in (
+            () -> total_nominated_capacity(offline, EIC.NL, EIC.BE, DateTime(2024, 9, 1)),
+            () -> total_nominated_capacity(offline, EIC.NL, EIC.BE, DateTime(2024, 9, 1), Raw()),
+            () -> procured_balancing_capacity(offline, EIC.DE_LU, DateTime(2024, 9, 1)),
+            () -> procured_balancing_capacity(offline, EIC.DE_LU, DateTime(2024, 9, 1), Raw()),
+        )
+        err = try
+            f()
+            nothing
+        catch e
+            e
+        end
+        @test err isa ENTSOE.APIError
+    end
+end
+
+@testset "withdrawn=true conflicts loudly with an explicit doc_status" begin
+    offline2 = ENTSOEClient("PLAYBACK"; base_url = "http://127.0.0.1:9/api")
+    # withdrawn=true used to silently DISCARD an explicitly passed
+    # doc_status; the conflict must now raise before any network call.
+    @test_throws ArgumentError unavailability_of_generation_units(
+        offline2, EIC.BE, DateTime(2024, 5, 1), DateTime(2024, 6, 1);
+        withdrawn = true, doc_status = DocStatus.ACTIVE,
+    )
+    # Redundant but consistent combination stays allowed.
+    err = try
+        unavailability_of_generation_units(
+            offline2, EIC.BE, DateTime(2024, 5, 1), DateTime(2024, 6, 1);
+            withdrawn = true, doc_status = DocStatus.WITHDRAWN,
+        )
+        nothing
+    catch e
+        e
+    end
+    @test err isa ENTSOE.APIError   # reached the (unreachable) network
+end
+
+@testset "window_concurrency fetches chunks concurrently, opt-in" begin
+    inflight = Threads.Atomic{Int}(0)
+    peak = Threads.Atomic{Int}(0)
+    data_xml2 = """<?xml version="1.0"?>
+    <Doc xmlns="urn:x"><TimeSeries><Period>
+      <timeInterval><start>2023-01-01T00:00Z</start><end>2023-01-01T01:00Z</end></timeInterval>
+      <resolution>PT60M</resolution>
+      <Point><position>1</position><quantity>1.0</quantity></Point>
+    </Period></TimeSeries></Doc>"""
+    fake = (s, e) -> begin
+        n = Threads.atomic_add!(inflight, 1) + 1
+        Threads.atomic_max!(peak, n)
+        sleep(0.05)
+        Threads.atomic_sub!(inflight, 1)
+        (data_xml2, nothing)
+    end
+    run_split() = ENTSOE._split_query(
+        fake, ENTSOE.Parsed(), ENTSOE.parse_timeseries;
+        period_start = DateTime(2021, 1, 1), period_end = DateTime(2025, 1, 1),
+        window = Year(1),
+    )
+
+    # Default stays strictly sequential (cassette playback depends on it).
+    rows = run_split()
+    @test length(rows) == 4
+    @test peak[] == 1
+
+    # Opt-in concurrency overlaps the window fetches.
+    old = ENTSOE.get_config().window_concurrency
+    try
+        ENTSOE.set_config(window_concurrency = 4)
+        Threads.atomic_xchg!(peak, 0)
+        rows2 = run_split()
+        @test length(rows2) == 4
+        @test peak[] > 1
+        @test rows2.value == rows.value
+    finally
+        ENTSOE.set_config(window_concurrency = old)
+    end
+end
+
+let BR = _load_brokenrecord()
+    if BR === nothing
+        @info "BrokenRecord not installed; skipping archive/sharing wrapper tests."
+    else
+        client = ENTSOEClient("PLAYBACK")
+
+        @testset "flow_based_allocations_archives (Market 11.1.B archives cassette)" begin
+            # Replays the archive smoke recording (application/zip) through the
+            # NAMED wrapper: drives the zip path end-to-end. The zipped
+            # CriticalNetworkElement documents carry no quantity points, so the
+            # parsed table is legitimately empty; Raw() exposes the documents.
+            old_ext = Base.invokelatest(getindex, BR.DEFAULTS, :extension)
+            Base.invokelatest(BR.configure!; extension = "bson")
+            try
+                rows = Base.invokelatest(
+                    BR.playback,
+                    () -> flow_based_allocations_archives(
+                        client, "10YDOM-REGION-1V", "10YDOM-REGION-1V",
+                        DateTime("2018-12-30T23:00"), DateTime("2018-12-31T22:00"),
+                    ),
+                    "market111_b_flow_based_allocations_archives.bson",
+                )
+                @test rows isa ENTSOE.StructArrays.StructArray
+                @test isempty(rows)   # constraint documents have no quantity points
+
+                raw = Base.invokelatest(
+                    BR.playback,
+                    () -> flow_based_allocations_archives(
+                        client, "10YDOM-REGION-1V", "10YDOM-REGION-1V",
+                        DateTime("2018-12-30T23:00"), DateTime("2018-12-31T22:00"),
+                        Raw(),
+                    ),
+                    "market111_b_flow_based_allocations_archives.bson",
+                )
+                @test occursin("CriticalNetworkElement_MarketDocument", raw)
+            finally
+                Base.invokelatest(BR.configure!; extension = old_ext)
+            end
+        end
+
+        @testset "sharing_of_rr_and_frr (Balancing 19.0.1 cassette)" begin
+            # As of 2026-07 the platform rejects the Postman-canonical
+            # A26/A56/C22 combination with an HTTP 400 whose body is an
+            # acknowledgement document ("combination … is not valid"). The
+            # wrapper must surface that as the typed ClientError carrying the
+            # body — not a MethodError or a silent empty table.
+            err = nothing
+            try
+                Base.invokelatest(
+                    BR.playback,
+                    () -> sharing_of_rr_and_frr(
+                        client, "10YAT-APG------L", "10YCB-GERMANY--8",
+                        DateTime(2021, 1, 1), DateTime(2021, 12, 31),
+                    ),
+                    "balancing_1901_sharing_of_rr_and_frr_AT_COBA.yml",
+                )
+            catch e
+                err = e
+            end
+            @test err isa ENTSOE.ClientError
+            @test err.status == 400
+        end
+
+    end
+end
+
+@testset "concurrent window fetch propagates typed errors" begin
+    old = ENTSOE.get_config().window_concurrency
+    try
+        ENTSOE.set_config(window_concurrency = 3)
+        fail_call = (s, e) -> throw(ENTSOE.AuthError(401, "bad token"))
+        # The @sync wrapping must unwrap back to the same typed APIError
+        # the sequential path raises.
+        @test_throws ENTSOE.AuthError ENTSOE._split_query(
+            fail_call, ENTSOE.Parsed(), ENTSOE.parse_timeseries;
+            period_start = DateTime(2021, 1, 1), period_end = DateTime(2024, 1, 1),
+            window = Year(1),
+        )
+    finally
+        ENTSOE.set_config(window_concurrency = old)
+    end
+    # Unwrapping helpers on bare/composite shapes.
+    e = ArgumentError("x")
+    @test ENTSOE._unwrap_task_exception(e) === e
+    @test ENTSOE._unwrap_task_exception(CompositeException([e])) === e
+end
+
+@testset "_flows_all Raw path warns on non-no-data acknowledgements" begin
+    overlimit = ENTSOE.ENTSOEAcknowledgement(
+        "999", "The amount of requested data exceeds allowed limit",
+    )
+    fetch_ack = (a, b, fmt) -> throw(overlimit)
+    @test_logs (:warn, r"not plain no-data") match_mode = :any begin
+        @test_throws ENTSOE.ENTSOEAcknowledgement ENTSOE._flows_all(
+            ENTSOE.Raw(), fetch_ack, ["B1"], "AREA", true,
+        )
     end
 end

@@ -53,8 +53,8 @@ end
 """
     RateLimitError(status=429; retry_after=nothing, body="")
 
-A 429 response. `retry_after` is the parsed `Retry-After` header value in
-seconds, or `nothing` when absent / unparsable.
+A 408 or 429 response. `retry_after` is the parsed `Retry-After` header value
+in seconds, or `nothing` when absent / unparsable.
 """
 struct RateLimitError <: APIError
     status::Int
@@ -87,6 +87,16 @@ function parse_retry_after(header::AbstractString)
     return n === nothing ? nothing : n
 end
 parse_retry_after(::Nothing) = nothing
+
+# Response header names are transport-dependent: Downloads.jl/libcurl
+# lowercases them, other stacks preserve the wire case. Look up by
+# case-insensitive comparison, never by exact key.
+function _header_value(headers::AbstractDict, name::AbstractString)
+    for (k, v) in headers
+        lowercase(String(k)) == lowercase(name) && return v
+    end
+    return nothing
+end
 
 # ENTSO-E's 429 responses are HTML pages whose interesting text sits in the
 # first `<p>...</p>`. Pull it out (stripped, single-line) so end users and
@@ -186,8 +196,8 @@ function check_response(
         return nothing
     elseif s == 401 || s == 403
         throw(AuthError(s, String(body)))
-    elseif s == 429
-        retry_after = parse_retry_after(get(headers, "Retry-After", nothing))
+    elseif s == 408 || s == 429
+        retry_after = parse_retry_after(_header_value(headers, "Retry-After"))
         throw(RateLimitError(; status = s, retry_after = retry_after, body = String(body)))
     elseif 400 <= s < 500
         throw(ClientError(s, String(body)))

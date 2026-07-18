@@ -92,4 +92,26 @@ if !@isdefined(_BROKENRECORD_HELPERS_LOADED)
         _configure_brokenrecord(BR; cassettes_dir = cassettes_dir)
         return BR
     end
+
+    """
+        _resolve_token(; require = false) -> String
+
+    THE recording-token resolution, shared by the cassette tests and every
+    recorder script: `ENV["ENTSOE_API_TOKEN"]` first, then
+    `<repo-root>/token.txt` (single line, gitignored). Returns `""` when
+    neither source exists; pass `require = true` to error with a setup
+    hint instead (recorder scripts should fail loudly, playback-mode
+    tests fall back to the PLAYBACK sentinel).
+    """
+    function _resolve_token(; require::Bool = false)
+        tok = strip(get(ENV, "ENTSOE_API_TOKEN", ""))
+        isempty(tok) || return String(tok)
+        token_file = joinpath(@__DIR__, "..", "token.txt")
+        isfile(token_file) && return String(strip(read(token_file, String)))
+        require && error(
+            "No ENTSO-E token found — set ENV[\"ENTSOE_API_TOKEN\"] or put " *
+                "the token in <repo-root>/token.txt (single line, gitignored).",
+        )
+        return ""
+    end
 end # if !@isdefined(_BROKENRECORD_HELPERS_LOADED)

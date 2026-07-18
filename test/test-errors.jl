@@ -44,6 +44,33 @@ end
     @test err.retry_after == 7.0
 end
 
+@testset "check_response finds Retry-After case-insensitively" begin
+    # Downloads.jl / libcurl lowercases response header names, so the header
+    # arrives as "retry-after" — the lookup must not depend on case.
+    for key in ("retry-after", "Retry-After", "RETRY-AFTER")
+        err = try
+            ENTSOE.check_response(429, "", Dict(key => "60"))
+            nothing
+        catch e
+            e
+        end
+        @test err isa ENTSOE.RateLimitError
+        @test err.retry_after == 60.0
+    end
+end
+
+@testset "check_response 408 surfaces RateLimitError with Retry-After" begin
+    err = try
+        ENTSOE.check_response(408, "", Dict("retry-after" => "5"))
+        nothing
+    catch e
+        e
+    end
+    @test err isa ENTSOE.RateLimitError
+    @test err.status == 408
+    @test err.retry_after == 5.0
+end
+
 @testset "rate_limit_message extracts ENTSO-E ban text" begin
     # Shape modelled on the actual platform response — an HTML page with the
     # message text in the first `<p>`. Newlines + indentation must collapse.
@@ -110,4 +137,17 @@ end
     ne = ENTSOE.NetworkError(ErrorException("dns lookup failed"))
     @test occursin("NetworkError", sprint(showerror, ne))
     @test occursin("dns lookup failed", sprint(showerror, ne))
+end
+
+@testset "check_response without a Retry-After header" begin
+    for status in (408, 429)
+        err = try
+            ENTSOE.check_response(status, "", Dict{String, String}())
+            nothing
+        catch e
+            e
+        end
+        @test err isa ENTSOE.RateLimitError
+        @test err.retry_after === nothing
+    end
 end

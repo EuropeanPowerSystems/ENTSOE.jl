@@ -25,6 +25,7 @@
 using Pkg
 
 const ROOT = normpath(joinpath(@__DIR__, ".."))
+include(joinpath(ROOT, "test", "_brokenrecord_helpers.jl"))
 Pkg.activate(ROOT; io = devnull)
 
 # Test-env packages we need for recording (kept off the main `[deps]`).
@@ -282,9 +283,7 @@ end
 # ─── main ───────────────────────────────────────────────────────────────────
 
 function main()
-    token_env = get(ENV, "ENTSOE_API_TOKEN", "")
-    token = isempty(token_env) ? strip(read(joinpath(ROOT, "token.txt"), String)) : token_env
-    isempty(token) && error("no ENTSO-E token in ENV or token.txt")
+    token = _resolve_token(require = true)
 
     postman = JSON3.read(read(POSTMAN_PATH, String))
     leaves = NamedTuple[]

@@ -24,10 +24,9 @@ include("client/rate_limit.jl")
 include("client/timeout.jl")
 include("client/middleware.jl")
 include("client/Client.jl")
-include("client/pagination.jl")
 include("client/show.jl")
 
-export Client, Auth, NoAuth, BearerToken, APIKey, BasicAuth, resolve_credentials
+export Client, Auth, NoAuth
 export APIError, NetworkError, ClientError, ServerError, AuthError,
     RateLimitError, TimeoutError, check_response, rate_limit_message
 export RetryPolicy, with_retry
@@ -35,7 +34,6 @@ export TokenBucket, acquire!, with_rate_limit
 export with_timeout
 export with_logging, redact_headers
 export DefaultMiddleware, default_middleware, with_defaults
-export paginate_cursor, paginate_offset, paginate_pagenum
 export ResponseFormat, Parsed, Raw
 
 # ENTSO-E specific helpers (hand-written, not part of the codegen output).

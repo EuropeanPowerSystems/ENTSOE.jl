@@ -88,7 +88,7 @@ function ENTSOEClient(
     end
     inner = OpenAPI.Clients.Client(
         String(base_url);
-        pre_request_hook = _entsoe_pre_request_hook(tok),
+        pre_request_hook = _entsoe_pre_request_hook(tok, String(base_url)),
         kwargs...,
     )
     return Client(inner, NoAuth(), String(base_url))
@@ -108,10 +108,13 @@ end
 # `/market/12-1-d-energy-prices` so codegen produces one Julia function
 # per logical query (see `info.description` in `spec/openapi.json` and
 # the README of `scripts/postman_to_openapi.jl`). The actual HTTP
-# endpoint is `/api?<query>` for every operation — so we strip
-# everything between `/api` and the query string before the request
-# hits the wire.
-function _entsoe_pre_request_hook(token::String)
+# endpoint is `<base_url>?<query>` for every operation — so we strip
+# everything between the base URL and the query string before the
+# request hits the wire. Anchoring on the client's own base URL (rather
+# than pattern-matching `…/api` after the host) keeps the collapse
+# working for path-prefixed overrides like a proxy or mock server.
+function _entsoe_pre_request_hook(token::String, base_url::String)
+    base = rstrip(base_url, '/')
     function hook(ctx::OpenAPI.Clients.Ctx)
         "SecurityToken" in ctx.auth && (ctx.query["securityToken"] = token)
         return ctx
@@ -119,10 +122,12 @@ function _entsoe_pre_request_hook(token::String)
     function hook(
             resource_path::AbstractString, body, headers::Dict{String, String},
         )
-        rewritten = replace(
-            String(resource_path),
-            r"^(https?://[^/]+/api)/[^?]+" => s"\1",
-        )
+        rewritten = String(resource_path)
+        if startswith(rewritten, base * "/")
+            rest = rewritten[(ncodeunits(base) + 1):end]
+            q = findfirst('?', rest)
+            rewritten = q === nothing ? base : base * rest[q:end]
+        end
         return rewritten, body, headers
     end
     return hook

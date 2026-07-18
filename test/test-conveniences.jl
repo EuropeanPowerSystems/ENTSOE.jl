@@ -22,6 +22,80 @@ end
     @test all(startswith(v, "10Y") for v in EIC)
 end
 
+@testset "typed EIC validation — any-of tuples and control areas" begin
+    # DK's control area (10Y1001A1001A796) is registered CTA-only, so
+    # control-area parameters must not be forced through :BZN validation.
+    @test validate_eic("10Y1001A1001A796"; type = (:CTA, :BZN)) === nothing
+    @test_throws ArgumentError validate_eic("10Y1001A1001A796"; type = :BZN)
+    @test ENTSOE._validate_eics(("10Y1001A1001A796",), true, (:CTA, :BZN)) === nothing
+    # Existence is always checked, even with type = nothing.
+    @test_throws ArgumentError ENTSOE._validate_eics(("10YNOT-A-CODE---",), true, nothing)
+    # validate = false / nothing+config-off skip validation entirely.
+    @test ENTSOE._validate_eics(("10YNOT-A-CODE---",), false, :BZN) === nothing
+end
+
+@testset "set_config(validate_eic = true) is honored by wrappers" begin
+    old = get_config().validate_eic
+    try
+        set_config(validate_eic = true)
+        client = ENTSOEClient("PLAYBACK")
+        # Validation fires before any HTTP happens, so an unknown EIC must
+        # throw ArgumentError without `validate = true` at the call site.
+        @test_throws ArgumentError day_ahead_prices(
+            client, "10YNOT-A-CODE---",
+            DateTime(2024, 1, 1), DateTime(2024, 1, 2),
+        )
+    finally
+        set_config(validate_eic = old)
+    end
+end
+
+@testset "every pass-in code has a description label" begin
+    for (table, labels) in (
+            (ENTSOE.BusinessType, BUSINESS_LABELS),
+            (ENTSOE.DocumentType, DOCUMENT_LABELS),
+            (ENTSOE.ProcessType, PROCESS_LABELS),
+            (ENTSOE.PsrType, PSR_LABELS),
+        )
+        for name in propertynames(table)
+            code = getproperty(table, name)
+            @test haskey(pairs(labels), Symbol(code))
+        end
+    end
+end
+
+@testset "NEIGHBOURS lists real borders, symmetrically" begin
+    N = ENTSOE.NEIGHBOURS
+
+    # Borders that were missing or wrong: DE–AT is one of Europe's largest
+    # interconnections; Germany has no border with northern Italy or
+    # Slovenia; Konti-Skan lands in SE3, not SE1; SwePol links PL to SE4.
+    @test EIC.AT in N[EIC.DE_LU]
+    @test !(EIC.IT_NORTH in N[EIC.DE_LU])
+    @test !(EIC.SI in N[EIC.DE_LU])
+    @test !(EIC.DE_LU in N[EIC.IT_NORTH])
+    @test !(EIC.DE_LU in N[EIC.SI])
+    @test EIC.SE3 in N[EIC.DK1]
+    @test !(EIC.SE1 in N[EIC.DK1])
+    @test EIC.SE4 in N[EIC.PL]
+
+    for (zone, neighbours) in N
+        @test is_known_eic(zone)
+        @test allunique(neighbours)
+        for nb in neighbours
+            @test is_known_eic(nb)
+            @test nb != zone
+        end
+    end
+
+    # Whenever both endpoints of a border are keys, each must list the other.
+    for (zone, neighbours) in N, nb in neighbours
+        if haskey(N, nb)
+            @test zone in N[nb]
+        end
+    end
+end
+
 @testset "EIC_REGISTRY (full)" begin
     # Curated entries should all be present in the full registry.
     for code in EIC
@@ -279,11 +353,39 @@ end
     client.inner.pre_request_hook(ctx2)
     @test !haskey(ctx2.query, "securityToken")
 
-    # Stage-2 hook (resource/body/headers) is a pass-through.
+    # Stage-2 hook: non-matching resources pass through untouched.
     res, body, hdr = client.inner.pre_request_hook(
         "/whatever", nothing, Dict{String, String}("X" => "Y"),
     )
     @test res == "/whatever"
     @test body === nothing
     @test hdr == Dict("X" => "Y")
+end
+
+@testset "stage-2 hook collapses synthetic paths onto the real endpoint" begin
+    hdr = Dict{String, String}()
+
+    # The default base URL: /market/12-1-d-energy-prices must fold away.
+    client = ENTSOEClient("PLAYBACK")
+    res, _, _ = client.inner.pre_request_hook(
+        "https://web-api.tp.entsoe.eu/api/market/12-1-d-energy-prices?documentType=A44&securityToken=PLAYBACK",
+        nothing, hdr,
+    )
+    @test res == "https://web-api.tp.entsoe.eu/api?documentType=A44&securityToken=PLAYBACK"
+
+    # A path-prefixed base URL (proxy / recorded mock server) must collapse
+    # the same way — the docstring explicitly invites such overrides.
+    proxied = ENTSOEClient("PLAYBACK"; base_url = "http://localhost:8080/proxy/api")
+    res2, _, _ = proxied.inner.pre_request_hook(
+        "http://localhost:8080/proxy/api/load/6-1-a-actual-total-load?documentType=A65",
+        nothing, hdr,
+    )
+    @test res2 == "http://localhost:8080/proxy/api?documentType=A65"
+
+    # Synthetic path with no query string still folds to the bare endpoint.
+    res3, _, _ = client.inner.pre_request_hook(
+        "https://web-api.tp.entsoe.eu/api/market/12-1-d-energy-prices",
+        nothing, hdr,
+    )
+    @test res3 == "https://web-api.tp.entsoe.eu/api"
 end

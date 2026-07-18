@@ -16,7 +16,8 @@ export LocalTime
 export DOCUMENT_LABELS, PROCESS_LABELS, BUSINESS_LABELS, PSR_LABELS, code_for
 export DocumentType, ProcessType, BusinessType, PsrType, PsrGroup,
     AuctionType, AuctionCategory, ContractType, DocStatus, StandardProduct
-export parse_timeseries, parse_timeseries_per_psr, parse_installed_capacity,
+export parse_timeseries, parse_timeseries_per_psr, parse_timeseries_quantity_price,
+    parse_installed_capacity,
     parse_installed_capacity_per_unit, parse_timeseries_per_unit,
     parse_unavailability, parse_unavailability_curve, parse_master_data
 export parse_acknowledgement, check_acknowledgement, ENTSOEAcknowledgement

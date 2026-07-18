@@ -15,10 +15,6 @@ Client
 ```@docs
 Auth
 NoAuth
-BearerToken
-APIKey
-BasicAuth
-resolve_credentials
 ENTSOE.apply!
 ENTSOE.build_pre_request_hook
 ```
@@ -59,9 +55,6 @@ with_defaults
 ## Pagination
 
 ```@docs
-paginate_cursor
-paginate_offset
-paginate_pagenum
 ```
 
 ## Pretty printing
@@ -147,6 +140,7 @@ ENTSOE.code_for
 ```@docs
 parse_timeseries
 parse_timeseries_per_psr
+parse_timeseries_quantity_price
 parse_installed_capacity
 parse_installed_capacity_per_unit
 parse_timeseries_per_unit

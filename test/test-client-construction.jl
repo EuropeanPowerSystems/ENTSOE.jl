@@ -11,7 +11,6 @@ using Test
 end
 
 @testset "Client with auth" begin
-    c = ENTSOE.Client("https://example.test"; auth = ENTSOE.BearerToken("abc"))
-    @test c.auth isa ENTSOE.BearerToken
-    @test c.auth.token == "abc"
+    c = ENTSOE.Client("https://example.test"; auth = ENTSOE.NoAuth())
+    @test c.auth isa ENTSOE.NoAuth
 end
