@@ -143,7 +143,20 @@ function _query_xml(
         check_ack::Bool = true,
     )::String
     _validate_eics(eics, validate, eic_type)
-    xml, resp = api_call()
+    xml, resp = try
+        api_call()
+    catch err
+        err isa APIError && rethrow()
+        # The generated layer usually returns `(nothing, resp)` on failure,
+        # but transport-level errors (connection refused, closed stream)
+        # surface as a thrown ApiException with status 0. Map both shapes
+        # onto the typed APIError hierarchy.
+        if err isa OpenAPI.Clients.ApiException
+            100 <= err.status <= 599 && check_response(err.status, err.reason)
+            throw(NetworkError(err))
+        end
+        rethrow()
+    end
     # The OpenAPI client unconditionally sets `:throw => false` on the
     # underlying HTTP options, so non-2xx responses come back as
     # `(nothing, ApiResponse)` rather than throwing. Surface them as
@@ -3329,14 +3342,14 @@ end
 
 """
     omi_other_market_information(client, control_area, start, stop;
-                                  document_type="A95", page_size=200,
-                                  max_pages=25, validate=false)
+                                  document_type="A95",
+                                  max_pages=25, validate=nothing)
 
 Walk the OMI ("Other Market Information") endpoint with automatic
-offset-based pagination. Each call to the underlying generated
-function returns up to `page_size` documents (ENTSO-E hard-caps OMI
-queries at 5000 entries total — `max_pages * page_size` defaults to
-exactly that).
+offset-based pagination. The server's page size is fixed at 200
+documents — only the `offset` parameter exists on the wire, so the
+stride is not configurable (ENTSO-E hard-caps OMI queries at 5000
+entries total, i.e. `max_pages = 25` pages).
 
 Returns a `Vector{String}` of XML payloads, one per page. Stops when a
 page comes back as an [`ENTSOEAcknowledgement`](@ref) (no more data)
@@ -3352,11 +3365,14 @@ xmls = omi_other_market_information(
 # raw XML).
 ```
 """
+# The OMI endpoint serves fixed 200-document pages; only `offset` exists on
+# the wire, so any other local stride would duplicate or skip documents.
+const _OMI_PAGE_SIZE = 200
+
 function omi_other_market_information(
         client::Client, control_area::AbstractString,
         period_start, period_end;
         document_type::AbstractString = DocumentType.CONFIGURATION,
-        page_size::Int = 200,
         max_pages::Int = 25,
         validate::Union{Nothing, Bool} = nothing,
     )
@@ -3368,10 +3384,15 @@ function omi_other_market_information(
     pe = _to_period(period_end)::Int64
     pages = String[]
     for i in 0:(max_pages - 1)
-        offset = i * page_size
-        xml, _ = ENTSOEAPI.omi_other_market_information(
-            apis.omi, dt, ca, ps, pe;
-            offset = offset,
+        offset = i * _OMI_PAGE_SIZE
+        # Route through _query_xml so non-2xx and transport failures raise
+        # the same typed APIErrors as every other wrapper.
+        xml = _query_xml(
+            () -> ENTSOEAPI.omi_other_market_information(
+                apis.omi, dt, ca, ps, pe;
+                offset = offset,
+            );
+            check_ack = false,
         )
         # End-of-pagination signal is an Acknowledgement reason 999.
         ack = parse_acknowledgement(xml)

@@ -451,7 +451,7 @@ pages = try_call("omi_other_market_information(NL, B47)") do
         CLIENT, EIC.NL,
         DateTime("2024-09-23T22:00"), DateTime("2024-09-24T22:00");
         document_type = DocumentType.OTHER_MARKET_INFORMATION,
-        page_size = 200, max_pages = 1,
+        max_pages = 1,
     )
 end
 pages === nothing || note(

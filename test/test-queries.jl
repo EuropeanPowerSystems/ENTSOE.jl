@@ -246,7 +246,7 @@ let BR = _load_brokenrecord()
                         client, EIC.NL,
                         DateTime("2024-09-23T22:00"),
                         DateTime("2024-09-24T22:00");
-                        document_type = "B47", page_size = 200, max_pages = 1,
+                        document_type = "B47", max_pages = 1,
                     ),
                     "omi_other_market_information_NL.yml",
                 )
@@ -1297,4 +1297,22 @@ end
     ENTSOE._flows_all(ENTSOE.Parsed(), spy, ["N1"], "AREA", true)
     ENTSOE._flows_all(ENTSOE.Parsed(), spy, ["N1"], "AREA", false)
     @test seen == [("N1", "AREA"), ("AREA", "N1")]
+end
+
+@testset "omi_other_market_information surfaces typed HTTP errors" begin
+    # Non-2xx / transport failures must raise the same typed APIErrors as
+    # every other wrapper (via _query_xml), not a MethodError from
+    # parse_acknowledgement(nothing).
+    unreachable = ENTSOEClient("PLAYBACK"; base_url = "http://127.0.0.1:9/api")
+    err = try
+        omi_other_market_information(
+            unreachable, EIC.NL,
+            DateTime(2024, 9, 1), DateTime(2024, 9, 2),
+        )
+        nothing
+    catch e
+        e
+    end
+    @test err isa ENTSOE.APIError
+    @test !(err isa MethodError)
 end
