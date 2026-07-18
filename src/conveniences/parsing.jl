@@ -10,7 +10,7 @@
 # field access we don't expose can still drop down to EzXML directly via
 # `parsexml(xml)` — the strings we return are unmodified.
 
-using EzXML: EzXML, parsexml, root, elements, nodename, nodecontent
+using EzXML: EzXML, parsexml, root, elements, eachelement, nodename, nodecontent
 using Dates: Dates, DateTime, Minute, Day, Week, Month, Year
 using StructArrays: StructArray, StructArrays
 using ZipFile: ZipFile
@@ -21,10 +21,22 @@ using ZipFile: ZipFile
 # clunky; `nodename` strips the prefix so a plain comparison works.
 
 _named(el::EzXML.Node, name::AbstractString) =
-    [c for c in elements(el) if nodename(c) == name]
+    [c for c in eachelement(el) if nodename(c) == name]
 
+# `append!(v, fill(x, m))` without the fill() temporary.
+function _append_fill!(v::Vector, x, m::Integer)
+    sizehint!(v, length(v) + m)
+    for _ in 1:m
+        push!(v, x)
+    end
+    return v
+end
+
+# `eachelement` iterates lazily — `elements` would materialize a fresh
+# Vector of node wrappers per call, and these helpers run several times
+# per <Point> in the hot parse loops.
 function _first_named(el::EzXML.Node, name::AbstractString)
-    for c in elements(el)
+    for c in eachelement(el)
         nodename(c) == name && return c
     end
     return nothing
@@ -93,7 +105,7 @@ end
 # name is exactly `quantity` or ends in `.amount`. Returns `nothing` if no
 # such child exists.
 function _point_value_node(pt::EzXML.Node)
-    for c in elements(pt)
+    for c in eachelement(pt)
         n = nodename(c)
         (n == "quantity" || endswith(n, ".amount")) && return c
     end
@@ -139,30 +151,31 @@ end
 # end (`npoints`). When `expand` (the caller's `fill_gaps && curveType==A03`),
 # every step in those runs gets a row; otherwise only the literal points are
 # emitted — leaving sequential (`A01`) documents untouched.
-function _expand_period(
+function _expand_period!(
+        times::Vector{DateTime}, values::Vector{Float64},
         positions::Vector{Int}, vals::Vector{Float64},
         start::DateTime, step::Dates.Period, npoints::Union{Int, Nothing}, expand::Bool;
         breaks::Vector{Int} = Int[],
     )
-    times = DateTime[]
-    values = Float64[]
     n = length(positions)
-    n == 0 && return (times, values)
+    n == 0 && return 0
     if !expand
         for i in 1:n
             push!(times, start + (positions[i] - 1) * step)
             push!(values, vals[i])
         end
-        return (times, values)
+        return n
     end
+    added = 0
     for i in 1:n
         p = positions[i]
         for pos in p:_run_stop_pos(positions, i, npoints, breaks)
             push!(times, start + (pos - 1) * step)
             push!(values, vals[i])
+            added += 1
         end
     end
-    return (times, values)
+    return added
 end
 
 # Last grid position an A03 run starting at `positions[i]` extends to: the
@@ -226,12 +239,10 @@ function _walk_period!(
         push!(vals, parse(Float64, nodecontent(vnode)))
     end
     npoints = _period_npoints(ti, start, step)
-    ptimes, pvalues = _expand_period(
+    return _expand_period!(
+        times, values,
         positions, vals, start, step, npoints, expand; breaks = breaks,
     )
-    append!(times, ptimes)
-    append!(values, pvalues)
-    return length(ptimes)
 end
 
 # ---------------------------------------------------------------------------
@@ -410,7 +421,7 @@ function parse_timeseries_per_psr(xml::AbstractString; fill_gaps::Bool = get_con
         expand = fill_gaps && _curve_type(ts) == "A03"
         for period in _named(ts, "Period")
             m = _walk_period!(times, values, period, expand)
-            append!(psr_types, fill(psr, m))
+            _append_fill!(psr_types, psr, m)
         end
     end
     return StructArray((time = times, psr_type = psr_types, value = values))
@@ -563,9 +574,9 @@ function parse_timeseries_per_unit(xml::AbstractString; fill_gaps::Bool = get_co
         expand = fill_gaps && _curve_type(ts) == "A03"
         for period in _named(ts, "Period")
             m = _walk_period!(times, values, period, expand)
-            append!(unit_mrids, fill(unit_mrid, m))
-            append!(unit_names, fill(unit_name, m))
-            append!(psr_types, fill(psr, m))
+            _append_fill!(unit_mrids, unit_mrid, m)
+            _append_fill!(unit_names, unit_name, m)
+            _append_fill!(psr_types, psr, m)
         end
     end
     return StructArray(
@@ -791,8 +802,8 @@ function parse_unavailability_curve(xml::AbstractString; fill_gaps::Bool = get_c
 
         for ap in _named(ts, "Available_Period")
             m = _walk_period!(times, available_mws, ap, expand)
-            append!(mrids, fill(mrid, m))
-            append!(names, fill(name, m))
+            _append_fill!(mrids, mrid, m)
+            _append_fill!(names, name, m)
         end
     end
     return StructArray(
