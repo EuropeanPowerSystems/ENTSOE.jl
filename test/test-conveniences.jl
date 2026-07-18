@@ -22,6 +22,38 @@ end
     @test all(startswith(v, "10Y") for v in EIC)
 end
 
+@testset "NEIGHBOURS lists real borders, symmetrically" begin
+    N = ENTSOE.NEIGHBOURS
+
+    # Borders that were missing or wrong: DE–AT is one of Europe's largest
+    # interconnections; Germany has no border with northern Italy or
+    # Slovenia; Konti-Skan lands in SE3, not SE1; SwePol links PL to SE4.
+    @test EIC.AT in N[EIC.DE_LU]
+    @test !(EIC.IT_NORTH in N[EIC.DE_LU])
+    @test !(EIC.SI in N[EIC.DE_LU])
+    @test !(EIC.DE_LU in N[EIC.IT_NORTH])
+    @test !(EIC.DE_LU in N[EIC.SI])
+    @test EIC.SE3 in N[EIC.DK1]
+    @test !(EIC.SE1 in N[EIC.DK1])
+    @test EIC.SE4 in N[EIC.PL]
+
+    for (zone, neighbours) in N
+        @test is_known_eic(zone)
+        @test allunique(neighbours)
+        for nb in neighbours
+            @test is_known_eic(nb)
+            @test nb != zone
+        end
+    end
+
+    # Whenever both endpoints of a border are keys, each must list the other.
+    for (zone, neighbours) in N, nb in neighbours
+        if haskey(N, nb)
+            @test zone in N[nb]
+        end
+    end
+end
+
 @testset "EIC_REGISTRY (full)" begin
     # Curated entries should all be present in the full registry.
     for code in EIC
