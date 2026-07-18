@@ -22,6 +22,20 @@ end
     @test all(startswith(v, "10Y") for v in EIC)
 end
 
+@testset "every pass-in code has a description label" begin
+    for (table, labels) in (
+            (ENTSOE.BusinessType, BUSINESS_LABELS),
+            (ENTSOE.DocumentType, DOCUMENT_LABELS),
+            (ENTSOE.ProcessType, PROCESS_LABELS),
+            (ENTSOE.PsrType, PSR_LABELS),
+        )
+        for name in propertynames(table)
+            code = getproperty(table, name)
+            @test haskey(pairs(labels), Symbol(code))
+        end
+    end
+end
+
 @testset "NEIGHBOURS lists real borders, symmetrically" begin
     N = ENTSOE.NEIGHBOURS
 

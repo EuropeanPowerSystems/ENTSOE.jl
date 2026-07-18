@@ -779,7 +779,9 @@ end
       -> StructVector | String
 
 Explicit-allocation auction revenue (Market 12.1.A, `documentType=A25`,
-default `businessType=B07` — congestion revenue).
+default `businessType=B07` — which this endpoint defines as "Auction
+Revenue"; keep the default. `BusinessType.AUCTION_REVENUE` (`B03`) is a
+different endpoint family's code and returns no data here).
 """
 function explicit_allocations_auction_revenue(
         client::Client,
@@ -2965,7 +2967,7 @@ end
 Exchanged balancing-reserve capacity between control areas
 (Balancing 19.0.3 SO GL, `documentType=A26`, `businessType=C21`).
 `process_type` default `"A46"` (Replacement reserve); pass `"A51"`
-(aFRR), `"A52"` (mFRR), etc. for other reserve products.
+(aFRR), `"A47"` (mFRR), or `"A52"` (FCR) for other reserve products.
 
 `StructVector{(time, value)}` in MW.
 """
