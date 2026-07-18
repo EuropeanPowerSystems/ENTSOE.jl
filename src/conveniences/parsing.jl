@@ -554,6 +554,41 @@ function _resource_field(ts::EzXML.Node, tail::AbstractString, nested_path::Vect
     return _first_text(ts, "production_RegisteredResource." * tail)
 end
 
+# Resolve the affected resource's (name, mrid, psr_type) for one outage
+# TimeSeries. Production/generation outages (15.1.x) use
+# `production_RegisteredResource` (nested or flat dot-notation);
+# transmission and offshore-grid outages (10.1.x, and 13.1.x redispatch
+# documents) use a nested `<Asset_RegisteredResource>` whose children vary
+# per endpoint: `name` or `location.name`, `pSRType.psrType` or
+# `asset_PSRType.psrType`. Probe production first, then the asset forms.
+function _outage_resource(ts::EzXML.Node)
+    name = _resource_field(ts, "name", ["production_RegisteredResource", "name"])
+    mrid = _resource_field(ts, "mRID", ["production_RegisteredResource", "mRID"])
+    psr = _resource_field(
+        ts, "pSRType.psrType",
+        ["production_RegisteredResource", "pSRType", "psrType"],
+    )
+    asset = _first_named(ts, "Asset_RegisteredResource")
+    if asset !== nothing
+        if isempty(mrid)
+            mrid = _first_text(asset, "mRID")
+        end
+        if isempty(name)
+            name = _first_text(asset, "name")
+            isempty(name) && (name = _first_text(asset, "location.name"))
+        end
+        if isempty(psr)
+            psr = _first_text(asset, "pSRType.psrType")
+            isempty(psr) && (psr = _first_text(asset, "asset_PSRType.psrType"))
+        end
+    end
+    # Flat dotted asset form, as some documents emit for transmission.
+    isempty(mrid) && (mrid = _first_text(ts, "Asset_RegisteredResource.mRID"))
+    isempty(name) && (name = _first_text(ts, "Asset_RegisteredResource.name"))
+    isempty(psr) && (psr = _first_text(ts, "Asset_RegisteredResource.pSRType.psrType"))
+    return (name = name, mrid = mrid, psr = psr)
+end
+
 """
     parse_unavailability(xml) -> StructVector{@NamedTuple{
         start::DateTime, stop::DateTime,
@@ -597,13 +632,8 @@ function parse_unavailability(xml::AbstractString)
 
         bt = _first_text(ts, "businessType")
 
-        # Production-unit metadata — both nested and flat forms.
-        name = _resource_field(ts, "name", ["production_RegisteredResource", "name"])
-        mrid = _resource_field(ts, "mRID", ["production_RegisteredResource", "mRID"])
-        psr = _resource_field(
-            ts, "pSRType.psrType",
-            ["production_RegisteredResource", "pSRType", "psrType"],
-        )
+        # Resource metadata — production, generation, or transmission asset.
+        name, mrid, psr = _outage_resource(ts)
 
         # Nominal rated capacity. Real outages XML uses a much longer
         # path:  `production_RegisteredResource.pSRType.powerSystemResources.nominalP`.
@@ -670,8 +700,7 @@ function parse_unavailability_curve(xml::AbstractString; fill_gaps::Bool = get_c
 
     doc = parsexml(xml)
     for ts in _named(root(doc), "TimeSeries")
-        mrid = _resource_field(ts, "mRID", ["production_RegisteredResource", "mRID"])
-        name = _resource_field(ts, "name", ["production_RegisteredResource", "name"])
+        name, mrid, _ = _outage_resource(ts)
         expand = fill_gaps && _curve_type(ts) == "A03"
 
         for ap in _named(ts, "Available_Period")

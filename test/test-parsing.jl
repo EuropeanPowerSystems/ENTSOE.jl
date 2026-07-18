@@ -636,3 +636,44 @@ end
     @test P("2024-01-01T00:00:00+01:00") == DateTime(2023, 12, 31, 23, 0)
     @test P("2024-01-01T00:00-01:30") == DateTime(2024, 1, 1, 1, 30)
 end
+
+@testset "parse_unavailability — transmission outages (Asset_RegisteredResource)" begin
+    # 10.1.x / offshore documents identify the asset via
+    # Asset_RegisteredResource, not production_RegisteredResource. Shapes
+    # mirror the committed redispatch/offshore cassettes: mRID + name (or
+    # location.name) + pSRType.psrType (or asset_PSRType.psrType).
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Unavailability_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <businessType>A54</businessType>
+        <start_DateAndOrTime.date>2023-10-31</start_DateAndOrTime.date>
+        <start_DateAndOrTime.time>23:00:00Z</start_DateAndOrTime.time>
+        <end_DateAndOrTime.date>2023-11-01</end_DateAndOrTime.date>
+        <end_DateAndOrTime.time>23:00:00Z</end_DateAndOrTime.time>
+        <Asset_RegisteredResource>
+          <mRID codingScheme="A01">49T000000000436O</mRID>
+          <pSRType.psrType>B21</pSRType.psrType>
+          <location.name>Hardenberg - Ommen 110 kV</location.name>
+        </Asset_RegisteredResource>
+      </TimeSeries>
+      <TimeSeries>
+        <businessType>A53</businessType>
+        <start_DateAndOrTime.date>2024-05-01</start_DateAndOrTime.date>
+        <end_DateAndOrTime.date>2024-05-03</end_DateAndOrTime.date>
+        <Asset_RegisteredResource>
+          <mRID>11T0-0000-0044-X</mRID>
+          <name>DolWin1</name>
+          <asset_PSRType.psrType>B22</asset_PSRType.psrType>
+        </Asset_RegisteredResource>
+      </TimeSeries>
+    </Unavailability_MarketDocument>
+    """
+    rows = ENTSOE.parse_unavailability(xml)
+    @test length(rows) == 2
+    @test rows.resource_mrid[1] == "49T000000000436O"
+    @test rows.resource_name[1] == "Hardenberg - Ommen 110 kV"
+    @test rows.psr_type[1] == "B21"
+    @test rows.resource_mrid[2] == "11T0-0000-0044-X"
+    @test rows.resource_name[2] == "DolWin1"
+    @test rows.psr_type[2] == "B22"
+end
