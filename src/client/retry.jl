@@ -17,19 +17,23 @@ struct RetryPolicy
     retryable_statuses::Set{Int}
     retry_on_network_error::Bool
 end
-RetryPolicy(;
-    max_attempts::Integer = 5,
-    base_delay::Real = 0.5,
-    max_delay::Real = 30.0,
-    retryable_statuses::AbstractSet{<:Integer} = DEFAULT_RETRYABLE_STATUSES,
-    retry_on_network_error::Bool = true,
-) = RetryPolicy(
-    Int(max_attempts),
-    Float64(base_delay),
-    Float64(max_delay),
-    Set{Int}(Int.(retryable_statuses)),
-    retry_on_network_error,
-)
+function RetryPolicy(;
+        max_attempts::Integer = 5,
+        base_delay::Real = 0.5,
+        max_delay::Real = 30.0,
+        retryable_statuses::AbstractSet{<:Integer} = DEFAULT_RETRYABLE_STATUSES,
+        retry_on_network_error::Bool = true,
+    )
+    max_attempts >= 1 ||
+        throw(ArgumentError("max_attempts must be >= 1, got $max_attempts"))
+    return RetryPolicy(
+        Int(max_attempts),
+        Float64(base_delay),
+        Float64(max_delay),
+        Set{Int}(Int.(retryable_statuses)),
+        retry_on_network_error,
+    )
+end
 
 """
     backoff_delay(policy, attempt; jitter=rand)

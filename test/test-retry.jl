@@ -108,3 +108,8 @@ end
     end
     @test attempts[] == 1
 end
+
+@testset "RetryPolicy rejects max_attempts < 1" begin
+    @test_throws ArgumentError ENTSOE.RetryPolicy(max_attempts = 0)
+    @test_throws ArgumentError ENTSOE.RetryPolicy(max_attempts = -3)
+end
