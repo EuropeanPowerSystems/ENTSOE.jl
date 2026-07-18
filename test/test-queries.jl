@@ -1258,3 +1258,43 @@ end
     raw = ENTSOE._raw_one(String(take!(io2)))
     @test occursin("<!-- next zip member -->", raw)
 end
+
+@testset "cross_border_physical_flows_all internals (_flows_all)" begin
+    mkrows(vals...) = ENTSOE.StructArrays.StructArray((
+        time = [DateTime(2024, 1, 1, i) for i in 0:(length(vals) - 1)],
+        value = collect(Float64, vals),
+    ))
+    nodata = ENTSOE.ENTSOEAcknowledgement("999", "No matching data found")
+
+    # Parsed: rows tagged with their border, no-data borders skipped.
+    fetch1 = (in_a, out_a, fmt) -> in_a == "B1" ? mkrows(1.0, 2.0) : throw(nodata)
+    rows = ENTSOE._flows_all(ENTSOE.Parsed(), fetch1, ["B1", "B2"], "AREA", true)
+    @test rows.border == ["B1", "B1"]
+    @test rows.value == [1.0, 2.0]
+
+    # LocalTime: same rows, ZonedDateTime time column — this used to
+    # MethodError on the first successful border.
+    lrows = ENTSOE._flows_all(LocalTime("Europe/Amsterdam"), fetch1, ["B1", "B2"], "AREA", true)
+    @test eltype(lrows.time) <: ZonedDateTime
+    @test lrows.border == ["B1", "B1"]
+    @test lrows.value == [1.0, 2.0]
+
+    # Every border acknowledged → rethrow, matching _collect_windows,
+    # instead of returning an empty table indistinguishable from data.
+    fetchack = (a, b, fmt) -> throw(nodata)
+    @test_throws ENTSOE.ENTSOEAcknowledgement ENTSOE._flows_all(
+        ENTSOE.Parsed(), fetchack, ["B1", "B2"], "AREA", true,
+    )
+
+    # Raw: members joined with the border sentinel.
+    fetchraw = (a, b, fmt) -> "<Doc/>"
+    raw = ENTSOE._flows_all(ENTSOE.Raw(), fetchraw, ["B1", "B2"], "AREA", true)
+    @test raw == "<Doc/>\n<!-- next border -->\n<Doc/>"
+
+    # export_ direction mapping: export_=true queries (neighbour ← area).
+    seen = Tuple{String, String}[]
+    spy = (in_a, out_a, fmt) -> (push!(seen, (in_a, out_a)); mkrows(0.0))
+    ENTSOE._flows_all(ENTSOE.Parsed(), spy, ["N1"], "AREA", true)
+    ENTSOE._flows_all(ENTSOE.Parsed(), spy, ["N1"], "AREA", false)
+    @test seen == [("N1", "AREA"), ("AREA", "N1")]
+end

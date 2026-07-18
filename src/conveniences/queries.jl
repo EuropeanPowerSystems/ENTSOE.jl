@@ -1397,9 +1397,12 @@ a `border` column (the neighbouring EIC).
 sums flows arriving in `area`. Pass `neighbours` explicitly to
 restrict / extend the default list from [`NEIGHBOURS`](@ref).
 
-`ENTSOEAcknowledgement`s on individual borders are caught per-border
-and dropped — partial coverage is normal when ENTSO-E hasn't published
-flows on every link.
+No-data `ENTSOEAcknowledgement`s on individual borders are caught and
+skipped — partial coverage is normal when ENTSO-E hasn't published
+flows on every link. If *every* border acknowledges, the last
+acknowledgement is rethrown (matching the windowed-splitting contract),
+and a border acknowledging with anything other than plain no-data emits
+a warning.
 """
 function cross_border_physical_flows_all(
         client::Client, area::AbstractString,
@@ -1419,44 +1422,86 @@ function cross_border_physical_flows_all(
             ),
         )
     end
+    fetch = (in_area, out_area, fmt) -> cross_border_physical_flows(
+        client, in_area, out_area, period_start, period_end, fmt;
+        validate = validate, window = window,
+    )
+    return _flows_all(format, fetch, neighbours, String(area), export_)
+end
+
+# Per-format engine for `cross_border_physical_flows_all`. One method per
+# ResponseFormat (the CLAUDE.md type-stability rule: dispatch, don't branch
+# on a flag). `fetch(in_area, out_area, format)` performs one border's query
+# — injected so the accumulate/skip-ack/join mechanics are unit-testable
+# without HTTP.
+function _flows_all(
+        ::Parsed, fetch::Function, neighbours, area::String, export_::Bool,
+    )
     parts = StructArrays.StructArray{
         @NamedTuple{time::DateTime, border::String, value::Float64}
     }[]
-    raw_parts = String[]
+    last_ack = nothing
     for n in neighbours
-        in_area, out_area = export_ ? (n, area) : (area, n)
+        border = String(n)
+        in_area, out_area = export_ ? (border, area) : (area, border)
         try
-            rows = cross_border_physical_flows(
-                client, in_area, out_area, period_start, period_end, format;
-                validate = validate, window = window,
-            )
-            if format isa Raw
-                push!(raw_parts, rows)
-            else
-                push!(
-                    parts,
-                    StructArrays.StructArray(
-                        (
-                            time = rows.time,
-                            border = fill(String(n), length(rows)),
-                            value = rows.value,
-                        ),
+            rows = fetch(in_area, out_area, Parsed())
+            push!(
+                parts,
+                StructArrays.StructArray(
+                    (
+                        time = rows.time,
+                        border = fill(border, length(rows)),
+                        value = rows.value,
                     ),
-                )
-            end
+                ),
+            )
         catch err
             err isa ENTSOEAcknowledgement || rethrow()
-            # No flow published on this border for the window — skip.
+            _is_no_data_ack(err) ||
+                @warn "ENTSOE: border $(area) ↔ $(border) returned an " *
+                "acknowledgement that is not plain no-data — the aggregate " *
+                "may be incomplete." reason_code = err.reason_code ack_text = err.text
+            last_ack = err
         end
     end
-    if format isa Raw
-        return join(raw_parts, "\n<!-- next border -->\n")
-    end
-    return isempty(parts) ?
-        StructArrays.StructArray(
+    if isempty(parts)
+        last_ack === nothing || throw(last_ack)
+        return StructArrays.StructArray(
             (time = DateTime[], border = String[], value = Float64[]),
-        ) :
-        reduce(vcat, parts)
+        )
+    end
+    return reduce(vcat, parts)::StructArrays.StructArray
+end
+
+function _flows_all(
+        fmt::LocalTime, fetch::Function, neighbours, area::String, export_::Bool,
+    )
+    rows = _flows_all(Parsed(), fetch, neighbours, area, export_)
+    return _to_local_time(rows, fmt.tz)
+end
+
+function _flows_all(
+        ::Raw, fetch::Function, neighbours, area::String, export_::Bool,
+    )
+    raw_parts = String[]
+    last_ack = nothing
+    for n in neighbours
+        border = String(n)
+        in_area, out_area = export_ ? (border, area) : (area, border)
+        try
+            push!(raw_parts, fetch(in_area, out_area, Raw()))
+        catch err
+            err isa ENTSOEAcknowledgement || rethrow()
+            _is_no_data_ack(err) ||
+                @warn "ENTSOE: border $(area) ↔ $(border) returned an " *
+                "acknowledgement that is not plain no-data — the aggregate " *
+                "may be incomplete." reason_code = err.reason_code ack_text = err.text
+            last_ack = err
+        end
+    end
+    isempty(raw_parts) && last_ack !== nothing && throw(last_ack)
+    return join(raw_parts, "\n<!-- next border -->\n")
 end
 
 """
