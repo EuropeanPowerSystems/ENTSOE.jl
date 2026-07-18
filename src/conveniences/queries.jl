@@ -326,12 +326,16 @@ function _collect_windows(
     # so `promote_op` can infer the per-chunk result type — a closure capturing
     # `parser` defeats inference and widens the accumulator to `Any`,
     # regressing every wrapper's return type.
+    # Fetch phase: possibly concurrent (network-bound, opt-in via
+    # `set_config(window_concurrency = n)`); parse/ack phase below stays
+    # strictly sequential so ordering, typing, and error behavior are
+    # identical to the sequential path.
+    xmls = _fetch_windows(api_call, chunks)
+
     parts = Base.promote_op(per_chunk, String, F)[]
     last_ack = nothing
-    for (s, e) in chunks
-        xml = _query_xml(
-            () -> api_call(_to_period(s), _to_period(e)); check_ack = false,
-        )
+    for (i, (s, e)) in enumerate(chunks)
+        xml = xmls[i]
         try
             push!(parts, per_chunk(xml, parser))
         catch err
@@ -361,6 +365,48 @@ end
 # should hear about when it hits only some windows of a split query.
 _is_no_data_ack(ack::ENTSOEAcknowledgement) =
     occursin("no matching data", lowercase(ack.text))
+
+# Fetch every window's XML body, in chunk order. Sequential by default;
+# `set_config(window_concurrency = n)` overlaps up to `n` requests —
+# windows are independent, so a multi-year Day(1)-window query stops
+# paying one full round-trip of latency per chunk. Bounded by a semaphore
+# and kept opt-in because BrokenRecord cassette playback is order-
+# sensitive and ENTSO-E bans clients above ~400 requests/minute.
+function _fetch_windows(api_call::Function, chunks)
+    fetch_one(c) = _query_xml(
+        () -> api_call(_to_period(c[1]), _to_period(c[2])); check_ack = false,
+    )
+    conc = min(get_config().window_concurrency, length(chunks))
+    conc <= 1 && return String[fetch_one(c) for c in chunks]
+    xmls = Vector{String}(undef, length(chunks))
+    sem = Base.Semaphore(conc)
+    try
+        @sync for (i, c) in enumerate(chunks)
+            @async begin
+                Base.acquire(sem)
+                try
+                    xmls[i] = fetch_one(c)
+                finally
+                    Base.release(sem)
+                end
+            end
+        end
+    catch err
+        # @sync wraps task failures; rethrow the first real exception so
+        # callers see the same typed APIError the sequential path raises.
+        rethrow(_unwrap_task_exception(err))
+    end
+    return xmls
+end
+
+function _unwrap_task_exception(err)
+    err isa CompositeException && !isempty(err.exceptions) &&
+        return _unwrap_task_exception(first(err.exceptions))
+    err isa TaskFailedException && return _unwrap_task_exception(
+        err.task.exception === nothing ? err : err.task.exception,
+    )
+    return err
+end
 
 """
     _split_query(api_call, format, parser;

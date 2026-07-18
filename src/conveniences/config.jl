@@ -33,15 +33,22 @@ Defaults:
     set `fill_gaps = false` (globally here, or per-call on the
     [`parse_timeseries`](@ref) family) to keep only the literal points.
     For dense (`A01`) series the expansion is a no-op.
+  - `window_concurrency` — `1` (strictly sequential). Auto-split
+    wrappers fetch their period windows one after another by default;
+    setting `window_concurrency = n` overlaps up to `n` window requests
+    per call. Mind ENTSO-E's ~400 requests/minute ban threshold before
+    raising this — pair it with a [`TokenBucket`](@ref) when a script
+    fires many split queries.
 """
 mutable struct ENTSOEConfig
     token::String
     endpoint_url::String
     validate_eic::Bool
     fill_gaps::Bool
+    window_concurrency::Int
 end
 
-const _CONFIG = Ref(ENTSOEConfig("", ENTSOE_BASE_URL, false, true))
+const _CONFIG = Ref(ENTSOEConfig("", ENTSOE_BASE_URL, false, true, 1))
 
 """
     set_config(; token=nothing, endpoint_url=nothing, validate_eic=nothing, fill_gaps=nothing) -> ENTSOEConfig
@@ -62,12 +69,19 @@ function set_config(;
         endpoint_url::Union{Nothing, AbstractString} = nothing,
         validate_eic::Union{Nothing, Bool} = nothing,
         fill_gaps::Union{Nothing, Bool} = nothing,
+        window_concurrency::Union{Nothing, Integer} = nothing,
     )
     cfg = _CONFIG[]
     token === nothing || (cfg.token = String(token))
     endpoint_url === nothing || (cfg.endpoint_url = String(endpoint_url))
     validate_eic === nothing || (cfg.validate_eic = validate_eic)
     fill_gaps === nothing || (cfg.fill_gaps = fill_gaps)
+    if window_concurrency !== nothing
+        window_concurrency >= 1 || throw(
+            ArgumentError("window_concurrency must be >= 1, got $window_concurrency"),
+        )
+        cfg.window_concurrency = Int(window_concurrency)
+    end
     return cfg
 end
 

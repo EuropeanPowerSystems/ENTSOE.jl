@@ -1359,3 +1359,44 @@ end
     end
     @test err isa ENTSOE.APIError   # reached the (unreachable) network
 end
+
+@testset "window_concurrency fetches chunks concurrently, opt-in" begin
+    inflight = Threads.Atomic{Int}(0)
+    peak = Threads.Atomic{Int}(0)
+    data_xml2 = """<?xml version="1.0"?>
+    <Doc xmlns="urn:x"><TimeSeries><Period>
+      <timeInterval><start>2023-01-01T00:00Z</start><end>2023-01-01T01:00Z</end></timeInterval>
+      <resolution>PT60M</resolution>
+      <Point><position>1</position><quantity>1.0</quantity></Point>
+    </Period></TimeSeries></Doc>"""
+    fake = (s, e) -> begin
+        n = Threads.atomic_add!(inflight, 1) + 1
+        Threads.atomic_max!(peak, n)
+        sleep(0.05)
+        Threads.atomic_sub!(inflight, 1)
+        (data_xml2, nothing)
+    end
+    run_split() = ENTSOE._split_query(
+        fake, ENTSOE.Parsed(), ENTSOE.parse_timeseries;
+        period_start = DateTime(2021, 1, 1), period_end = DateTime(2025, 1, 1),
+        window = Year(1),
+    )
+
+    # Default stays strictly sequential (cassette playback depends on it).
+    rows = run_split()
+    @test length(rows) == 4
+    @test peak[] == 1
+
+    # Opt-in concurrency overlaps the window fetches.
+    old = ENTSOE.get_config().window_concurrency
+    try
+        ENTSOE.set_config(window_concurrency = 4)
+        Threads.atomic_xchg!(peak, 0)
+        rows2 = run_split()
+        @test length(rows2) == 4
+        @test peak[] > 1
+        @test rows2.value == rows.value
+    finally
+        ENTSOE.set_config(window_concurrency = old)
+    end
+end
