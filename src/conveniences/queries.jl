@@ -282,12 +282,31 @@ function _collect_windows(
             push!(parts, per_chunk(xml, parser))
         catch err
             err isa ENTSOEAcknowledgement || rethrow()
+            # Sparse histories legitimately return "no matching data" for
+            # some windows — those are skipped silently. Anything else
+            # (most importantly the "requested data exceeds allowed limit —
+            # use offset" document-cap ack) means the window's data EXISTS
+            # but wasn't delivered; staying silent would make the
+            # concatenated result look complete when it isn't.
+            if !_is_no_data_ack(err)
+                @warn "ENTSOE: window $(s) – $(e) returned an acknowledgement " *
+                    "that is not plain no-data — the concatenated result may " *
+                    "be incomplete. If the message mentions a document limit, " *
+                    "narrow the `window` kwarg or use the endpoint's offset " *
+                    "pagination." reason_code = err.reason_code ack_text = err.text
+            end
             last_ack = err
         end
     end
     isempty(parts) && throw(last_ack)
     return parts
 end
+
+# ENTSO-E's "no data for this query" acknowledgement text. Everything else
+# (over-limit, malformed-parameter echoes, …) signals a problem the caller
+# should hear about when it hits only some windows of a split query.
+_is_no_data_ack(ack::ENTSOEAcknowledgement) =
+    occursin("no matching data", lowercase(ack.text))
 
 """
     _split_query(api_call, format, parser;

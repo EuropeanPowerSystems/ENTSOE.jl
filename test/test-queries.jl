@@ -1,6 +1,7 @@
 using ENTSOE
 using Test
-using Dates: DateTime, Date
+using Dates: DateTime, Date, Year
+using Logging: Logging
 using TimeZones: ZonedDateTime, FixedTimeZone
 
 # Unit tests for the named-argument query layer in
@@ -1192,4 +1193,40 @@ let BR = _load_brokenrecord()
             @test err.reason_code == "999"
         end
     end
+end
+
+@testset "_collect_windows warns on non-no-data acknowledgements" begin
+    data_xml = """<?xml version="1.0"?>
+    <Doc xmlns="urn:x"><TimeSeries><Period>
+      <timeInterval><start>2023-01-01T00:00Z</start><end>2023-01-01T01:00Z</end></timeInterval>
+      <resolution>PT60M</resolution>
+      <Point><position>1</position><quantity>1.0</quantity></Point>
+    </Period></TimeSeries></Doc>"""
+    ack(text) = """<?xml version="1.0"?>
+    <Acknowledgement_MarketDocument xmlns="urn:x">
+      <Reason><code>999</code><text>$text</text></Reason>
+    </Acknowledgement_MarketDocument>"""
+    overlimit = "The amount of requested data exceeds allowed limit. Requested: 389 documents. Allowed: 200. Use the offset parameter."
+
+    # A chunked call where one window hits the document limit must WARN —
+    # silently returning a partial multi-year result is indistinguishable
+    # from "no data in that window".
+    calls = Ref(0)
+    fake = (s, e) -> (calls[] += 1; (calls[] == 1 ? data_xml : ack(overlimit), nothing))
+    rows = @test_logs (:warn, r"not plain no-data") ENTSOE._split_query(
+        fake, ENTSOE.Parsed(), ENTSOE.parse_timeseries;
+        period_start = DateTime(2023, 1, 1), period_end = DateTime(2025, 1, 1),
+        window = Year(1),
+    )
+    @test length(rows) == 1
+
+    # Plain no-data windows stay silent (the normal sparse-history case).
+    calls2 = Ref(0)
+    fake2 = (s, e) -> (calls2[] += 1; (calls2[] == 1 ? data_xml : ack("No matching data found"), nothing))
+    rows2 = @test_logs min_level = Logging.Warn ENTSOE._split_query(
+        fake2, ENTSOE.Parsed(), ENTSOE.parse_timeseries;
+        period_start = DateTime(2023, 1, 1), period_end = DateTime(2025, 1, 1),
+        window = Year(1),
+    )
+    @test length(rows2) == 1
 end
