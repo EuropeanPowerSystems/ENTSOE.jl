@@ -11,7 +11,7 @@
 # `parsexml(xml)` — the strings we return are unmodified.
 
 using EzXML: EzXML, parsexml, root, elements, nodename, nodecontent
-using Dates: Dates, DateTime, Minute
+using Dates: Dates, DateTime, Minute, Day, Week, Month, Year
 using StructArrays: StructArray, StructArrays
 using ZipFile: ZipFile
 
@@ -35,22 +35,24 @@ let n = _first_named(el, name)
     n === nothing ? "" : strip(nodecontent(n))
 end
 
-# Resolve the most common ISO-8601 durations the API uses to whole minutes.
-# These cover every resolution observed across the eight Transparency
-# Platform groups; sub-minute resolutions (PT1S, PT4S etc.) are not
-# supported because they'd round-trip lossily through `Minute(...)`.
-function _resolution_minutes(s::AbstractString)
-    s == "PT1M"   && return 1     # 1.2.3.A current balancing state, 17.1.G imbalance prices
-    s == "PT5M"   && return 5
-    s == "PT10M"  && return 10
-    s == "PT15M"  && return 15
-    s == "PT30M"  && return 30
-    s == "PT60M"  && return 60
-    s == "PT1H"   && return 60
-    s == "P1D"    && return 60 * 24
-    s == "P7D"    && return 60 * 24 * 7
-    s == "P1M"    && return 60 * 24 * 30   # nominal
-    s == "P1Y"    && return 60 * 24 * 365  # nominal
+# Resolve the most common ISO-8601 durations the API uses to a `Dates.Period`
+# grid step. Minute-based resolutions map to `Minute`; `P1M`/`P1Y` map to
+# `Month`/`Year` so the grid steps by *calendar* months/years (months have
+# 28–31 days — a fixed nominal stride would drift days across a year).
+# Sub-minute resolutions (PT1S, PT4S etc.) are not supported because they'd
+# round-trip lossily through `Minute(...)`.
+function _resolution_step(s::AbstractString)
+    s == "PT1M"   && return Minute(1)     # 1.2.3.A current balancing state, 17.1.G imbalance prices
+    s == "PT5M"   && return Minute(5)
+    s == "PT10M"  && return Minute(10)
+    s == "PT15M"  && return Minute(15)
+    s == "PT30M"  && return Minute(30)
+    s == "PT60M"  && return Minute(60)
+    s == "PT1H"   && return Minute(60)
+    s == "P1D"    && return Day(1)
+    s == "P7D"    && return Week(1)
+    s == "P1M"    && return Month(1)
+    s == "P1Y"    && return Year(1)
     # Unknown resolution — most likely a new ISO-8601 duration ENTSO-E
     # has started emitting (or a sub-minute resolution we can't round-trip
     # losslessly through `Minute(...)`). Warn once per call site and
@@ -89,17 +91,28 @@ let n = _first_named(node, "curveType")
     n === nothing ? "" : strip(nodecontent(n))
 end
 
-# Total number of resolution steps a `<Period>` spans, derived from its
-# `<timeInterval>` (`end - start`) and the per-step `stride` in minutes.
+# Total number of complete resolution steps a `<Period>` spans, derived
+# from its `<timeInterval>` (`end - start`) and the per-step `step`.
 # Returns `nothing` when the interval has no parseable `<end>` — in which
 # case the final A03 block can't be extended past its listed position.
-function _period_npoints(ti::EzXML.Node, start::DateTime, stride::Int)
+function _period_npoints(ti::EzXML.Node, start::DateTime, step::Dates.Period)
     end_node = _first_named(ti, "end")
     end_node === nothing && return nothing
     stop = _parse_entsoe_datetime(nodecontent(end_node))
     stop <= start && return nothing
+    if step isa Union{Month, Year}
+        # Calendar-length steps — count complete steps by walking.
+        n = 0
+        t = start + step
+        while t <= stop
+            n += 1
+            t += step
+        end
+        return n
+    end
     total_minutes = div(Dates.value(stop - start), 60_000)   # ms → minutes
-    return div(total_minutes, stride)
+    step_minutes = div(Dates.toms(step), 60_000)
+    return div(total_minutes, step_minutes)
 end
 
 # Expand one `<Period>`'s listed `(position, value)` points into per-step
@@ -111,7 +124,7 @@ end
 # emitted — leaving sequential (`A01`) documents untouched.
 function _expand_period(
         positions::Vector{Int}, vals::Vector{Float64},
-        start::DateTime, stride::Int, npoints::Union{Int, Nothing}, expand::Bool,
+        start::DateTime, step::Dates.Period, npoints::Union{Int, Nothing}, expand::Bool,
     )
     times = DateTime[]
     values = Float64[]
@@ -119,7 +132,7 @@ function _expand_period(
     n == 0 && return (times, values)
     if !expand
         for i in 1:n
-            push!(times, start + Minute((positions[i] - 1) * stride))
+            push!(times, start + (positions[i] - 1) * step)
             push!(values, vals[i])
         end
         return (times, values)
@@ -132,7 +145,7 @@ function _expand_period(
             npoints === nothing ? p : max(p, npoints)
         end
         for pos in p:stop_pos
-            push!(times, start + Minute((pos - 1) * stride))
+            push!(times, start + (pos - 1) * step)
             push!(values, vals[i])
         end
     end
@@ -159,8 +172,8 @@ function _walk_period!(
 
     res_node = _first_named(period, "resolution")
     res_node === nothing && return 0
-    stride = _resolution_minutes(nodecontent(res_node))
-    stride === nothing && return 0   # warned + skip this Period
+    step = _resolution_step(nodecontent(res_node))
+    step === nothing && return 0   # warned + skip this Period
 
     positions = Int[]
     vals = Float64[]
@@ -172,8 +185,8 @@ function _walk_period!(
         push!(positions, parse(Int, nodecontent(pos_node)))
         push!(vals, parse(Float64, nodecontent(vnode)))
     end
-    npoints = _period_npoints(ti, start, stride)
-    ptimes, pvalues = _expand_period(positions, vals, start, stride, npoints, expand)
+    npoints = _period_npoints(ti, start, step)
+    ptimes, pvalues = _expand_period(positions, vals, start, step, npoints, expand)
     append!(times, ptimes)
     append!(values, pvalues)
     return length(ptimes)

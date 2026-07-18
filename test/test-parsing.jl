@@ -515,3 +515,83 @@ end
     @test length(rows) == 1
     @test rows.available_mw[1] == 120.0
 end
+
+@testset "parse_timeseries — P1M periods step by calendar month" begin
+    # Position 2 of a monthly series starting Jan 1 must be Feb 1 — not
+    # Jan 31 (start + 30 nominal days). Shape mirrors 13.1.C congestion
+    # costs (tut_costs_BE_2022.yml).
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <CongestionCosts_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A01</curveType>
+        <Period>
+          <timeInterval><start>2022-01-01T00:00Z</start><end>2023-01-01T00:00Z</end></timeInterval>
+          <resolution>P1M</resolution>
+          $(join(["<Point><position>$p</position><congestionCost_Price.amount>$(p * 10.0)</congestionCost_Price.amount></Point>" for p in 1:12], "\n"))
+        </Period>
+      </TimeSeries>
+    </CongestionCosts_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries(xml)
+    @test length(rows) == 12
+    @test rows.time == [DateTime(2022, m, 1) for m in 1:12]
+    @test rows.value == [p * 10.0 for p in 1:12]
+end
+
+@testset "parse_timeseries — P1M A03 fill counts calendar months" begin
+    # A single point covering Jan–Mar must fill 3 monthly rows; the old
+    # nominal-30-day arithmetic computed div(90d, 30d)=3 only by luck and
+    # yielded 0 for a single short month (February).
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <CongestionCosts_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A03</curveType>
+        <Period>
+          <timeInterval><start>2022-01-01T00:00Z</start><end>2022-04-01T00:00Z</end></timeInterval>
+          <resolution>P1M</resolution>
+          <Point><position>1</position><quantity>7.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </CongestionCosts_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries(xml; fill_gaps = true)
+    @test rows.time == [DateTime(2022, 1, 1), DateTime(2022, 2, 1), DateTime(2022, 3, 1)]
+    @test all(rows.value .== 7.0)
+
+    feb = """<?xml version="1.0" encoding="UTF-8"?>
+    <Doc xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A03</curveType>
+        <Period>
+          <timeInterval><start>2022-02-01T00:00Z</start><end>2022-03-01T00:00Z</end></timeInterval>
+          <resolution>P1M</resolution>
+          <Point><position>1</position><quantity>3.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </Doc>
+    """
+    rows_feb = ENTSOE.parse_timeseries(feb; fill_gaps = true)
+    @test rows_feb.time == [DateTime(2022, 2, 1)]
+    @test rows_feb.value == [3.0]
+end
+
+@testset "parse_timeseries — P1Y periods step by calendar year" begin
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Doc xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A01</curveType>
+        <Period>
+          <timeInterval><start>2020-01-01T00:00Z</start><end>2023-01-01T00:00Z</end></timeInterval>
+          <resolution>P1Y</resolution>
+          <Point><position>1</position><quantity>1.0</quantity></Point>
+          <Point><position>2</position><quantity>2.0</quantity></Point>
+          <Point><position>3</position><quantity>3.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </Doc>
+    """
+    rows = ENTSOE.parse_timeseries(xml)
+    # 2020 is a leap year: nominal 365-day stepping would land position 2
+    # on 2020-12-31T00:00 instead of 2021-01-01.
+    @test rows.time == [DateTime(2020, 1, 1), DateTime(2021, 1, 1), DateTime(2022, 1, 1)]
+end
