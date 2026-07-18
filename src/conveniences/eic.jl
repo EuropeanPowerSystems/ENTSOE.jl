@@ -381,7 +381,10 @@ A typo or scrambled code is by far the most common cause of an
 ENTSO-E "no matching data" acknowledgement, so flipping this on is a
 cheap way to debug.
 """
-function validate_eic(code::AbstractString; type::Union{Nothing, Symbol} = nothing)
+function validate_eic(
+        code::AbstractString;
+        type::Union{Nothing, Symbol, Tuple{Vararg{Symbol}}} = nothing,
+    )
     entries = lookup_eic(code)
     if isempty(entries)
         throw(
@@ -392,12 +395,18 @@ function validate_eic(code::AbstractString; type::Union{Nothing, Symbol} = nothi
             )
         )
     end
-    if type !== nothing && !any(type in e.types for e in entries)
+    # A tuple means "any of these types is acceptable" — used by wrappers
+    # whose domain parameter legitimately spans registry types (a control
+    # area code may be registered :CTA only, or double as the :BZN code).
+    wanted = type isa Symbol ? (type,) : type
+    if wanted !== nothing && !any(t in e.types for t in wanted, e in entries)
         present = sort!(unique!(reduce(vcat, [e.types for e in entries])))
         throw(
             ArgumentError(
-                "EIC `$(code)` exists but does not carry type `:$(type)`. " *
-                    "Registered types for this code: " *
+                "EIC `$(code)` exists but does not carry " *
+                    (length(wanted) == 1 ? "type `:$(wanted[1])`" :
+                     "any of the types " * join(":" .* String.(collect(wanted)), ", ")) *
+                    ". Registered types for this code: " *
                     join(":" .* String.(present), ", ")
             )
         )

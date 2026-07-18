@@ -115,20 +115,34 @@ _to_period(t)::Int64 = throw(
     )
 )
 
+# Internal: run EIC validation for one wrapper call. `validate === nothing`
+# defers to the package-wide `get_config().validate_eic` default; an explicit
+# Bool overrides it. `eic_type` is the registry type the wrapper's domain
+# parameters must carry — `:BZN` for bidding zones, an any-of tuple like
+# `(:CTA, :BZN)` for control areas, `nothing` for existence-only (SO-GL
+# domains, PTDF regions, … which legitimately span several types).
+const _EICTypeSpec = Union{Nothing, Symbol, Tuple{Vararg{Symbol}}}
+
+function _validate_eics(eics, validate::Union{Nothing, Bool}, eic_type::_EICTypeSpec)
+    dovalidate = validate === nothing ? get_config().validate_eic : validate
+    dovalidate || return nothing
+    for code in eics
+        validate_eic(code; type = eic_type)
+    end
+    return nothing
+end
+
 # Internal: do the API call, surface HTTP errors as typed APIErrors,
 # raise acknowledgement documents, return the raw XML body. Always
 # returns `String` — used by both `Parsed()` and `Raw()` paths.
 function _query_xml(
         api_call::Function;
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         eics = (),
+        eic_type::_EICTypeSpec = :BZN,
         check_ack::Bool = true,
     )::String
-    if validate
-        for code in eics
-            validate_eic(code; type = :BZN)
-        end
-    end
+    _validate_eics(eics, validate, eic_type)
     xml, resp = api_call()
     # The OpenAPI client unconditionally sets `:throw => false` on the
     # underlying HTTP options, so non-2xx responses come back as
@@ -247,13 +261,9 @@ _raw_chunk(xml::AbstractString, _parser) = _raw_one(xml)
 function _collect_windows(
         api_call::Function, per_chunk::G, parser::F;
         period_start, period_end, window::Period,
-        validate::Bool, eics,
+        validate::Union{Nothing, Bool}, eics, eic_type::_EICTypeSpec = :BZN,
     ) where {G <: Function, F <: Function}
-    if validate
-        for code in eics
-            validate_eic(code; type = :BZN)
-        end
-    end
+    _validate_eics(eics, validate, eic_type)
     chunks = split_period(period_start, period_end; window = window)
     isempty(chunks) &&
         throw(ArgumentError("empty period: period_start == period_end"))
@@ -297,12 +307,13 @@ concrete inferred return type rather than a flag-branching `Union`/`Any`.
 function _split_query(
         api_call::Function, ::Parsed, parser::F;
         period_start, period_end, window::Period,
-        validate::Bool = false, eics = (),
+        validate::Union{Nothing, Bool} = nothing, eics = (),
+        eic_type::_EICTypeSpec = :BZN,
     ) where {F <: Function}
     parts = _collect_windows(
         api_call, _parse_one, parser;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = eics,
+        validate = validate, eics = eics, eic_type = eic_type,
     )
     # `vcat`-ing the abstract `StructArray` eltype infers to `Any`; the result
     # is always a `StructArray`, so assert it to keep the same concrete inferred
@@ -313,12 +324,13 @@ end
 function _split_query(
         api_call::Function, fmt::LocalTime, parser::F;
         period_start, period_end, window::Period,
-        validate::Bool = false, eics = (),
+        validate::Union{Nothing, Bool} = nothing, eics = (),
+        eic_type::_EICTypeSpec = :BZN,
     ) where {F <: Function}
     rows = _split_query(
         api_call, Parsed(), parser;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = eics,
+        validate = validate, eics = eics, eic_type = eic_type,
     )
     return _to_local_time(rows, fmt.tz)
 end
@@ -326,12 +338,13 @@ end
 function _split_query(
         api_call::Function, ::Raw, parser::F;
         period_start, period_end, window::Period,
-        validate::Bool = false, eics = (),
+        validate::Union{Nothing, Bool} = nothing, eics = (),
+        eic_type::_EICTypeSpec = :BZN,
     ) where {F <: Function}
     parts = _collect_windows(
         api_call, _raw_chunk, parser;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = eics,
+        validate = validate, eics = eics, eic_type = eic_type,
     )
     return join(parts, "\n<!-- next window -->\n")
 end
@@ -371,7 +384,7 @@ prices_xml = day_ahead_prices(client, EIC.NL,
 function day_ahead_prices(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false, window::Period = Year(1),
+        validate::Union{Nothing, Bool} = nothing, window::Period = Year(1),
     )
     apis = entsoe_apis(client)
     return _split_query(
@@ -404,7 +417,7 @@ Tables.jl-compatible `StructVector{(time, value)}` in EUR/MWh.
 function intraday_prices(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         sequence::Union{Nothing, Integer} = nothing,
         window::Period = Year(1),
     )
@@ -444,7 +457,7 @@ function total_nominated_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false, window::Period = Year(1),
+        validate::Union{Nothing, Bool} = nothing, window::Period = Year(1),
     )
     apis = entsoe_apis(client)
     # `period_end === nothing` asks ENTSO-E for the single publication
@@ -495,7 +508,7 @@ function congestion_income(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
     )
@@ -536,7 +549,7 @@ function intraday_offered_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         implicit::Bool = true,
         id_type::AbstractString = "IDCT",
         window::Period = Year(1),
@@ -602,7 +615,7 @@ function explicit_allocations_offered_transfer_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         auction_type::AbstractString = AuctionType.EXPLICIT,
         contract_market_agreement_type::AbstractString = ContractType.DAILY,
         auction_category::Union{Nothing, AbstractString} = nothing,
@@ -642,7 +655,7 @@ function flow_based_allocations(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.INTRADAY_FLOW_BASED,
         window::Period = Year(1),
     )
@@ -673,7 +686,7 @@ function flow_based_allocations_archives(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.MONTH_AHEAD,
         storage_type::AbstractString = "archive",
         window::Period = Year(1),
@@ -707,7 +720,7 @@ function continuous_allocations_offered_transfer_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         auction_type::AbstractString = AuctionType.CONTINUOUS,
         contract_market_agreement_type::AbstractString = ContractType.INTRADAY,
         update_date_and_or_time::Union{Nothing, Integer} = nothing,
@@ -746,7 +759,7 @@ function implicit_allocations_offered_transfer_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         auction_type::AbstractString = AuctionType.IMPLICIT,
         contract_market_agreement_type::AbstractString = ContractType.DAILY,
         sequence::Union{Nothing, Integer} = nothing,
@@ -787,7 +800,7 @@ function explicit_allocations_auction_revenue(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::AbstractString = BusinessType.VOLUME_CONTRACTED,
         contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
@@ -822,7 +835,7 @@ function explicit_allocations_use_of_transfer_capacity(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::AbstractString = BusinessType.COUNTER_TRADE,
         contract_market_agreement_type::AbstractString = ContractType.INTRADAY,
         auction_category::Union{Nothing, AbstractString} = nothing,
@@ -861,7 +874,7 @@ function total_capacity_already_allocated(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::AbstractString = BusinessType.ALREADY_ALLOCATED_CAPACITY,
         contract_market_agreement_type::AbstractString = ContractType.DAILY,
         auction_category::Union{Nothing, AbstractString} = nothing,
@@ -898,7 +911,7 @@ function transfer_capacities_with_third_countries(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         auction_type::AbstractString = AuctionType.EXPLICIT,
         contract_market_agreement_type::AbstractString = ContractType.INTRADAY,
         auction_category::Union{Nothing, AbstractString} = nothing,
@@ -940,7 +953,7 @@ typical use case for implicit auctions); pass `"A01"` for daily.
 function implicit_auction_net_positions(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         contract_market_agreement_type::AbstractString = ContractType.INTRADAY,
         window::Period = Year(1),
     )
@@ -1066,7 +1079,7 @@ margin = available capacity − peak load.
 function year_ahead_forecast_margin(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1099,7 +1112,7 @@ Map `psr_type` codes to labels via [`PSR_LABELS`](@ref) /
 function installed_capacity_per_production_type(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
     )
     apis = entsoe_apis(client)
     return _query(
@@ -1128,7 +1141,7 @@ technology.
 function installed_capacity_per_production_unit(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
     )
     apis = entsoe_apis(client)
@@ -1154,7 +1167,7 @@ Day-ahead total generation forecast (Generation 14.1.C,
 function generation_forecast_day_ahead(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1186,7 +1199,7 @@ technology).
 function wind_solar_forecast(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
     )
@@ -1221,7 +1234,7 @@ Onshore) to filter server-side.
 function intraday_wind_solar_forecast(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
     )
@@ -1253,7 +1266,7 @@ Pass `psr_type=PsrType.SOLAR` to fetch a single technology server-side.
 function actual_generation_per_production_type(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
     )
@@ -1287,7 +1300,7 @@ Pass `psr_type=PsrType.SOLAR` to filter to one technology; pass
 function actual_generation_per_generation_unit(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
         registered_resource::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
@@ -1327,7 +1340,7 @@ function cross_border_physical_flows(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1366,7 +1379,7 @@ flows on every link.
 function cross_border_physical_flows_all(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         export_::Bool = true,
         neighbours::AbstractVector{<:AbstractString} = get(
             NEIGHBOURS, String(area), String[],
@@ -1438,7 +1451,7 @@ function commercial_schedules(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
     )
@@ -1473,7 +1486,7 @@ function scheduled_exchanges(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false, dayahead::Bool = false,
+        validate::Union{Nothing, Bool} = nothing, dayahead::Bool = false,
         window::Period = Year(1),
     )
     return commercial_schedules(
@@ -1501,7 +1514,7 @@ matching the platform's own net-position calculation.
 function commercial_schedules_net_positions(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
     )
@@ -1537,7 +1550,7 @@ function forecasted_transfer_capacities(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         contract_market_agreement_type::AbstractString = ContractType.DAILY,
         window::Period = Year(1),
     )
@@ -1627,7 +1640,7 @@ function expansion_and_dismantling_project(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
         withdrawn::Bool = false,
@@ -1661,7 +1674,7 @@ Single-zone query — `in_Domain` and `out_Domain` are both set to
 function redispatching_internal(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1691,7 +1704,7 @@ function redispatching_cross_border(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1725,7 +1738,7 @@ reporting — typically EUR, sometimes the local currency).
 function costs_of_congestion_management(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1754,7 +1767,7 @@ function countertrading(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -1800,7 +1813,7 @@ bounds.
 function unavailability_of_generation_units(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
         withdrawn::Bool = false,
@@ -1850,7 +1863,7 @@ aggregate one or more generation units under a single mRID.
 function unavailability_of_production_units(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
         withdrawn::Bool = false,
@@ -1901,7 +1914,7 @@ function unavailability_of_transmission_infrastructure(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
         withdrawn::Bool = false,
@@ -1951,7 +1964,7 @@ Returns [`parse_unavailability`](@ref) rows.
 function outages_fall_backs(
         client::Client, bidding_zone::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.MFRR,
         business_type::AbstractString = BusinessType.PLANNED_OUTAGE,
         doc_status::Union{Nothing, AbstractString} = nothing,
@@ -1995,7 +2008,7 @@ notices (Outages 10.1.A/B variant, `documentType=A78`). Single
 function unavailability_of_transmission_infrastructure_available_capacity(
         client::Client, control_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::Union{Nothing, AbstractString} = nothing,
         asset_registered_resource_m_r_i_d::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
@@ -2010,7 +2023,7 @@ function unavailability_of_transmission_infrastructure_available_capacity(
     return _split_query(
         format, parse_unavailability;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (control_area,),
+        validate = validate, eics = (control_area,), eic_type = (:CTA, :BZN),
     ) do s, e
         outages101_a_b_unavailability_of_transmission_infrastructure_available_capacity(
             apis.outages, "A78", String(control_area),
@@ -2046,7 +2059,7 @@ rows describing how each outage shifts NTC at that node.
 function unavailability_of_transmission_infrastructure_net_position_impact(
         client::Client, ptdf_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::Union{Nothing, AbstractString} = nothing,
         asset_registered_resource_m_r_i_d::Union{Nothing, AbstractString} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
@@ -2061,7 +2074,7 @@ function unavailability_of_transmission_infrastructure_net_position_impact(
     return _split_query(
         format, parse_unavailability;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (ptdf_domain,),
+        validate = validate, eics = (ptdf_domain,), eic_type = nothing,
     ) do s, e
         outages101_a_b_unavailability_of_transmission_infrastructure_net_position_impact(
             apis.outages, "A78", String(ptdf_domain),
@@ -2101,7 +2114,7 @@ to slice by publication-update window.
 function unavailability_of_offshore_grid(
         client::Client, bidding_zone::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         doc_status::Union{Nothing, AbstractString} = nothing,
         withdrawn::Bool = false,
         period_start_update::Union{Nothing, Integer, Dates.AbstractDateTime} = nothing,
@@ -2160,7 +2173,7 @@ unit with parent production-unit context, rated MW, location, etc. Pass
 function production_and_generation_units(
         client::Client, area::AbstractString,
         format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         implementation_date::Union{Date, AbstractString} = Date(2017, 1, 1),
         business_type::AbstractString = BusinessType.PRODUCTION_UNIT,
         psr_type::Union{Nothing, AbstractString} = nothing,
@@ -2194,7 +2207,7 @@ bidding zone, not tied to a single facility).
 function aggregated_unavailability_of_consumption_units(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
     )
@@ -2223,7 +2236,7 @@ in MWh of stored energy. Returns `StructVector{(time, value)}`.
 function water_reservoirs_and_hydro_storage_plants(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false, window::Period = Year(1),
+        validate::Union{Nothing, Bool} = nothing, window::Period = Year(1),
     )
     apis = entsoe_apis(client)
     return _split_query(
@@ -2253,7 +2266,7 @@ imbalance for the area.
 function current_balancing_state(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::AbstractString = BusinessType.AREA_CONTROL_ERROR,
         window::Period = Year(1),
     )
@@ -2286,7 +2299,7 @@ generation only.
 function imbalance_prices(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
     )
@@ -2317,7 +2330,7 @@ area.
 function cross_border_marginal_prices_for_afrr(
         client::Client, control_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         standard_market_product::AbstractString = StandardProduct.STANDARD,
         window::Period = Year(1),
     )
@@ -2325,7 +2338,7 @@ function cross_border_marginal_prices_for_afrr(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (control_area,),
+        validate = validate, eics = (control_area,), eic_type = (:CTA, :BZN),
     ) do s, e
         balancing_if_afrr316_cross_border_marginal_prices_cbmps_for_afrr_central_selection_cs(
             apis.balancing, "A84", "A67", "A96",
@@ -2349,7 +2362,7 @@ function netted_and_exchanged_volumes(
         client::Client,
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.IMBALANCE_NETTING,
         window::Period = Year(1),
     )
@@ -2357,7 +2370,7 @@ function netted_and_exchanged_volumes(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (acquiring_domain, connecting_domain),
+        validate = validate, eics = (acquiring_domain, connecting_domain), eic_type = nothing,
     ) do s, e
         balancing_ifs310316317_netted_and_exchanged_volumes(
             apis.balancing, "B17", String(process_type),
@@ -2380,7 +2393,7 @@ function netted_and_exchanged_volumes_per_border(
         client::Client,
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.SCHEDULED_ACTIVATION_MFRR,
         window::Period = Year(1),
     )
@@ -2388,7 +2401,7 @@ function netted_and_exchanged_volumes_per_border(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (acquiring_domain, connecting_domain),
+        validate = validate, eics = (acquiring_domain, connecting_domain), eic_type = nothing,
     ) do s, e
         balancing_ifs310316317_netted_and_exchanged_volumes_per_border(
             apis.balancing, "A30", String(process_type),
@@ -2413,7 +2426,7 @@ function balancing_border_capacity_limitations(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::AbstractString = BusinessType.AVAILABLE_TRANSFER_CAPACITY,
         process_type::AbstractString = ProcessType.MFRR,
         registered_resource::Union{Nothing, AbstractString} = nothing,
@@ -2450,7 +2463,7 @@ function permanent_allocation_limitations_to_HVDC(
         client::Client,
         in_area::AbstractString, out_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.IMBALANCE_NETTING,
         business_type::AbstractString = BusinessType.DC_LINK_CONSTRAINT,
         registered_resource::Union{Nothing, AbstractString} = nothing,
@@ -2484,7 +2497,7 @@ default `"A47"` (mFRR); pass `"A51"` (aFRR).
 function elastic_demands(
         client::Client, acquiring_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.MFRR,
         offset::Union{Nothing, Integer} = nothing,
         window::Period = Year(1),
@@ -2493,7 +2506,7 @@ function elastic_demands(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (acquiring_domain,),
+        validate = validate, eics = (acquiring_domain,), eic_type = nothing,
     ) do s, e
         balancing_ifs_afrr34_mfrr34_elastic_demands(
             apis.balancing, "A37", "B75", String(process_type),
@@ -2519,7 +2532,7 @@ For historical periods use [`changes_to_bid_availability_archives`](@ref).
 function changes_to_bid_availability(
         client::Client, domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.MFRR,
         business_type::Union{Nothing, AbstractString} = nothing,
         offset::Union{Nothing, Integer} = nothing,
@@ -2529,7 +2542,7 @@ function changes_to_bid_availability(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (domain,),
+        validate = validate, eics = (domain,), eic_type = nothing,
     ) do s, e
         balancing_ifs_mfrr99_afrr9698_changes_to_bid_availability(
             apis.balancing, "B45", String(process_type), String(domain),
@@ -2553,7 +2566,7 @@ archive variant).
 function changes_to_bid_availability_archives(
         client::Client, domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.MFRR,
         storage_type::AbstractString = "archive",
         business_type::Union{Nothing, AbstractString} = nothing,
@@ -2564,7 +2577,7 @@ function changes_to_bid_availability_archives(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (domain,),
+        validate = validate, eics = (domain,), eic_type = nothing,
     ) do s, e
         balancing_ifs_mfrr99_afrr9698_changes_to_bid_availability_archives(
             apis.balancing, "B45", String(process_type), String(domain),
@@ -2596,7 +2609,7 @@ For historical periods use
 function balancing_energy_bids(
         client::Client, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.MFRR,
         direction::Union{Nothing, AbstractString} = nothing,
         standard_market_product::Union{Nothing, AbstractString} = nothing,
@@ -2608,7 +2621,7 @@ function balancing_energy_bids(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (connecting_domain,),
+        validate = validate, eics = (connecting_domain,), eic_type = nothing,
     ) do s, e
         balancing123_b_c_balancing_energy_bids(
             apis.balancing, "A37", "B74", String(process_type),
@@ -2638,7 +2651,7 @@ periods. `storage_type` default `"archive"`.
 function balancing_energy_bids_archives(
         client::Client, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.MFRR,
         storage_type::AbstractString = "archive",
         offset::Union{Nothing, Integer} = nothing,
@@ -2648,7 +2661,7 @@ function balancing_energy_bids_archives(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (connecting_domain,),
+        validate = validate, eics = (connecting_domain,), eic_type = nothing,
     ) do s, e
         balancing123_b_c_balancing_energy_bids_archives(
             apis.balancing, "A37", "B74", String(process_type),
@@ -2674,7 +2687,7 @@ function allocation_and_use_of_cross_zonal_balancing_capacity(
         client::Client,
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.RR,
         type_market_agreement_type::Union{Nothing, AbstractString} = nothing,
         window::Period = Year(1),
@@ -2683,7 +2696,7 @@ function allocation_and_use_of_cross_zonal_balancing_capacity(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (acquiring_domain, connecting_domain),
+        validate = validate, eics = (acquiring_domain, connecting_domain), eic_type = nothing,
     ) do s, e
         balancing123_h_i_allocation_and_use_of_cross_zonal_balancing_capacity(
             apis.balancing, "A38", String(process_type),
@@ -2706,7 +2719,7 @@ measurements. `process_type` default `"A47"` (mFRR).
 function results_of_criteria_application_process(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.MFRR,
         window::Period = Year(1),
     )
@@ -2733,7 +2746,7 @@ FCR total capacity (Balancing 18.7.2 SO GL, `documentType=A26`,
 function fcr_total_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2762,7 +2775,7 @@ Shares of FCR capacity (Balancing 18.7.2 SO GL, `documentType=A26`,
 function shares_of_fcr_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2792,7 +2805,7 @@ FRR/RR capacity outlook (Balancing 18.8.3/18.9.2 SO GL,
 function frr_rr_capacity_outlook(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.FRR,
         window::Period = Year(1),
     )
@@ -2821,7 +2834,7 @@ FRR & RR actual capacity (Balancing 18.8.4/18.9.3 SO GL,
 function frr_and_rr_actual_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.FRR,
         business_type::AbstractString = BusinessType.MIN,
         window::Period = Year(1),
@@ -2849,7 +2862,7 @@ Outlook of reserve capacities on RR (Balancing 18.9.2 SO GL,
 function outlook_of_reserve_capacities_on_rr(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2878,7 +2891,7 @@ RR actual capacity (Balancing 18.9.3 SO GL, `documentType=A26`,
 function rr_actual_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2909,7 +2922,7 @@ function sharing_of_rr_and_frr(
         client::Client,
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.FRR,
         window::Period = Year(1),
     )
@@ -2917,7 +2930,7 @@ function sharing_of_rr_and_frr(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (acquiring_domain, connecting_domain),
+        validate = validate, eics = (acquiring_domain, connecting_domain), eic_type = nothing,
     ) do s, e
         balancing1901_sharing_of_rr_and_frr_so_gl(
             apis.balancing;
@@ -2941,7 +2954,7 @@ Sharing of FCR between scheduling areas (Balancing 19.0.2 SO GL,
 function sharing_of_fcr_between_sas(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
@@ -2975,7 +2988,7 @@ function exchanged_reserve_capacity(
         client::Client,
         acquiring_domain::AbstractString, connecting_domain::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.RR,
         window::Period = Year(1),
     )
@@ -2983,7 +2996,7 @@ function exchanged_reserve_capacity(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (acquiring_domain, connecting_domain),
+        validate = validate, eics = (acquiring_domain, connecting_domain), eic_type = nothing,
     ) do s, e
         balancing1903_exchanged_reserve_capacity_so_gl(
             apis.balancing;
@@ -3024,7 +3037,7 @@ Optional kwargs:
 function volumes_and_prices_of_contracted_reserves(
         client::Client, control_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         type_market_agreement_type::AbstractString = ContractType.DAILY,
         process_type::Union{Nothing, AbstractString} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
@@ -3035,7 +3048,7 @@ function volumes_and_prices_of_contracted_reserves(
     return _split_query(
         format, parse_timeseries_quantity_price;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (control_area,),
+        validate = validate, eics = (control_area,), eic_type = (:CTA, :BZN),
     ) do s, e
         balancing171_b_c_volumes_and_prices_of_contracted_reserves(
             apis.balancing, "A81", "B95",
@@ -3059,14 +3072,14 @@ Financial expenses and income for balancing (Balancing 17.1.I,
 function financial_expenses_and_income_for_balancing(
         client::Client, control_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         window::Period = Year(1),
     )
     apis = entsoe_apis(client)
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (control_area,),
+        validate = validate, eics = (control_area,), eic_type = (:CTA, :BZN),
     ) do s, e
         balancing171_i_financial_expenses_and_income_for_balancing(
             apis.balancing, "A87", String(control_area),
@@ -3095,7 +3108,7 @@ Prices of activated balancing energy (Balancing 17.1.F,
 function prices_of_activated_balancing_energy(
         client::Client, control_area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.REALISED,
         business_type::Union{Nothing, AbstractString} = nothing,
         psr_type::Union{Nothing, AbstractString} = nothing,
@@ -3107,7 +3120,7 @@ function prices_of_activated_balancing_energy(
     return _split_query(
         format, parse_timeseries;
         period_start = period_start, period_end = period_end, window = window,
-        validate = validate, eics = (control_area,),
+        validate = validate, eics = (control_area,), eic_type = (:CTA, :BZN),
     ) do s, e
         balancing171_f_prices_of_activated_balancing_energy(
             apis.balancing, "A84", String(process_type), String(control_area),
@@ -3136,7 +3149,7 @@ Total imbalance volumes per settlement period (Balancing 17.1.H,
 function total_imbalance_volumes(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         business_type::AbstractString = BusinessType.BALANCE_ENERGY_DEVIATION,
         window::Period = Year(1),
     )
@@ -3171,7 +3184,7 @@ Response is `application/zip` and is unzipped transparently.
 function procured_balancing_capacity(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.AFRR,
         type_market_agreement_type::AbstractString = ContractType.DAILY,
         offset::Union{Nothing, Integer} = nothing,
@@ -3221,7 +3234,7 @@ in MW.
 function aggregated_balancing_energy_bids(
         client::Client, area::AbstractString,
         period_start, period_end, format::ResponseFormat = Parsed();
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
         process_type::AbstractString = ProcessType.AFRR,
         window::Period = Day(1),
     )
@@ -3275,9 +3288,9 @@ function omi_other_market_information(
         document_type::AbstractString = DocumentType.CONFIGURATION,
         page_size::Int = 200,
         max_pages::Int = 25,
-        validate::Bool = false,
+        validate::Union{Nothing, Bool} = nothing,
     )
-    validate && validate_eic(control_area; type = :CTA)
+    _validate_eics((control_area,), validate, (:CTA, :BZN))
     apis = entsoe_apis(client)
     dt = String(document_type)::String
     ca = String(control_area)::String

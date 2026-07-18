@@ -22,6 +22,34 @@ end
     @test all(startswith(v, "10Y") for v in EIC)
 end
 
+@testset "typed EIC validation — any-of tuples and control areas" begin
+    # DK's control area (10Y1001A1001A796) is registered CTA-only, so
+    # control-area parameters must not be forced through :BZN validation.
+    @test validate_eic("10Y1001A1001A796"; type = (:CTA, :BZN)) === nothing
+    @test_throws ArgumentError validate_eic("10Y1001A1001A796"; type = :BZN)
+    @test ENTSOE._validate_eics(("10Y1001A1001A796",), true, (:CTA, :BZN)) === nothing
+    # Existence is always checked, even with type = nothing.
+    @test_throws ArgumentError ENTSOE._validate_eics(("10YNOT-A-CODE---",), true, nothing)
+    # validate = false / nothing+config-off skip validation entirely.
+    @test ENTSOE._validate_eics(("10YNOT-A-CODE---",), false, :BZN) === nothing
+end
+
+@testset "set_config(validate_eic = true) is honored by wrappers" begin
+    old = get_config().validate_eic
+    try
+        set_config(validate_eic = true)
+        client = ENTSOEClient("PLAYBACK")
+        # Validation fires before any HTTP happens, so an unknown EIC must
+        # throw ArgumentError without `validate = true` at the call site.
+        @test_throws ArgumentError day_ahead_prices(
+            client, "10YNOT-A-CODE---",
+            DateTime(2024, 1, 1), DateTime(2024, 1, 2),
+        )
+    finally
+        set_config(validate_eic = old)
+    end
+end
+
 @testset "every pass-in code has a description label" begin
     for (table, labels) in (
             (ENTSOE.BusinessType, BUSINESS_LABELS),
