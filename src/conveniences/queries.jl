@@ -286,9 +286,16 @@ function _to_local_time(rows, tz::TimeZones.TimeZone)
     :time in propertynames(rows) || return rows
     times = rows.time
     times isa AbstractVector{DateTime} || return rows
-    zoned = ZonedDateTime[astimezone(ZonedDateTime(t, tz"UTC"), tz) for t in times]
-    cols = (k => k === :time ? zoned : getproperty(rows, k) for k in propertynames(rows))
-    return StructArrays.StructArray(NamedTuple(cols))
+    # `from_utc = true` interprets `t` as UTC and converts in a single
+    # construction — half the transition lookups of building a UTC
+    # ZonedDateTime and then astimezone-ing it.
+    zoned = ZonedDateTime[ZonedDateTime(t, tz; from_utc = true) for t in times]
+    # `merge` on the components keeps the original column order (left
+    # operand wins on position) and, unlike a runtime-keyed NamedTuple
+    # generator, stays transparent to inference.
+    return StructArrays.StructArray(
+        merge(StructArrays.components(rows), (time = zoned,))
+    )
 end
 
 # Iterate the windows of `[period_start, period_end)`, fetch each chunk's XML,
