@@ -88,6 +88,15 @@ const SMOKE_DESCRIPTORS = [
         kwargs = (;),
     ),
     (
+        # The one POST operation in the spec — no parameters beyond the
+        # securityToken query; the platform answers 415 to the bare POST,
+        # which still round-trips the generated POST request path.
+        fn = :load61_a_actual_total_load_post,
+        api_field = :load,
+        positional = [],
+        kwargs = (;),
+    ),
+    (
         fn = :load61_a_actual_total_load,
         api_field = :load,
         positional = ["A65", "A16", "10YCZ-CEPS-----N", 202303030000, 202303060000],

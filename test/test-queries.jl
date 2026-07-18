@@ -1400,3 +1400,69 @@ end
         ENTSOE.set_config(window_concurrency = old)
     end
 end
+
+let BR = _load_brokenrecord()
+    if BR === nothing
+        @info "BrokenRecord not installed; skipping archive/sharing wrapper tests."
+    else
+        client = ENTSOEClient("PLAYBACK")
+
+        @testset "flow_based_allocations_archives (Market 11.1.B archives cassette)" begin
+            # Replays the archive smoke recording (application/zip) through the
+            # NAMED wrapper: drives the zip path end-to-end. The zipped
+            # CriticalNetworkElement documents carry no quantity points, so the
+            # parsed table is legitimately empty; Raw() exposes the documents.
+            old_ext = Base.invokelatest(getindex, BR.DEFAULTS, :extension)
+            Base.invokelatest(BR.configure!; extension = "bson")
+            try
+                rows = Base.invokelatest(
+                    BR.playback,
+                    () -> flow_based_allocations_archives(
+                        client, "10YDOM-REGION-1V", "10YDOM-REGION-1V",
+                        DateTime("2018-12-30T23:00"), DateTime("2018-12-31T22:00"),
+                    ),
+                    "market111_b_flow_based_allocations_archives.bson",
+                )
+                @test rows isa ENTSOE.StructArrays.StructArray
+                @test isempty(rows)   # constraint documents have no quantity points
+
+                raw = Base.invokelatest(
+                    BR.playback,
+                    () -> flow_based_allocations_archives(
+                        client, "10YDOM-REGION-1V", "10YDOM-REGION-1V",
+                        DateTime("2018-12-30T23:00"), DateTime("2018-12-31T22:00"),
+                        Raw(),
+                    ),
+                    "market111_b_flow_based_allocations_archives.bson",
+                )
+                @test occursin("CriticalNetworkElement_MarketDocument", raw)
+            finally
+                Base.invokelatest(BR.configure!; extension = old_ext)
+            end
+        end
+
+        @testset "sharing_of_rr_and_frr (Balancing 19.0.1 cassette)" begin
+            # As of 2026-07 the platform rejects the Postman-canonical
+            # A26/A56/C22 combination with an HTTP 400 whose body is an
+            # acknowledgement document ("combination … is not valid"). The
+            # wrapper must surface that as the typed ClientError carrying the
+            # body — not a MethodError or a silent empty table.
+            err = nothing
+            try
+                Base.invokelatest(
+                    BR.playback,
+                    () -> sharing_of_rr_and_frr(
+                        client, "10YAT-APG------L", "10YCB-GERMANY--8",
+                        DateTime(2021, 1, 1), DateTime(2021, 12, 31),
+                    ),
+                    "balancing_1901_sharing_of_rr_and_frr_AT_COBA.yml",
+                )
+            catch e
+                err = e
+            end
+            @test err isa ENTSOE.ClientError
+            @test err.status == 400
+        end
+
+    end
+end
