@@ -279,11 +279,39 @@ end
     client.inner.pre_request_hook(ctx2)
     @test !haskey(ctx2.query, "securityToken")
 
-    # Stage-2 hook (resource/body/headers) is a pass-through.
+    # Stage-2 hook: non-matching resources pass through untouched.
     res, body, hdr = client.inner.pre_request_hook(
         "/whatever", nothing, Dict{String, String}("X" => "Y"),
     )
     @test res == "/whatever"
     @test body === nothing
     @test hdr == Dict("X" => "Y")
+end
+
+@testset "stage-2 hook collapses synthetic paths onto the real endpoint" begin
+    hdr = Dict{String, String}()
+
+    # The default base URL: /market/12-1-d-energy-prices must fold away.
+    client = ENTSOEClient("PLAYBACK")
+    res, _, _ = client.inner.pre_request_hook(
+        "https://web-api.tp.entsoe.eu/api/market/12-1-d-energy-prices?documentType=A44&securityToken=PLAYBACK",
+        nothing, hdr,
+    )
+    @test res == "https://web-api.tp.entsoe.eu/api?documentType=A44&securityToken=PLAYBACK"
+
+    # A path-prefixed base URL (proxy / recorded mock server) must collapse
+    # the same way — the docstring explicitly invites such overrides.
+    proxied = ENTSOEClient("PLAYBACK"; base_url = "http://localhost:8080/proxy/api")
+    res2, _, _ = proxied.inner.pre_request_hook(
+        "http://localhost:8080/proxy/api/load/6-1-a-actual-total-load?documentType=A65",
+        nothing, hdr,
+    )
+    @test res2 == "http://localhost:8080/proxy/api?documentType=A65"
+
+    # Synthetic path with no query string still folds to the bare endpoint.
+    res3, _, _ = client.inner.pre_request_hook(
+        "https://web-api.tp.entsoe.eu/api/market/12-1-d-energy-prices",
+        nothing, hdr,
+    )
+    @test res3 == "https://web-api.tp.entsoe.eu/api"
 end
