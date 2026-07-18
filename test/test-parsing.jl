@@ -595,3 +595,31 @@ end
     # on 2020-12-31T00:00 instead of 2021-01-01.
     @test rows.time == [DateTime(2020, 1, 1), DateTime(2021, 1, 1), DateTime(2022, 1, 1)]
 end
+
+@testset "parse_timeseries — A03 fill stops at explicitly valueless points" begin
+    # Real shape (balancing_if_afrr316_cbmps_DE_AMPRION.yml): a listed
+    # <Point> with a <position> but no value element marks "no value here" —
+    # the previous run must stop before it and no value may be fabricated
+    # until the next valued point.
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Doc xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A03</curveType>
+        <Period>
+          <timeInterval><start>2024-01-01T00:00Z</start><end>2024-01-01T08:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>10.0</quantity></Point>
+          <Point><position>3</position></Point>
+          <Point><position>5</position><quantity>50.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </Doc>
+    """
+    rows = ENTSOE.parse_timeseries(xml; fill_gaps = true)
+    @test rows.time == [
+        DateTime(2024, 1, 1, 0), DateTime(2024, 1, 1, 1),          # run of 10.0: pos 1–2
+        DateTime(2024, 1, 1, 4), DateTime(2024, 1, 1, 5),          # run of 50.0: pos 5–8
+        DateTime(2024, 1, 1, 6), DateTime(2024, 1, 1, 7),
+    ]
+    @test rows.value == [10.0, 10.0, 50.0, 50.0, 50.0, 50.0]
+end

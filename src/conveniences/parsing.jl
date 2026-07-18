@@ -124,7 +124,8 @@ end
 # emitted — leaving sequential (`A01`) documents untouched.
 function _expand_period(
         positions::Vector{Int}, vals::Vector{Float64},
-        start::DateTime, step::Dates.Period, npoints::Union{Int, Nothing}, expand::Bool,
+        start::DateTime, step::Dates.Period, npoints::Union{Int, Nothing}, expand::Bool;
+        breaks::Vector{Int} = Int[],
     )
     times = DateTime[]
     values = Float64[]
@@ -143,6 +144,14 @@ function _expand_period(
             positions[i + 1] - 1
         else
             npoints === nothing ? p : max(p, npoints)
+        end
+        # A listed-but-valueless <Point> (its position is in `breaks`)
+        # explicitly marks "no value here": it terminates the run early and
+        # nothing is fabricated until the next valued point.
+        for b in breaks
+            if b > p && b - 1 < stop_pos
+                stop_pos = b - 1
+            end
         end
         for pos in p:stop_pos
             push!(times, start + (pos - 1) * step)
@@ -177,16 +186,22 @@ function _walk_period!(
 
     positions = Int[]
     vals = Float64[]
+    breaks = Int[]   # listed positions carrying no value element
     for pt in _named(period, "Point")
         pos_node = _first_named(pt, "position")
         pos_node === nothing && continue
         vnode = _point_value_node(pt)
-        vnode === nothing && continue
+        if vnode === nothing
+            push!(breaks, parse(Int, nodecontent(pos_node)))
+            continue
+        end
         push!(positions, parse(Int, nodecontent(pos_node)))
         push!(vals, parse(Float64, nodecontent(vnode)))
     end
     npoints = _period_npoints(ti, start, step)
-    ptimes, pvalues = _expand_period(positions, vals, start, step, npoints, expand)
+    ptimes, pvalues = _expand_period(
+        positions, vals, start, step, npoints, expand; breaks = breaks,
+    )
     append!(times, ptimes)
     append!(values, pvalues)
     return length(ptimes)
