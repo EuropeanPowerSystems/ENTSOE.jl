@@ -404,8 +404,10 @@ function validate_eic(
         throw(
             ArgumentError(
                 "EIC `$(code)` exists but does not carry " *
-                    (length(wanted) == 1 ? "type `:$(wanted[1])`" :
-                     "any of the types " * join(":" .* String.(collect(wanted)), ", ")) *
+                    (
+                    length(wanted) == 1 ? "type `:$(wanted[1])`" :
+                        "any of the types " * join(":" .* String.(collect(wanted)), ", ")
+                ) *
                     ". Registered types for this code: " *
                     join(":" .* String.(present), ", ")
             )

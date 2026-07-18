@@ -72,6 +72,7 @@ function acquire!(
         # recomputes the shortfall on wake-up.
         sleep_fn(wait_secs)
     end
+    return
 end
 
 """

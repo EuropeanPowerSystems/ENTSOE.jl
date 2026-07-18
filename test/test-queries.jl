@@ -1260,10 +1260,12 @@ end
 end
 
 @testset "cross_border_physical_flows_all internals (_flows_all)" begin
-    mkrows(vals...) = ENTSOE.StructArrays.StructArray((
-        time = [DateTime(2024, 1, 1, i) for i in 0:(length(vals) - 1)],
-        value = collect(Float64, vals),
-    ))
+    mkrows(vals...) = ENTSOE.StructArrays.StructArray(
+        (
+            time = [DateTime(2024, 1, 1, i) for i in 0:(length(vals) - 1)],
+            value = collect(Float64, vals),
+        )
+    )
     nodata = ENTSOE.ENTSOEAcknowledgement("999", "No matching data found")
 
     # Parsed: rows tagged with their border, no-data borders skipped.

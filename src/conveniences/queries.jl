@@ -31,7 +31,7 @@
 # `gen/regenerate.jl` against a refreshed spec leaves them untouched.
 
 using Dates: Dates, DateTime, Date, Period, Year, Day
-using TimeZones: TimeZones, ZonedDateTime, astimezone, @tz_str
+using TimeZones: TimeZones, ZonedDateTime, astimezone
 
 """
     ResponseFormat
@@ -296,10 +296,11 @@ function _to_local_time(rows, tz::TimeZones.TimeZone)
     zoned = ZonedDateTime[ZonedDateTime(t, tz; from_utc = true) for t in times]
     # `merge` on the components keeps the original column order (left
     # operand wins on position) and, unlike a runtime-keyed NamedTuple
-    # generator, stays transparent to inference.
-    return StructArrays.StructArray(
-        merge(StructArrays.components(rows), (time = zoned,))
-    )
+    # generator, stays transparent to inference. The ::NamedTuple assert
+    # settles JET: `components(::Any)` also admits a Tuple (plain-array
+    # StructArrays), but every parser returns named columns.
+    cols = StructArrays.components(rows)::NamedTuple
+    return StructArrays.StructArray(merge(cols, (time = zoned,)))
 end
 
 # Iterate the windows of `[period_start, period_end)`, fetch each chunk's XML,

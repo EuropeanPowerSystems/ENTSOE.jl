@@ -24,8 +24,12 @@ src/
                       application/zip bodies (balancing 17.1.x, outages with many notices)
     parsing.jl    ←   XML → StructVector{NamedTuple} via EzXML
                   ←   parse_timeseries (price/quantity/*.amount), parse_timeseries_per_psr,
-                      parse_installed_capacity, parse_unavailability (outages),
+                      parse_timeseries_quantity_price (two-valued 17.1.B&C points),
+                      parse_installed_capacity, parse_unavailability (outages; also
+                      Asset_RegisteredResource transmission form),
                       parse_master_data (registry), parse_acknowledgement, unzip_response
+                  ←   P1M/P1Y resolutions step by calendar Month/Year; A03 forward-fill
+                      stops at listed-but-valueless points (no fabricated values)
     splitting.jl  ←   split_period: chunk arithmetic reused by the wrappers'
                       automatic splitting (via `_split_query` in queries.jl)
     codes.jl      ←   CodeTable; PsrType/BusinessType/ProcessType/DocumentType (pass-in),
@@ -38,7 +42,8 @@ src/
                       pre_request_hook + is_uuid_token predicate; no-arg ENTSOEClient()
                       (config.jl) resolves token from set_config then ENV["ENTSOE_API_TOKEN"]
     config.jl     ←   ENTSOEConfig + set_config/get_config (package-wide defaults:
-                      token, endpoint_url, validate_eic, fill_gaps)
+                      token, endpoint_url, validate_eic, fill_gaps,
+                      window_concurrency — opt-in concurrent window fetching)
   client/         ← hand-written template overlay (also untouched by codegen)
     Client.jl     ←   the underlying Client type
     auth.jl       ←   Auth/NoAuth + build_pre_request_hook (ENTSO-E auth is a
@@ -190,7 +195,7 @@ prices = day_ahead_prices(client, EIC.NL,
     DateTime("2020-01-01"), DateTime("2025-01-01"))   # split + concatenated for you
 ```
 
-The per-endpoint chunk size lives in each wrapper's `window` kwarg default (most `Year(1)`, the balancing-energy-bid family `Day(1)`); pass `window = Month(1)` (etc.) to override it. `split_period` remains the exported arithmetic primitive that `_split_query` builds on. (The old standalone splitting wrapper has been removed — there's nothing to call by hand any more.)
+The per-endpoint chunk size lives in each wrapper's `window` kwarg default (most `Year(1)`, the balancing-energy-bid family `Day(1)`); pass `window = Month(1)` (etc.) to override it. `split_period` remains the exported arithmetic primitive that `_split_query` builds on. (The old standalone splitting wrapper has been removed — there's nothing to call by hand any more.) Windows fetch strictly sequentially by default; `set_config(window_concurrency = n)` overlaps up to `n` window requests per call (mind ENTSO-E's ~400 req/min ban threshold). A window that acknowledges with anything other than plain no-data (e.g. the over-limit "use offset" notice) emits a warning instead of being silently dropped.
 
 ### When you must call the generated layer directly
 
@@ -210,12 +215,12 @@ Note: the generated layer returns `(xml, response)` tuples directly. It does **n
 - **One real endpoint, many synthetic paths.** ENTSO-E's API is a single URL dispatched by query parameters. We split it into 77 OpenAPI operations under synthetic paths like `/market/12-1-d-energy-prices` purely so codegen produces one Julia function per logical query. The pre-request hook in `src/conveniences/client.jl` has a **second-stage** callback `(resource, body, headers)` that collapses the synthetic path back to `/api?<query>` before the request hits the wire. If you touch the spec or the hook, keep that rewrite working.
 - **Auth is a query parameter, not a header.** `securityToken` is appended to the URL. The scaffold's built-in `APIKey` auth is header-only and does NOT work for ENTSO-E. `ENTSOEClient(token)` constructs a `Client` with `NoAuth()` and installs a `pre_request_hook` whose stage-1 form injects `ctx.query["securityToken"]` whenever an op declares the `"SecurityToken"` requirement.
 - **Periods are `Int64` UTC `yyyyMMddHHmm`.** The generated layer accepts that alone. Named wrappers accept `DateTime`/`Date`/`ZonedDateTime`/`Integer` via `_to_period` → `entsoe_period`. ZonedDateTimes are converted to UTC first.
-- **Bidding zones are EIC codes** (16-char). A curated 33-zone subset is exposed as `EIC.NL`, `EIC.DE_LU`, `EIC.NO2`, etc. The full registry is `EIC_REGISTRY` (mapping every EIC to `(name, types)` with types like `:BZN`, `:CTA`, `:MBA`). Pass `validate = true` to any wrapper to assert the zone exists and is the right type.
+- **Bidding zones are EIC codes** (16-char). A curated 33-zone subset is exposed as `EIC.NL`, `EIC.DE_LU`, `EIC.NO2`, etc. The full registry is `EIC_REGISTRY` (mapping every EIC to `(name, types)` with types like `:BZN`, `:CTA`, `:MBA`). Pass `validate = true` to any wrapper to assert the zone exists and carries the type that wrapper expects (`:BZN` by default; control-area wrappers accept `(:CTA, :BZN)`; SO-GL/PTDF domains are existence-only) — or set it globally with `set_config(validate_eic = true)`; the per-call kwarg overrides.
 - **Code-list constants.** Two complementary shapes in `src/conveniences/codes.jl`:
   - **Pass-into-wrappers** — `PsrType.SOLAR == "B16"`, `BusinessType.PLANNED_OUTAGE == "A53"`, plus `ProcessType`, `DocumentType`, `AuctionType`, `AuctionCategory`, `ContractType`, `StandardProduct`, `DocStatus`. All wrap the shared `CodeTable` struct; values are raw `String`s so the wrappers' existing `String(x)` calls carry them through unchanged. Wrapper *defaults* in `queries.jl` use these (`business_type = BusinessType.PLANNED_OUTAGE`) so signatures are self-documenting.
   - **Code → description NamedTuples** — `PSR_LABELS.B16 == "Solar"`, plus `DOCUMENT_LABELS`, `PROCESS_LABELS`, `BUSINESS_LABELS`. `code_for(LABELS, "wind onshore")` does reverse lookup by substring on the description.
   - **Subset tuples** — `PsrGroup.HYDRO == ("B10", "B11", "B12")`, plus `WIND`, `FOSSIL`, `RENEWABLE`, `STORAGE`, `INFRASTRUCTURE`. For client-side filtering after a fetch (`rows[in.(rows.psr_type, Ref(PsrGroup.HYDRO))]`). ENTSO-E rejects multi-code server-side filters, so groups never go through the `psr_type` kwarg.
-- **Sparse series are forward-filled by default.** ENTSO-E emits variable-sized-block series (`<curveType>A03`) that omit unchanged points — a point at position `p` holds until the next listed position. The parsers in `parsing.jl` forward-fill those runs onto the regular resolution grid when `fill_gaps` is true (the default, from `get_config().fill_gaps`); disable globally via `set_config(fill_gaps = false)` or per-call via the parsers' `fill_gaps` kwarg. Sequential `A01` series are untouched.
+- **Sparse series are forward-filled by default.** ENTSO-E emits variable-sized-block series (`<curveType>A03`) that omit unchanged points — a point at position `p` holds until the next listed position. The parsers in `parsing.jl` forward-fill those runs onto the regular resolution grid when `fill_gaps` is true (the default, from `get_config().fill_gaps`); disable globally via `set_config(fill_gaps = false)` or per-call via the parsers' `fill_gaps` kwarg. Sequential `A01` series are untouched. A listed `<Point>` carrying no value element explicitly marks "no value here": it terminates the previous run and nothing is fabricated until the next valued point.
 - **"No data" is HTTP 200.** ENTSO-E returns an `<Acknowledgement_MarketDocument>` body. The wrappers detect this via `check_acknowledgement` and re-raise as `ENTSOEAcknowledgement` (with `.reason_code` and `.text`). The generated layer does not; callers using it directly must run `check_acknowledgement(xml)` themselves.
 - **`application/zip` happens.** Balancing 17.1.G/H/I, 1.2.3.F/H/I, and outages endpoints with many notices serve zipped XML. `_query` in `src/conveniences/queries.jl` sniffs the 4-byte ZIP magic, unzips with `ZipFile.jl` via `unzip_response`, runs the acknowledgement check per-member, and `vcat`-s the parsed `StructVector`s. `Raw()` returns the concatenated XML members separated by `<!-- next zip member -->` sentinels. This is fully transparent — no wrapper has to opt in.
 - **HTTP errors are typed.** `src/client/errors.jl#check_response` maps status codes to `AuthError` (401/403), `RateLimitError` (408/429, parses `Retry-After`, extracts ENTSO-E's HTML ban message via `rate_limit_message`), `ClientError` (other 4xx), `ServerError` (5xx). Network failures become `NetworkError`; timeouts become `TimeoutError(:connect | :read | :total)`. All five have `Base.showerror` overloads that truncate HTML/long bodies — a 503-during-maintenance no longer dumps 100 KB into stack traces. Don't write `try/catch err isa Exception` blocks — match on the specific subtype.
