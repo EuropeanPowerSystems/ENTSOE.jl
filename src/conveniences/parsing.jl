@@ -157,25 +157,35 @@ function _expand_period(
     end
     for i in 1:n
         p = positions[i]
-        stop_pos = if i < n
-            positions[i + 1] - 1
-        else
-            npoints === nothing ? p : max(p, npoints)
-        end
-        # A listed-but-valueless <Point> (its position is in `breaks`)
-        # explicitly marks "no value here": it terminates the run early and
-        # nothing is fabricated until the next valued point.
-        for b in breaks
-            if b > p && b - 1 < stop_pos
-                stop_pos = b - 1
-            end
-        end
-        for pos in p:stop_pos
+        for pos in p:_run_stop_pos(positions, i, npoints, breaks)
             push!(times, start + (pos - 1) * step)
             push!(values, vals[i])
         end
     end
     return (times, values)
+end
+
+# Last grid position an A03 run starting at `positions[i]` extends to: the
+# step before the next listed valued position (or the period end for the
+# final point). A listed-but-valueless <Point> (its position is in `breaks`)
+# explicitly marks "no value here": it terminates the run early and nothing
+# is fabricated until the next valued point.
+function _run_stop_pos(
+        positions::Vector{Int}, i::Int,
+        npoints::Union{Int, Nothing}, breaks::Vector{Int},
+    )
+    p = positions[i]
+    stop_pos = if i < length(positions)
+        positions[i + 1] - 1
+    else
+        npoints === nothing ? p : max(p, npoints)
+    end
+    for b in breaks
+        if b > p && b - 1 < stop_pos
+            stop_pos = b - 1
+        end
+    end
+    return stop_pos
 end
 
 # Walk one `<Period>`-shaped node (`<Period>` or `<Available_Period>`):
@@ -290,6 +300,78 @@ function parse_timeseries(xml::AbstractString; fill_gaps::Bool = get_config().fi
         end
     end
     return StructArray((time = times, value = values))
+end
+
+"""
+    parse_timeseries_quantity_price(xml) -> StructVector{@NamedTuple{
+        time::DateTime, quantity::Float64, price::Float64}}
+
+Like [`parse_timeseries`](@ref), but keeps **both** value elements a
+`<Point>` may carry: `<quantity>` (MW) in the `quantity` column and the
+first `*.amount` child (e.g. `<procurement_Price.amount>`, EUR/MW) in
+the `price` column. Used by endpoints whose points are genuinely
+two-valued — 17.1.B&C "Volumes and Prices of Contracted Reserves" —
+where a single `value` column would silently drop one of the two.
+
+A column's entry is `NaN` when the point does not carry that element.
+A03 forward-fill (see [`parse_timeseries`](@ref)) applies to both
+columns with shared run boundaries.
+"""
+function parse_timeseries_quantity_price(
+        xml::AbstractString; fill_gaps::Bool = get_config().fill_gaps,
+    )
+    times = DateTime[]
+    quantities = Float64[]
+    prices = Float64[]
+    doc = parsexml(xml)
+    for ts in _named(root(doc), "TimeSeries")
+        expand = fill_gaps && _curve_type(ts) == "A03"
+        for period in _named(ts, "Period")
+            ti = _first_named(period, "timeInterval")
+            ti === nothing && continue
+            start_node = _first_named(ti, "start")
+            start_node === nothing && continue
+            start = _parse_entsoe_datetime(nodecontent(start_node))
+            res_node = _first_named(period, "resolution")
+            res_node === nothing && continue
+            step = _resolution_step(nodecontent(res_node))
+            step === nothing && continue
+
+            positions = Int[]
+            qtys = Float64[]
+            prcs = Float64[]
+            breaks = Int[]
+            for pt in _named(period, "Point")
+                pos_node = _first_named(pt, "position")
+                pos_node === nothing && continue
+                q = _first_text(pt, "quantity")
+                p = ""
+                for c in elements(pt)
+                    if endswith(nodename(c), ".amount")
+                        p = strip(nodecontent(c))
+                        break
+                    end
+                end
+                if isempty(q) && isempty(p)
+                    push!(breaks, parse(Int, nodecontent(pos_node)))
+                    continue
+                end
+                push!(positions, parse(Int, nodecontent(pos_node)))
+                push!(qtys, isempty(q) ? NaN : parse(Float64, q))
+                push!(prcs, isempty(p) ? NaN : parse(Float64, p))
+            end
+            npoints = _period_npoints(ti, start, step)
+            for i in 1:length(positions)
+                run_stop = expand ? _run_stop_pos(positions, i, npoints, breaks) : positions[i]
+                for pos in positions[i]:run_stop
+                    push!(times, start + (pos - 1) * step)
+                    push!(quantities, qtys[i])
+                    push!(prices, prcs[i])
+                end
+            end
+        end
+    end
+    return StructArray((time = times, quantity = quantities, price = prices))
 end
 
 """

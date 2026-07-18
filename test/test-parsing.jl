@@ -705,3 +705,47 @@ end
     @test rows.start[1] == DateTime(2024, 5, 1)
     @test rows.stop[1] == DateTime(2024, 5, 10)
 end
+
+@testset "parse_timeseries_quantity_price — dual-value points (17.1.B&C)" begin
+    # Points on "volumes AND prices of contracted reserves" carry BOTH a
+    # <quantity> (MW) and a <procurement_Price.amount> (EUR/MW); a single
+    # value column can only keep one of them.
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Balancing_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A01</curveType>
+        <Period>
+          <timeInterval><start>2024-09-01T22:00Z</start><end>2024-09-02T00:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>600.0</quantity><procurement_Price.amount>11.5</procurement_Price.amount></Point>
+          <Point><position>2</position><quantity>580.0</quantity></Point>
+        </Period>
+      </TimeSeries>
+    </Balancing_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries_quantity_price(xml)
+    @test length(rows) == 2
+    @test rows.time == [DateTime(2024, 9, 1, 22), DateTime(2024, 9, 1, 23)]
+    @test rows.quantity == [600.0, 580.0]
+    @test rows.price[1] == 11.5
+    @test isnan(rows.price[2])
+end
+
+@testset "parse_timeseries_quantity_price — A03 fill carries both columns" begin
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <Balancing_MarketDocument xmlns="urn:x">
+      <TimeSeries>
+        <curveType>A03</curveType>
+        <Period>
+          <timeInterval><start>2024-09-01T00:00Z</start><end>2024-09-01T04:00Z</end></timeInterval>
+          <resolution>PT60M</resolution>
+          <Point><position>1</position><quantity>100.0</quantity><procurement_Price.amount>5.0</procurement_Price.amount></Point>
+          <Point><position>3</position><quantity>200.0</quantity><procurement_Price.amount>6.0</procurement_Price.amount></Point>
+        </Period>
+      </TimeSeries>
+    </Balancing_MarketDocument>
+    """
+    rows = ENTSOE.parse_timeseries_quantity_price(xml; fill_gaps = true)
+    @test rows.quantity == [100.0, 100.0, 200.0, 200.0]
+    @test rows.price == [5.0, 5.0, 6.0, 6.0]
+end

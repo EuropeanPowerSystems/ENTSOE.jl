@@ -3011,6 +3011,11 @@ Volumes and prices of contracted balancing reserves (Balancing 17.1.B/C,
 default `"A01"` (Daily); pass `"A02"` (Weekly), `"A03"` (Monthly),
 `"A04"` (Yearly), `"A13"` (Hourly).
 
+Points on this endpoint are two-valued, so `Parsed()` returns three
+columns — `(time, quantity, price)` via
+[`parse_timeseries_quantity_price`](@ref): `quantity` is the contracted
+MW, `price` the procurement price (`NaN` when a point omits one).
+
 Optional kwargs:
   - `process_type` — `"A51"` (aFRR), `"A52"` (FCR), `"A47"` (mFRR),
     `"A46"` (RR)
@@ -3028,7 +3033,7 @@ function volumes_and_prices_of_contracted_reserves(
     )
     apis = entsoe_apis(client)
     return _split_query(
-        format, parse_timeseries;
+        format, parse_timeseries_quantity_price;
         period_start = period_start, period_end = period_end, window = window,
         validate = validate, eics = (control_area,),
     ) do s, e
