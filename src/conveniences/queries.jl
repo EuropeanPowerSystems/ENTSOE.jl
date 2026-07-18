@@ -230,10 +230,13 @@ end
 # the one shared zip walk, so Parsed() and Raw() treat ack members
 # identically.
 function _zip_members_checked(xml::AbstractString)
-    members = unzip_response(Vector{UInt8}(codeunits(xml)))
+    # `codeunits` avoids copying the (possibly tens-of-MB) body, and
+    # `String(bytes)` may steal each member's buffer — `read(entry)` hands
+    # back a fresh Vector per member and the pairs are never read again.
+    members = unzip_response(codeunits(xml))
     strs = String[]
     for (_name, bytes) in members
-        s = String(copy(bytes))
+        s = String(bytes)
         check_acknowledgement(s)
         push!(strs, s)
     end

@@ -1046,8 +1046,11 @@ end
 Uses the stdlib `ZipFile` (via `Pkg`) — no extra deps. If the bytes
 aren't a valid ZIP, errors propagate from `ZipFile`.
 """
-function unzip_response(zip_bytes::Vector{UInt8})
+function unzip_response(zip_bytes::AbstractVector{UInt8})
     out = Pair{String, Vector{UInt8}}[]
+    # Accepts any byte vector (including `codeunits(::String)`) so callers
+    # holding the body as a String don't have to copy it first — IOBuffer
+    # wraps the bytes read-only and seekably, which is all ZipFile needs.
     reader = ZipFile.Reader(IOBuffer(zip_bytes))
     try
         for entry in reader.files
