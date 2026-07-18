@@ -138,3 +138,16 @@ end
     @test occursin("NetworkError", sprint(showerror, ne))
     @test occursin("dns lookup failed", sprint(showerror, ne))
 end
+
+@testset "check_response without a Retry-After header" begin
+    for status in (408, 429)
+        err = try
+            ENTSOE.check_response(status, "", Dict{String, String}())
+            nothing
+        catch e
+            e
+        end
+        @test err isa ENTSOE.RateLimitError
+        @test err.retry_after === nothing
+    end
+end

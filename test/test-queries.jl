@@ -1468,3 +1468,36 @@ let BR = _load_brokenrecord()
 
     end
 end
+
+@testset "concurrent window fetch propagates typed errors" begin
+    old = ENTSOE.get_config().window_concurrency
+    try
+        ENTSOE.set_config(window_concurrency = 3)
+        fail_call = (s, e) -> throw(ENTSOE.AuthError(401, "bad token"))
+        # The @sync wrapping must unwrap back to the same typed APIError
+        # the sequential path raises.
+        @test_throws ENTSOE.AuthError ENTSOE._split_query(
+            fail_call, ENTSOE.Parsed(), ENTSOE.parse_timeseries;
+            period_start = DateTime(2021, 1, 1), period_end = DateTime(2024, 1, 1),
+            window = Year(1),
+        )
+    finally
+        ENTSOE.set_config(window_concurrency = old)
+    end
+    # Unwrapping helpers on bare/composite shapes.
+    e = ArgumentError("x")
+    @test ENTSOE._unwrap_task_exception(e) === e
+    @test ENTSOE._unwrap_task_exception(CompositeException([e])) === e
+end
+
+@testset "_flows_all Raw path warns on non-no-data acknowledgements" begin
+    overlimit = ENTSOE.ENTSOEAcknowledgement(
+        "999", "The amount of requested data exceeds allowed limit",
+    )
+    fetch_ack = (a, b, fmt) -> throw(overlimit)
+    @test_logs (:warn, r"not plain no-data") match_mode = :any begin
+        @test_throws ENTSOE.ENTSOEAcknowledgement ENTSOE._flows_all(
+            ENTSOE.Raw(), fetch_ack, ["B1"], "AREA", true,
+        )
+    end
+end

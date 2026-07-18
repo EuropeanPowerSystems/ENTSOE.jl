@@ -760,3 +760,10 @@ end
     @test ENTSOE.parse_acknowledgement(xml) === nothing
     @test ENTSOE.check_acknowledgement(xml) == xml   # pass-through, no throw
 end
+
+@testset "_parse_entsoe_datetime — unrecognised shapes use the truncation fallback" begin
+    # Trailing junk defeats the strict pattern; the historical
+    # truncate-at-minutes behavior still applies.
+    @test ENTSOE._parse_entsoe_datetime("2024-09-01T22:00xyz") ==
+        DateTime(2024, 9, 1, 22, 0)
+end
