@@ -1338,3 +1338,24 @@ end
         @test err isa ENTSOE.APIError
     end
 end
+
+@testset "withdrawn=true conflicts loudly with an explicit doc_status" begin
+    offline2 = ENTSOEClient("PLAYBACK"; base_url = "http://127.0.0.1:9/api")
+    # withdrawn=true used to silently DISCARD an explicitly passed
+    # doc_status; the conflict must now raise before any network call.
+    @test_throws ArgumentError unavailability_of_generation_units(
+        offline2, EIC.BE, DateTime(2024, 5, 1), DateTime(2024, 6, 1);
+        withdrawn = true, doc_status = DocStatus.ACTIVE,
+    )
+    # Redundant but consistent combination stays allowed.
+    err = try
+        unavailability_of_generation_units(
+            offline2, EIC.BE, DateTime(2024, 5, 1), DateTime(2024, 6, 1);
+            withdrawn = true, doc_status = DocStatus.WITHDRAWN,
+        )
+        nothing
+    catch e
+        e
+    end
+    @test err isa ENTSOE.APIError   # reached the (unreachable) network
+end

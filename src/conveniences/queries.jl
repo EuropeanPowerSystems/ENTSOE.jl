@@ -115,6 +115,27 @@ _to_period(t)::Int64 = throw(
     )
 )
 
+# Optional-kwarg coercion: pass `nothing` through, stringify anything else.
+# One definition instead of the same ternary at every call site.
+_opt_str(x) = x === nothing ? nothing : String(x)
+
+# Resolve the outage wrappers' `withdrawn` shorthand against an explicit
+# `doc_status`. Passing both only makes sense when they agree — silently
+# preferring one over the other would hide a real caller bug.
+function _doc_status(withdrawn::Bool, doc_status)
+    ds = _opt_str(doc_status)
+    if withdrawn && ds !== nothing && ds != DocStatus.WITHDRAWN
+        throw(
+            ArgumentError(
+                "withdrawn = true conflicts with doc_status = $(repr(ds)) — " *
+                    "pass one or the other (withdrawn = true is shorthand for " *
+                    "doc_status = DocStatus.WITHDRAWN = \"A13\")."
+            )
+        )
+    end
+    return withdrawn ? DocStatus.WITHDRAWN : ds
+end
+
 # Internal: run EIC validation for one wrapper call. `validate === nothing`
 # defers to the package-wide `get_config().validate_eic` default; an explicit
 # Bool overrides it. `eic_type` is the registry type the wrapper's domain
@@ -684,7 +705,7 @@ function explicit_allocations_offered_transfer_capacity(
             String(auction_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
             s, e;
-            auction_category = auction_category === nothing ? nothing : String(auction_category),
+            auction_category = _opt_str(auction_category),
             update_date_and_or_time = update_date_and_or_time === nothing ?
                 nothing : Int(update_date_and_or_time),
             classification_sequence_attribute_instance_component_position =
@@ -903,7 +924,7 @@ function explicit_allocations_use_of_transfer_capacity(
             String(business_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
             s, e;
-            auction_category = auction_category === nothing ? nothing : String(auction_category),
+            auction_category = _opt_str(auction_category),
             classification_sequence_attribute_instance_component_position =
                 sequence === nothing ? nothing : Int(sequence),
         )
@@ -941,7 +962,7 @@ function total_capacity_already_allocated(
             String(business_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
             s, e;
-            auction_category = auction_category === nothing ? nothing : String(auction_category),
+            auction_category = _opt_str(auction_category),
         )
     end
 end
@@ -979,7 +1000,7 @@ function transfer_capacities_with_third_countries(
             String(auction_type), String(contract_market_agreement_type),
             String(out_area), String(in_area),
             s, e;
-            auction_category = auction_category === nothing ? nothing : String(auction_category),
+            auction_category = _opt_str(auction_category),
             classification_sequence_attribute_instance_component_position =
                 sequence === nothing ? nothing : Int(sequence),
         )
@@ -1202,7 +1223,7 @@ function installed_capacity_per_production_unit(
         generation141_b_installed_capacity_per_production_unit(
             apis.generation, "A71", "A33", String(area),
             _to_period(period_start), _to_period(period_end);
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            psr_type = _opt_str(psr_type),
         )
     end
 end
@@ -1262,7 +1283,7 @@ function wind_solar_forecast(
         generation141_d_generation_forecasts_for_wind_and_solar(
             apis.generation, "A69", "A01", String(area),
             s, e;
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            psr_type = _opt_str(psr_type),
         )
     end
 end
@@ -1297,7 +1318,7 @@ function intraday_wind_solar_forecast(
         generation141_d_generation_forecasts_for_wind_and_solar(
             apis.generation, "A69", "A40", String(area),
             s, e;
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            psr_type = _opt_str(psr_type),
         )
     end
 end
@@ -1329,7 +1350,7 @@ function actual_generation_per_production_type(
         generation161_b_c_actual_generation_per_production_type(
             apis.generation, "A75", "A16", String(area),
             s, e;
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            psr_type = _opt_str(psr_type),
         )
     end
 end
@@ -1364,7 +1385,7 @@ function actual_generation_per_generation_unit(
         generation161_a_actual_generation_per_generation_unit(
             apis.generation, "A73", "A16", String(area),
             s, e;
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            psr_type = _opt_str(psr_type),
             registered_resource = registered_resource === nothing ?
                 nothing : String(registered_resource),
         )
@@ -1751,9 +1772,8 @@ function expansion_and_dismantling_project(
             apis.transmission, "A90",
             String(out_area), String(in_area),
             s, e;
-            business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = withdrawn ? DocStatus.WITHDRAWN :
-                (doc_status === nothing ? nothing : String(doc_status)),
+            business_type = _opt_str(business_type),
+            doc_status = _doc_status(withdrawn, doc_status),
         )
     end
 end
@@ -1928,16 +1948,15 @@ function unavailability_of_generation_units(
         outages151_a_b_unavailability_of_generation_units(
             apis.outages, "A80", String(area),
             s, e;
-            business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = withdrawn ? DocStatus.WITHDRAWN :
-                (doc_status === nothing ? nothing : String(doc_status)),
+            business_type = _opt_str(business_type),
+            doc_status = _doc_status(withdrawn, doc_status),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
                 nothing : _to_period(period_end_update),
             registered_resource = registered_resource === nothing ?
                 nothing : String(registered_resource),
-            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            m_r_i_d = _opt_str(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -1978,16 +1997,15 @@ function unavailability_of_production_units(
         outages151_c_d_unavailability_of_production_units(
             apis.outages, "A77", String(area),
             s, e;
-            business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = withdrawn ? DocStatus.WITHDRAWN :
-                (doc_status === nothing ? nothing : String(doc_status)),
+            business_type = _opt_str(business_type),
+            doc_status = _doc_status(withdrawn, doc_status),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
                 nothing : _to_period(period_end_update),
             registered_resource = registered_resource === nothing ?
                 nothing : String(registered_resource),
-            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            m_r_i_d = _opt_str(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -2029,14 +2047,13 @@ function unavailability_of_transmission_infrastructure(
             apis.outages, "A78",
             String(out_area), String(in_area),
             s, e;
-            business_type = business_type === nothing ? nothing : String(business_type),
-            doc_status = withdrawn ? DocStatus.WITHDRAWN :
-                (doc_status === nothing ? nothing : String(doc_status)),
+            business_type = _opt_str(business_type),
+            doc_status = _doc_status(withdrawn, doc_status),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
                 nothing : _to_period(period_end_update),
-            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            m_r_i_d = _opt_str(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -2079,9 +2096,8 @@ function outages_fall_backs(
             String(process_type), String(business_type),
             String(bidding_zone),
             s, e;
-            doc_status = withdrawn ? DocStatus.WITHDRAWN :
-                (doc_status === nothing ? nothing : String(doc_status)),
-            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            doc_status = _doc_status(withdrawn, doc_status),
+            m_r_i_d = _opt_str(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -2123,16 +2139,15 @@ function unavailability_of_transmission_infrastructure_available_capacity(
         outages101_a_b_unavailability_of_transmission_infrastructure_available_capacity(
             apis.outages, "A78", String(control_area),
             s, e;
-            business_type = business_type === nothing ? nothing : String(business_type),
+            business_type = _opt_str(business_type),
             asset_registered_resource_m_r_i_d = asset_registered_resource_m_r_i_d === nothing ?
                 nothing : String(asset_registered_resource_m_r_i_d),
-            doc_status = withdrawn ? DocStatus.WITHDRAWN :
-                (doc_status === nothing ? nothing : String(doc_status)),
+            doc_status = _doc_status(withdrawn, doc_status),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
                 nothing : _to_period(period_end_update),
-            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            m_r_i_d = _opt_str(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -2174,16 +2189,15 @@ function unavailability_of_transmission_infrastructure_net_position_impact(
         outages101_a_b_unavailability_of_transmission_infrastructure_net_position_impact(
             apis.outages, "A78", String(ptdf_domain),
             s, e;
-            business_type = business_type === nothing ? nothing : String(business_type),
+            business_type = _opt_str(business_type),
             asset_registered_resource_m_r_i_d = asset_registered_resource_m_r_i_d === nothing ?
                 nothing : String(asset_registered_resource_m_r_i_d),
-            doc_status = withdrawn ? DocStatus.WITHDRAWN :
-                (doc_status === nothing ? nothing : String(doc_status)),
+            doc_status = _doc_status(withdrawn, doc_status),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
                 nothing : _to_period(period_end_update),
-            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            m_r_i_d = _opt_str(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -2227,13 +2241,12 @@ function unavailability_of_offshore_grid(
         outages101_c_unavailability_of_offshore_grid_infrastructure(
             apis.outages, "A79", String(bidding_zone),
             s, e;
-            doc_status = withdrawn ? DocStatus.WITHDRAWN :
-                (doc_status === nothing ? nothing : String(doc_status)),
+            doc_status = _doc_status(withdrawn, doc_status),
             period_start_update = period_start_update === nothing ?
                 nothing : _to_period(period_start_update),
             period_end_update = period_end_update === nothing ?
                 nothing : _to_period(period_end_update),
-            m_r_i_d = m_r_i_d === nothing ? nothing : String(m_r_i_d),
+            m_r_i_d = _opt_str(m_r_i_d),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -2284,7 +2297,7 @@ function production_and_generation_units(
         master_data_production_and_generation_units(
             apis.master_data, "A95", String(business_type),
             String(area), impl;
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            psr_type = _opt_str(psr_type),
         )
     end
 end
@@ -2315,7 +2328,7 @@ function aggregated_unavailability_of_consumption_units(
         outages71_a_b_aggregated_unavailability_of_consumption_units(
             apis.outages, "A76", String(area),
             s, e;
-            business_type = business_type === nothing ? nothing : String(business_type),
+            business_type = _opt_str(business_type),
         )
     end
 end
@@ -2407,7 +2420,7 @@ function imbalance_prices(
         balancing171_g_imbalance_prices(
             apis.balancing, "A85", String(area),
             s, e;
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            psr_type = _opt_str(psr_type),
         )
     end
 end
@@ -2642,7 +2655,7 @@ function changes_to_bid_availability(
         balancing_ifs_mfrr99_afrr9698_changes_to_bid_availability(
             apis.balancing, "B45", String(process_type), String(domain),
             s, e;
-            business_type = business_type === nothing ? nothing : String(business_type),
+            business_type = _opt_str(business_type),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -2678,7 +2691,7 @@ function changes_to_bid_availability_archives(
             apis.balancing, "B45", String(process_type), String(domain),
             s, e,
             String(storage_type);
-            business_type = business_type === nothing ? nothing : String(business_type),
+            business_type = _opt_str(business_type),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -2727,7 +2740,7 @@ function balancing_energy_bids(
                 nothing : String(standard_market_product),
             original_market_product = original_market_product === nothing ?
                 nothing : String(original_market_product),
-            direction = direction === nothing ? nothing : String(direction),
+            direction = _opt_str(direction),
         )
     end
 end
@@ -3149,8 +3162,8 @@ function volumes_and_prices_of_contracted_reserves(
             apis.balancing, "A81", "B95",
             String(type_market_agreement_type), String(control_area),
             s, e;
-            process_type = process_type === nothing ? nothing : String(process_type),
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            process_type = _opt_str(process_type),
+            psr_type = _opt_str(psr_type),
             offset = offset === nothing ? nothing : Int(offset),
         )
     end
@@ -3220,8 +3233,8 @@ function prices_of_activated_balancing_energy(
         balancing171_f_prices_of_activated_balancing_energy(
             apis.balancing, "A84", String(process_type), String(control_area),
             s, e;
-            business_type = business_type === nothing ? nothing : String(business_type),
-            psr_type = psr_type === nothing ? nothing : String(psr_type),
+            business_type = _opt_str(business_type),
+            psr_type = _opt_str(psr_type),
             standard_market_product = standard_market_product === nothing ?
                 nothing : String(standard_market_product),
             original_market_product = original_market_product === nothing ?
