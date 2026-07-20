@@ -22,6 +22,8 @@ src/
                       ranges via `_split_query` (per-endpoint `window` kwarg default)
                   ←   `_query` is zip-aware — every wrapper transparently unzips
                       application/zip bodies (balancing 17.1.x, outages with many notices)
+                  ←   omi_other_market_information — the one auto-paginating wrapper
+                      (fixed 200-doc server stride, returns Vector{String} of XML pages)
     parsing.jl    ←   XML → StructVector{NamedTuple} via EzXML
                   ←   parse_timeseries (price/quantity/*.amount), parse_timeseries_per_psr,
                       parse_timeseries_quantity_price (two-valued 17.1.B&C points),
@@ -70,9 +72,20 @@ scripts/
   regenerate_smoke_cassettes.jl      ← re-record the 77-endpoint smoke fixtures
   record_tutorial_cassettes.jl       ← re-record the descriptive `tut_*.yml` fixtures
   record_eu_prices_2025.jl           ← one-off recorder for the EU-wide prices demo
+  record_flow_map.jl                 ← one-off recorder for the cross-border flow-map demo
+                                       (net physical flows per NEIGHBOURS border → JSON fixture)
   record_intraday_offshore_cassettes.jl  ← one-off recorder for intraday/offshore fixtures
 examples/
   walkthrough.jl                     ← runnable end-to-end demo (own Project.toml)
+docs/src/assets/
+  bidding_zones/*.geojson            ← VENDORED bidding-zone polygons (43 files) used by
+                                       the cross-border flow-map tutorial. NOT ours: copied
+                                       verbatim from the MIT-licensed EnergieID/entsoe-py
+                                       package. Keep ATTRIBUTION.md alongside them; refresh
+                                       by re-downloading from that repo (the `_2020` files
+                                       are pre-2021 Italian zones, skipped when drawing).
+  cross_border_flows_2025.json       ← recorder output for tutorial_flow_map.md (net flows,
+                                       one winter week; regenerate via scripts/record_flow_map.jl)
 ```
 
 The generated `src/api/` directory carries `linguist-generated=true` in `.gitattributes`. Re-running `gen/regenerate.jl` nukes and re-creates `src/api/`, then refreshes the spec-derived docs pages (`docs/src/api/<Tag>.md` and the `## Per-API base paths` section of `docs/src/generated_reference.md`) — it never touches `src/ENTSOE.jl`, `src/client/`, `src/conveniences/`, or `test/`. CI runs the same regeneration weekly (`.github/workflows/regen-check.yml`, Mondays 07:00 UTC or on manual dispatch) and opens a PR if anything drifts; it's the only workflow that needs Java.
@@ -221,6 +234,9 @@ Note: the generated layer returns `(xml, response)` tuples directly. It does **n
   - **Code → description NamedTuples** — `PSR_LABELS.B16 == "Solar"`, plus `DOCUMENT_LABELS`, `PROCESS_LABELS`, `BUSINESS_LABELS`. `code_for(LABELS, "wind onshore")` does reverse lookup by substring on the description.
   - **Subset tuples** — `PsrGroup.HYDRO == ("B10", "B11", "B12")`, plus `WIND`, `FOSSIL`, `RENEWABLE`, `STORAGE`, `INFRASTRUCTURE`. For client-side filtering after a fetch (`rows[in.(rows.psr_type, Ref(PsrGroup.HYDRO))]`). ENTSO-E rejects multi-code server-side filters, so groups never go through the `psr_type` kwarg.
 - **Sparse series are forward-filled by default.** ENTSO-E emits variable-sized-block series (`<curveType>A03`) that omit unchanged points — a point at position `p` holds until the next listed position. The parsers in `parsing.jl` forward-fill those runs onto the regular resolution grid when `fill_gaps` is true (the default, from `get_config().fill_gaps`); disable globally via `set_config(fill_gaps = false)` or per-call via the parsers' `fill_gaps` kwarg. Sequential `A01` series are untouched. A listed `<Point>` carrying no value element explicitly marks "no value here": it terminates the previous run and nothing is fabricated until the next valued point.
+- **Outage wrappers expose the server-side filters.** The `unavailability_of_*` family takes `business_type`, `registered_resource`, `m_r_i_d`, `period_start_update`/`period_end_update`, `doc_status`, `withdrawn`, and a manual `offset` kwarg (ENTSO-E caps unavailability responses at 200 documents per request). `withdrawn = true` is shorthand for `doc_status = DocStatus.WITHDRAWN`; passing both with conflicting values throws an `ArgumentError` (see `_doc_status` in `queries.jl`).
+- **`period_end` is genuinely optional on the snapshot-capable wrappers** (`total_nominated_capacity`, `procured_balancing_capacity`): omitting it requests the single publication snapshot at `period_start` through a non-splitting single-request path.
+- **OMI is the odd one out.** `omi_other_market_information` auto-paginates (the server's page size is fixed at 200 documents; only `offset` exists on the wire; ENTSO-E hard-caps OMI at 5000 entries → `max_pages = 25` default) and returns a `Vector{String}` of raw XML pages — no `ResponseFormat` argument, because different document types live behind this endpoint and there is no single parsed shape. An acknowledgement on the first page is re-thrown; on a later page it just ends the walk.
 - **"No data" is HTTP 200.** ENTSO-E returns an `<Acknowledgement_MarketDocument>` body. The wrappers detect this via `check_acknowledgement` and re-raise as `ENTSOEAcknowledgement` (with `.reason_code` and `.text`). The generated layer does not; callers using it directly must run `check_acknowledgement(xml)` themselves.
 - **`application/zip` happens.** Balancing 17.1.G/H/I, 1.2.3.F/H/I, and outages endpoints with many notices serve zipped XML. `_query` in `src/conveniences/queries.jl` sniffs the 4-byte ZIP magic, unzips with `ZipFile.jl` via `unzip_response`, runs the acknowledgement check per-member, and `vcat`-s the parsed `StructVector`s. `Raw()` returns the concatenated XML members separated by `<!-- next zip member -->` sentinels. This is fully transparent — no wrapper has to opt in.
 - **HTTP errors are typed.** `src/client/errors.jl#check_response` maps status codes to `AuthError` (401/403), `RateLimitError` (408/429, parses `Retry-After`, extracts ENTSO-E's HTML ban message via `rate_limit_message`), `ClientError` (other 4xx), `ServerError` (5xx). Network failures become `NetworkError`; timeouts become `TimeoutError(:connect | :read | :total)`. All five have `Base.showerror` overloads that truncate HTML/long bodies — a 503-during-maintenance no longer dumps 100 KB into stack traces. Don't write `try/catch err isa Exception` blocks — match on the specific subtype.
@@ -233,7 +249,7 @@ Note: the generated layer returns `(xml, response)` tuples directly. It does **n
 - Cassette missing → recording mode: real HTTP call, request + response saved to disk.
 - Cassette present → playback mode: response replayed, request shape verified; no network.
 
-To re-record, delete the cassette and run the tests with a valid token. Token resolution for recording: `ENV["ENTSOE_API_TOKEN"]` first, then `<repo-root>/token.txt` (single line, gitignored).
+To re-record, delete the cassette and run the tests with a valid token. Token resolution for recording is centralized in `_resolve_token` (`test/_brokenrecord_helpers.jl`), shared by the cassette tests and every recorder script: `ENV["ENTSOE_API_TOKEN"]` first, then `<repo-root>/token.txt` (single line, gitignored).
 
 Shared BrokenRecord setup (loading via `Base.require`, padding `STATE` for Julia 1.12+'s `:interactive` thread pool, applying `configure!` with the standard `ignore_headers`/`ignore_query` redaction) lives in `test/_brokenrecord_helpers.jl`. Each consumer does:
 
