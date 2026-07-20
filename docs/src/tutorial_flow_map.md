@@ -322,4 +322,3 @@ thickness key — keys off `net_a_to_b_gwh`, so nothing here changes.
 - The same GeoAxis recipe coloured by price or renewables share:
   [2025 price heat-map](tutorial_eu_map.md) and
   [renewables-share map](tutorial_renewables_map.md).
-```

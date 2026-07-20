@@ -18,8 +18,9 @@ of the importable Julia package.
   10 m Admin-0 cultural vectors.
 - **Norway (NO_1…NO_5):** [NVE Temakart](https://temakart.nve.no/link/?link=vannkraft).
 - **Sweden (SE_1…SE_4):** based on <https://www.natomraden.se/> (manually redrawn).
-- **Italy (IT_*):** regions aggregated per
-  <https://www.mercatoelettrico.org/en/mercati/mercatoelettrico/zone.aspx>.
+- **Italy (IT_*):** regions aggregated per the GME (Gestore dei Mercati
+  Energetici) market-zone definition, as documented in `entsoe-py`'s
+  README.
 
 Rings were rewound to RFC 7946 winding order with `geojson-rewind`.
 
