@@ -6,7 +6,7 @@ version = "1.0.0-DEV"
 [compat]
 Dates = "1"
 EzXML = "1"
-HTTP = "1"
+HTTP = "1, 2.6"
 JSON = "1"
 Logging = "1"
 OpenAPI = "0.2"
